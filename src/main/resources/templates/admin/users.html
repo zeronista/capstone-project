@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý người dùng - ISSVSG</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#ECFEFF', 100: '#CFFAFE', 200: '#A5F3FC', 300: '#67E8F9', 400: '#22D3EE', 500: '#0891B2', 600: '#0E7490', 700: '#155E75', 800: '#164E63', 900: '#083344' },
+                        secondary: { 50: '#F0FDF4', 100: '#DCFCE7', 500: '#22C55E', 600: '#059669' },
+                        surface: { 50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1', 400: '#94A3B8', 500: '#64748B', 600: '#475569', 700: '#334155', 800: '#1E293B', 900: '#0F172A' }
+                    },
+                    fontFamily: { heading: ['Poppins', 'sans-serif'], body: ['Open Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Open Sans', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; }
+        .sidebar-link.active { background-color: rgba(8, 145, 178, 0.1); color: #0891B2; border-right: 3px solid #0891B2; }
+    </style>
+</head>
+<body class="bg-surface-50">
+    <!-- Sidebar -->
+    <nav th:replace="~{fragments/layout :: sidebar}"></nav>
+    
+    <!-- Top Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    
+    <!-- Main Content -->
+    <main class="ml-64 pt-24 pb-8 px-4 md:px-6 lg:px-8 min-h-screen">
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-surface-900 font-heading">Quản lý người dùng</h1>
+                <p class="text-surface-500 mt-1">Quản lý bệnh nhân và nhân viên trong hệ thống</p>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-4 md:mt-0">
+                <button class="inline-flex items-center gap-2 px-4 py-2.5 border border-surface-200 text-surface-700 font-medium rounded-xl hover:bg-surface-50 transition-colors duration-200 cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                    Import Excel
+                </button>
+                <button class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 text-white font-medium rounded-xl hover:bg-primary-600 transition-colors duration-200 cursor-pointer shadow-lg shadow-primary-500/25">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Thêm người dùng
+                </button>
+            </div>
+        </div>
+        
+        <!-- Stats -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-xl border border-surface-200 p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer">
+                <p class="text-sm text-surface-500">Tổng bệnh nhân</p>
+                <p class="text-2xl font-bold text-surface-900 mt-1">1,284</p>
+            </div>
+            <div class="bg-white rounded-xl border border-surface-200 p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer">
+                <p class="text-sm text-surface-500">Bác sĩ</p>
+                <p class="text-2xl font-bold text-surface-900 mt-1">45</p>
+            </div>
+            <div class="bg-white rounded-xl border border-surface-200 p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer">
+                <p class="text-sm text-surface-500">Y tá</p>
+                <p class="text-2xl font-bold text-surface-900 mt-1">78</p>
+            </div>
+            <div class="bg-white rounded-xl border border-surface-200 p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer">
+                <p class="text-sm text-surface-500">Nhân viên khác</p>
+                <p class="text-2xl font-bold text-surface-900 mt-1">32</p>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="bg-white rounded-2xl border border-surface-200 overflow-hidden">
+            <div class="border-b border-surface-200">
+                <div class="flex gap-0">
+                    <button class="px-6 py-4 text-primary-600 font-medium border-b-2 border-primary-500 cursor-pointer">Bệnh nhân</button>
+                    <button class="px-6 py-4 text-surface-500 hover:text-surface-700 font-medium border-b-2 border-transparent hover:border-surface-300 transition-colors duration-200 cursor-pointer">Nhân viên</button>
+                </div>
+            </div>
+            
+            <!-- Filters -->
+            <div class="p-4 border-b border-surface-100">
+                <div class="flex flex-col lg:flex-row lg:items-center gap-4">
+                    <div class="flex-1">
+                        <div class="relative">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" placeholder="Tìm theo tên, mã bệnh nhân, số điện thoại..." 
+                                class="w-full pl-10 pr-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <select class="px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer">
+                            <option>Tất cả giới tính</option>
+                            <option>Nam</option>
+                            <option>Nữ</option>
+                        </select>
+                        <select class="px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer">
+                            <option>Tất cả độ tuổi</option>
+                            <option>0-18 tuổi</option>
+                            <option>19-40 tuổi</option>
+                            <option>41-60 tuổi</option>
+                            <option>Trên 60 tuổi</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Users Grid -->
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- User Card 1 -->
+                    <div class="bg-surface-50 rounded-xl p-4 hover:shadow-md transition-all duration-200 cursor-pointer border border-transparent hover:border-primary-200">
+                        <div class="flex items-start gap-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold text-lg">TH</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-semibold text-surface-900 truncate">Trần Văn Hùng</h4>
+                                    <span class="text-xs text-surface-500">Nam, 45 tuổi</span>
+                                </div>
+                                <p class="text-sm text-primary-600 font-medium mt-0.5">BN-2026-0142</p>
+                                <p class="text-sm text-surface-500 mt-1">0912 345 678</p>
+                                <div class="flex items-center gap-2 mt-3">
+                                    <span class="px-2 py-0.5 bg-secondary-100 text-secondary-700 text-xs font-medium rounded">Điều trị</span>
+                                    <span class="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-medium rounded">Tim mạch</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-surface-200">
+                            <span class="text-xs text-surface-500">Khám gần nhất: 21/01/2026</span>
+                            <div class="flex gap-1">
+                                <button class="p-1.5 text-surface-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200 cursor-pointer" title="Xem hồ sơ">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </button>
+                                <button class="p-1.5 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer" title="Chỉnh sửa">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- User Card 2 -->
+                    <div class="bg-surface-50 rounded-xl p-4 hover:shadow-md transition-all duration-200 cursor-pointer border border-transparent hover:border-primary-200">
+                        <div class="flex items-start gap-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold text-lg">LM</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-semibold text-surface-900 truncate">Lê Thị Mai</h4>
+                                    <span class="text-xs text-surface-500">Nữ, 32 tuổi</span>
+                                </div>
+                                <p class="text-sm text-primary-600 font-medium mt-0.5">BN-2026-0141</p>
+                                <p class="text-sm text-surface-500 mt-1">0987 654 321</p>
+                                <div class="flex items-center gap-2 mt-3">
+                                    <span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">Đang khám</span>
+                                    <span class="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-medium rounded">Nội tiết</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-surface-200">
+                            <span class="text-xs text-surface-500">Khám gần nhất: 21/01/2026</span>
+                            <div class="flex gap-1">
+                                <button class="p-1.5 text-surface-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200 cursor-pointer" title="Xem hồ sơ">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </button>
+                                <button class="p-1.5 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer" title="Chỉnh sửa">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- User Card 3 -->
+                    <div class="bg-surface-50 rounded-xl p-4 hover:shadow-md transition-all duration-200 cursor-pointer border border-transparent hover:border-primary-200">
+                        <div class="flex items-start gap-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-secondary-400 to-secondary-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold text-lg">PD</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-semibold text-surface-900 truncate">Phạm Văn Đức</h4>
+                                    <span class="text-xs text-surface-500">Nam, 58 tuổi</span>
+                                </div>
+                                <p class="text-sm text-primary-600 font-medium mt-0.5">BN-2026-0140</p>
+                                <p class="text-sm text-surface-500 mt-1">0901 234 567</p>
+                                <div class="flex items-center gap-2 mt-3">
+                                    <span class="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-medium rounded">Tái khám</span>
+                                    <span class="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-medium rounded">Thần kinh</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-surface-200">
+                            <span class="text-xs text-surface-500">Khám gần nhất: 20/01/2026</span>
+                            <div class="flex gap-1">
+                                <button class="p-1.5 text-surface-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200 cursor-pointer" title="Xem hồ sơ">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </button>
+                                <button class="p-1.5 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer" title="Chỉnh sửa">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- User Card 4 -->
+                    <div class="bg-surface-50 rounded-xl p-4 hover:shadow-md transition-all duration-200 cursor-pointer border border-transparent hover:border-primary-200">
+                        <div class="flex items-start gap-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold text-lg">NH</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-semibold text-surface-900 truncate">Nguyễn Hoàng</h4>
+                                    <span class="text-xs text-surface-500">Nam, 28 tuổi</span>
+                                </div>
+                                <p class="text-sm text-primary-600 font-medium mt-0.5">BN-2026-0139</p>
+                                <p class="text-sm text-surface-500 mt-1">0923 456 789</p>
+                                <div class="flex items-center gap-2 mt-3">
+                                    <span class="px-2 py-0.5 bg-secondary-100 text-secondary-700 text-xs font-medium rounded">Hoàn thành</span>
+                                    <span class="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-medium rounded">Nội tổng quát</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-surface-200">
+                            <span class="text-xs text-surface-500">Khám gần nhất: 20/01/2026</span>
+                            <div class="flex gap-1">
+                                <button class="p-1.5 text-surface-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200 cursor-pointer" title="Xem hồ sơ">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </button>
+                                <button class="p-1.5 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer" title="Chỉnh sửa">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- User Card 5 -->
+                    <div class="bg-surface-50 rounded-xl p-4 hover:shadow-md transition-all duration-200 cursor-pointer border border-transparent hover:border-primary-200">
+                        <div class="flex items-start gap-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold text-lg">VT</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-semibold text-surface-900 truncate">Võ Thị Thanh</h4>
+                                    <span class="text-xs text-surface-500">Nữ, 65 tuổi</span>
+                                </div>
+                                <p class="text-sm text-primary-600 font-medium mt-0.5">BN-2026-0138</p>
+                                <p class="text-sm text-surface-500 mt-1">0934 567 890</p>
+                                <div class="flex items-center gap-2 mt-3">
+                                    <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-medium rounded">Ưu tiên</span>
+                                    <span class="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-medium rounded">Tim mạch</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-surface-200">
+                            <span class="text-xs text-surface-500">Khám gần nhất: 19/01/2026</span>
+                            <div class="flex gap-1">
+                                <button class="p-1.5 text-surface-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200 cursor-pointer" title="Xem hồ sơ">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </button>
+                                <button class="p-1.5 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer" title="Chỉnh sửa">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- User Card 6 -->
+                    <div class="bg-surface-50 rounded-xl p-4 hover:shadow-md transition-all duration-200 cursor-pointer border border-transparent hover:border-primary-200">
+                        <div class="flex items-start gap-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold text-lg">HN</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-semibold text-surface-900 truncate">Hoàng Ngọc Anh</h4>
+                                    <span class="text-xs text-surface-500">Nữ, 41 tuổi</span>
+                                </div>
+                                <p class="text-sm text-primary-600 font-medium mt-0.5">BN-2026-0137</p>
+                                <p class="text-sm text-surface-500 mt-1">0945 678 901</p>
+                                <div class="flex items-center gap-2 mt-3">
+                                    <span class="px-2 py-0.5 bg-secondary-100 text-secondary-700 text-xs font-medium rounded">Hoàn thành</span>
+                                    <span class="px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-medium rounded">Xương khớp</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-surface-200">
+                            <span class="text-xs text-surface-500">Khám gần nhất: 18/01/2026</span>
+                            <div class="flex gap-1">
+                                <button class="p-1.5 text-surface-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200 cursor-pointer" title="Xem hồ sơ">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </button>
+                                <button class="p-1.5 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer" title="Chỉnh sửa">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="flex items-center justify-between mt-6 pt-6 border-t border-surface-200">
+                    <p class="text-sm text-surface-500">Hiển thị 1-6 của 1,284 bệnh nhân</p>
+                    <div class="flex items-center gap-2">
+                        <button class="p-2 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                        </button>
+                        <button class="w-9 h-9 bg-primary-500 text-white rounded-lg font-medium cursor-pointer">1</button>
+                        <button class="w-9 h-9 text-surface-600 hover:bg-surface-100 rounded-lg font-medium transition-colors duration-200 cursor-pointer">2</button>
+                        <button class="w-9 h-9 text-surface-600 hover:bg-surface-100 rounded-lg font-medium transition-colors duration-200 cursor-pointer">3</button>
+                        <span class="text-surface-400">...</span>
+                        <button class="w-9 h-9 text-surface-600 hover:bg-surface-100 rounded-lg font-medium transition-colors duration-200 cursor-pointer">214</button>
+                        <button class="p-2 text-surface-600 hover:text-surface-900 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

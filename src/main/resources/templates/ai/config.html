@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cấu hình AI - ISSVSG</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#ECFEFF', 100: '#CFFAFE', 200: '#A5F3FC', 300: '#67E8F9', 400: '#22D3EE', 500: '#0891B2', 600: '#0E7490', 700: '#155E75', 800: '#164E63', 900: '#083344' },
+                        secondary: { 50: '#F0FDF4', 100: '#DCFCE7', 500: '#22C55E', 600: '#059669' },
+                        surface: { 50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1', 400: '#94A3B8', 500: '#64748B', 600: '#475569', 700: '#334155', 800: '#1E293B', 900: '#0F172A' }
+                    },
+                    fontFamily: { heading: ['Poppins', 'sans-serif'], body: ['Open Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Open Sans', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; }
+        .sidebar-link.active { background-color: rgba(8, 145, 178, 0.1); color: #0891B2; border-right: 3px solid #0891B2; }
+        .toggle-checkbox:checked { right: 0; border-color: #0891B2; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #0891B2; }
+    </style>
+</head>
+<body class="bg-surface-50">
+    <!-- Sidebar -->
+    <nav th:replace="~{fragments/layout :: sidebar}"></nav>
+    
+    <!-- Top Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    
+    <!-- Main Content -->
+    <main class="ml-64 pt-24 pb-8 px-4 md:px-6 lg:px-8 min-h-screen">
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-surface-900 font-heading">Cấu hình AI</h1>
+                <p class="text-surface-500 mt-1">Quản lý các model AI và tham số hệ thống</p>
+            </div>
+            <button class="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 text-white font-medium rounded-xl hover:bg-primary-600 transition-colors duration-200 cursor-pointer shadow-lg shadow-primary-500/25">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Lưu cấu hình
+            </button>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="flex gap-4 mb-6 border-b border-surface-200">
+            <button class="px-4 py-3 text-primary-600 font-medium border-b-2 border-primary-500 -mb-px cursor-pointer">Mô hình AI</button>
+            <button class="px-4 py-3 text-surface-600 hover:text-surface-900 font-medium transition-colors duration-200 cursor-pointer">Cấu hình cuộc gọi</button>
+            <button class="px-4 py-3 text-surface-600 hover:text-surface-900 font-medium transition-colors duration-200 cursor-pointer">Tham số xử lý</button>
+            <button class="px-4 py-3 text-surface-600 hover:text-surface-900 font-medium transition-colors duration-200 cursor-pointer">API Keys</button>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- AI Models Section -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Speech Recognition Model -->
+                <div class="bg-white rounded-2xl border border-surface-200 p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-primary-100 rounded-xl flex items-center justify-center">
+                                <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-surface-900">Nhận dạng giọng nói (STT)</h3>
+                                <p class="text-sm text-surface-500">Speech-to-Text Model</p>
+                            </div>
+                        </div>
+                        <div class="relative inline-block w-12 h-6">
+                            <input type="checkbox" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-surface-300 appearance-none cursor-pointer transition-all duration-200" checked/>
+                            <label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-300 cursor-pointer transition-all duration-200"></label>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 mb-2">Mô hình chính</label>
+                            <select class="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl cursor-pointer focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <option>OpenAI Whisper Large V3</option>
+                                <option>OpenAI Whisper Medium</option>
+                                <option>Google Speech-to-Text</option>
+                                <option>Azure Speech Services</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 mb-2">Mô hình dự phòng</label>
+                            <select class="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl cursor-pointer focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <option>OpenAI Whisper Medium</option>
+                                <option>Google Speech-to-Text</option>
+                                <option>Không sử dụng</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 mb-2">Ngôn ngữ mặc định</label>
+                            <select class="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl cursor-pointer">
+                                <option>Tiếng Việt (vi-VN)</option>
+                                <option>English (en-US)</option>
+                                <option>Tự động nhận dạng</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 mb-2">Độ nhạy nhận dạng</label>
+                            <select class="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl cursor-pointer">
+                                <option>Cao (chính xác hơn, chậm hơn)</option>
+                                <option>Trung bình</option>
+                                <option>Thấp (nhanh hơn, ít chính xác hơn)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Text-to-Speech Model -->
+                <div class="bg-white rounded-2xl border border-surface-200 p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-secondary-100 rounded-xl flex items-center justify-center">
+                                <svg class="w-5 h-5 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-surface-900">Tổng hợp giọng nói (TTS)</h3>
+                                <p class="text-sm text-surface-500">Text-to-Speech Model</p>
+                            </div>
+                        </div>
+                        <div class="relative inline-block w-12 h-6">
+                            <input type="checkbox" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-surface-300 appearance-none cursor-pointer transition-all duration-200" checked/>
+                            <label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-300 cursor-pointer transition-all duration-200"></label>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 mb-2">Mô hình TTS</label>
+                            <select class="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl cursor-pointer focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <option>VITS Vietnamese Premium</option>
+                                <option>Azure Neural TTS</option>
+                                <option>Google Cloud TTS</option>
+                                <option>ElevenLabs</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 mb-2">Giọng đọc mặc định</label>
+                            <select class="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl cursor-pointer focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <option>Nữ miền Bắc - Linh</option>
+                                <option>Nam miền Bắc - Minh</option>
+                                <option>Nữ miền Nam - Ngọc</option>
+                                <option>Nam miền Nam - Hùng</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 mb-2">Tốc độ đọc</label>
+                            <div class="flex items-center gap-2">
+                                <input type="range" min="0.5" max="2" step="0.1" value="1" class="flex-1 h-2 bg-surface-200 rounded-lg appearance-none cursor-pointer">
+                                <span class="text-sm text-surface-600 w-10">1.0x</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 mb-2">Cao độ</label>
+                            <div class="flex items-center gap-2">
+                                <input type="range" min="0.5" max="2" step="0.1" value="1" class="flex-1 h-2 bg-surface-200 rounded-lg appearance-none cursor-pointer">
+                                <span class="text-sm text-surface-600 w-10">1.0x</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 mb-2">Âm lượng</label>
+                            <div class="flex items-center gap-2">
+                                <input type="range" min="0" max="100" value="80" class="flex-1 h-2 bg-surface-200 rounded-lg appearance-none cursor-pointer">
+                                <span class="text-sm text-surface-600 w-10">80%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- NLU Model -->
+                <div class="bg-white rounded-2xl border border-surface-200 p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-surface-900">Hiểu ngôn ngữ tự nhiên (NLU)</h3>
+                                <p class="text-sm text-surface-500">Natural Language Understanding</p>
+                            </div>
+                        </div>
+                        <div class="relative inline-block w-12 h-6">
+                            <input type="checkbox" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 border-surface-300 appearance-none cursor-pointer transition-all duration-200" checked/>
+                            <label class="toggle-label block overflow-hidden h-6 rounded-full bg-surface-300 cursor-pointer transition-all duration-200"></label>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 mb-2">Mô hình NLU</label>
+                            <select class="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl cursor-pointer focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                <option>GPT-4 Turbo</option>
+                                <option>GPT-3.5 Turbo</option>
+                                <option>Claude 3 Sonnet</option>
+                                <option>Gemini Pro</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-surface-700 mb-2">Độ sáng tạo (Temperature)</label>
+                            <div class="flex items-center gap-2">
+                                <input type="range" min="0" max="1" step="0.1" value="0.3" class="flex-1 h-2 bg-surface-200 rounded-lg appearance-none cursor-pointer">
+                                <span class="text-sm text-surface-600 w-10">0.3</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-surface-700 mb-2">System Prompt</label>
+                        <textarea class="w-full px-4 py-3 bg-surface-50 border border-surface-200 rounded-xl h-24 resize-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" placeholder="Nhập prompt hệ thống...">Bạn là trợ lý AI của phòng khám ABC. Nhiệm vụ của bạn là hỗ trợ nhắc lịch tái khám, khảo sát hài lòng và trả lời các câu hỏi cơ bản về dịch vụ y tế. Luôn lịch sự và chuyên nghiệp.</textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar Settings -->
+            <div class="space-y-6">
+                <!-- Model Status -->
+                <div class="bg-white rounded-2xl border border-surface-200 p-6">
+                    <h3 class="font-semibold text-surface-900 mb-4">Trạng thái hệ thống</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2.5 h-2.5 bg-secondary-500 rounded-full"></div>
+                                <span class="text-sm text-surface-700">STT Service</span>
+                            </div>
+                            <span class="text-xs text-secondary-600 font-medium">Hoạt động</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2.5 h-2.5 bg-secondary-500 rounded-full"></div>
+                                <span class="text-sm text-surface-700">TTS Service</span>
+                            </div>
+                            <span class="text-xs text-secondary-600 font-medium">Hoạt động</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2.5 h-2.5 bg-secondary-500 rounded-full"></div>
+                                <span class="text-sm text-surface-700">NLU Service</span>
+                            </div>
+                            <span class="text-xs text-secondary-600 font-medium">Hoạt động</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2.5 h-2.5 bg-amber-500 rounded-full"></div>
+                                <span class="text-sm text-surface-700">Call Gateway</span>
+                            </div>
+                            <span class="text-xs text-amber-600 font-medium">Đang tải</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-surface-100">
+                        <div class="text-sm text-surface-500 mb-2">Sử dụng tài nguyên</div>
+                        <div class="space-y-2">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span>CPU</span>
+                                    <span>45%</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-surface-100 rounded-full overflow-hidden">
+                                    <div class="h-full w-[45%] bg-primary-500 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span>RAM</span>
+                                    <span>62%</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-surface-100 rounded-full overflow-hidden">
+                                    <div class="h-full w-[62%] bg-amber-500 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span>GPU</span>
+                                    <span>28%</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-surface-100 rounded-full overflow-hidden">
+                                    <div class="h-full w-[28%] bg-secondary-500 rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Usage Stats -->
+                <div class="bg-white rounded-2xl border border-surface-200 p-6">
+                    <h3 class="font-semibold text-surface-900 mb-4">Thống kê sử dụng tháng này</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-surface-600">STT Phút</span>
+                                <span class="font-medium text-surface-900">4,520 / 10,000</span>
+                            </div>
+                            <div class="w-full h-2 bg-surface-100 rounded-full overflow-hidden">
+                                <div class="h-full w-[45%] bg-primary-500 rounded-full"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-surface-600">TTS Ký tự</span>
+                                <span class="font-medium text-surface-900">2.1M / 5M</span>
+                            </div>
+                            <div class="w-full h-2 bg-surface-100 rounded-full overflow-hidden">
+                                <div class="h-full w-[42%] bg-secondary-500 rounded-full"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-surface-600">NLU Tokens</span>
+                                <span class="font-medium text-surface-900">850K / 2M</span>
+                            </div>
+                            <div class="w-full h-2 bg-surface-100 rounded-full overflow-hidden">
+                                <div class="h-full w-[42%] bg-purple-500 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="w-full mt-4 px-4 py-2 text-primary-600 font-medium text-sm hover:bg-primary-50 rounded-xl transition-colors duration-200 cursor-pointer">
+                        Nâng cấp gói dịch vụ
+                    </button>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-2xl border border-surface-200 p-6">
+                    <h3 class="font-semibold text-surface-900 mb-4">Thao tác nhanh</h3>
+                    
+                    <div class="space-y-2">
+                        <button class="w-full flex items-center gap-3 px-4 py-3 text-left text-surface-700 hover:bg-surface-50 rounded-xl transition-colors duration-200 cursor-pointer">
+                            <svg class="w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                            <span class="text-sm">Khởi động lại dịch vụ</span>
+                        </button>
+                        <button class="w-full flex items-center gap-3 px-4 py-3 text-left text-surface-700 hover:bg-surface-50 rounded-xl transition-colors duration-200 cursor-pointer">
+                            <svg class="w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                            <span class="text-sm">Kiểm tra bảo mật</span>
+                        </button>
+                        <button class="w-full flex items-center gap-3 px-4 py-3 text-left text-surface-700 hover:bg-surface-50 rounded-xl transition-colors duration-200 cursor-pointer">
+                            <svg class="w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span class="text-sm">Xuất cấu hình</span>
+                        </button>
+                        <button class="w-full flex items-center gap-3 px-4 py-3 text-left text-surface-700 hover:bg-surface-50 rounded-xl transition-colors duration-200 cursor-pointer">
+                            <svg class="w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                            </svg>
+                            <span class="text-sm">Nhập cấu hình</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

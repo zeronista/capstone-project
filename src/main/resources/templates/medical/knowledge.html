@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cơ sở tri thức - ISSVSG</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#ECFEFF', 100: '#CFFAFE', 200: '#A5F3FC', 300: '#67E8F9', 400: '#22D3EE', 500: '#0891B2', 600: '#0E7490', 700: '#155E75', 800: '#164E63', 900: '#083344' },
+                        secondary: { 50: '#F0FDF4', 100: '#DCFCE7', 500: '#22C55E', 600: '#059669' },
+                        surface: { 50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1', 400: '#94A3B8', 500: '#64748B', 600: '#475569', 700: '#334155', 800: '#1E293B', 900: '#0F172A' }
+                    },
+                    fontFamily: { heading: ['Poppins', 'sans-serif'], body: ['Open Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Open Sans', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; }
+        .sidebar-link.active { background-color: rgba(8, 145, 178, 0.1); color: #0891B2; border-right: 3px solid #0891B2; }
+    </style>
+</head>
+<body class="bg-surface-50">
+    <!-- Sidebar -->
+    <nav th:replace="~{fragments/layout :: sidebar}"></nav>
+    
+    <!-- Top Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    
+    <!-- Main Content -->
+    <main class="ml-64 pt-24 pb-8 px-4 md:px-6 lg:px-8 min-h-screen">
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-surface-900 font-heading">Cơ sở tri thức</h1>
+                <p class="text-surface-500 mt-1">Tra cứu kiến thức y khoa và hướng dẫn điều trị</p>
+            </div>
+            <button class="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 text-white font-medium rounded-xl hover:bg-primary-600 transition-colors duration-200 cursor-pointer shadow-lg shadow-primary-500/25">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Thêm bài viết
+            </button>
+        </div>
+        
+        <!-- Search Bar -->
+        <div class="bg-white rounded-2xl border border-surface-200 p-6 mb-6">
+            <div class="relative">
+                <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input type="text" placeholder="Tìm kiếm trong cơ sở tri thức..." class="w-full pl-12 pr-4 py-4 bg-surface-50 border border-surface-200 rounded-xl text-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200">
+            </div>
+            <div class="flex flex-wrap gap-2 mt-4">
+                <span class="text-sm text-surface-500">Tìm kiếm phổ biến:</span>
+                <button class="px-3 py-1 bg-surface-100 text-surface-600 rounded-full text-sm hover:bg-primary-100 hover:text-primary-600 transition-colors duration-200 cursor-pointer">Tăng huyết áp</button>
+                <button class="px-3 py-1 bg-surface-100 text-surface-600 rounded-full text-sm hover:bg-primary-100 hover:text-primary-600 transition-colors duration-200 cursor-pointer">Đái tháo đường</button>
+                <button class="px-3 py-1 bg-surface-100 text-surface-600 rounded-full text-sm hover:bg-primary-100 hover:text-primary-600 transition-colors duration-200 cursor-pointer">Tương tác thuốc</button>
+                <button class="px-3 py-1 bg-surface-100 text-surface-600 rounded-full text-sm hover:bg-primary-100 hover:text-primary-600 transition-colors duration-200 cursor-pointer">Kháng sinh</button>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Categories Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl border border-surface-200 p-4 sticky top-28">
+                    <h3 class="font-semibold text-surface-900 mb-4">Danh mục</h3>
+                    <nav class="space-y-1">
+                        <a href="#" class="flex items-center justify-between px-3 py-2 bg-primary-50 text-primary-700 rounded-lg font-medium">
+                            <span>Tất cả</span>
+                            <span class="bg-primary-100 text-primary-600 text-xs px-2 py-0.5 rounded-full">156</span>
+                        </a>
+                        <a href="#" class="flex items-center justify-between px-3 py-2 text-surface-600 hover:bg-surface-50 rounded-lg transition-colors duration-200">
+                            <span>Bệnh Tim mạch</span>
+                            <span class="text-xs text-surface-400">28</span>
+                        </a>
+                        <a href="#" class="flex items-center justify-between px-3 py-2 text-surface-600 hover:bg-surface-50 rounded-lg transition-colors duration-200">
+                            <span>Bệnh Nội tiết</span>
+                            <span class="text-xs text-surface-400">24</span>
+                        </a>
+                        <a href="#" class="flex items-center justify-between px-3 py-2 text-surface-600 hover:bg-surface-50 rounded-lg transition-colors duration-200">
+                            <span>Bệnh Hô hấp</span>
+                            <span class="text-xs text-surface-400">18</span>
+                        </a>
+                        <a href="#" class="flex items-center justify-between px-3 py-2 text-surface-600 hover:bg-surface-50 rounded-lg transition-colors duration-200">
+                            <span>Bệnh Tiêu hóa</span>
+                            <span class="text-xs text-surface-400">15</span>
+                        </a>
+                        <a href="#" class="flex items-center justify-between px-3 py-2 text-surface-600 hover:bg-surface-50 rounded-lg transition-colors duration-200">
+                            <span>Bệnh Thần kinh</span>
+                            <span class="text-xs text-surface-400">12</span>
+                        </a>
+                        <a href="#" class="flex items-center justify-between px-3 py-2 text-surface-600 hover:bg-surface-50 rounded-lg transition-colors duration-200">
+                            <span>Dược lý</span>
+                            <span class="text-xs text-surface-400">35</span>
+                        </a>
+                        <a href="#" class="flex items-center justify-between px-3 py-2 text-surface-600 hover:bg-surface-50 rounded-lg transition-colors duration-200">
+                            <span>Phác đồ điều trị</span>
+                            <span class="text-xs text-surface-400">24</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Articles List -->
+            <div class="lg:col-span-3 space-y-4">
+                <!-- Featured Article -->
+                <div class="bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl p-6 text-white cursor-pointer hover:shadow-lg transition-shadow duration-200">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="px-2 py-0.5 bg-white/20 rounded-full text-xs font-medium">Nổi bật</span>
+                        <span class="px-2 py-0.5 bg-white/20 rounded-full text-xs">Tim mạch</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Hướng dẫn điều trị tăng huyết áp theo ESC/ESH 2023</h3>
+                    <p class="text-primary-100 mb-4">Tổng hợp các khuyến cáo mới nhất về chẩn đoán, phân loại và điều trị tăng huyết áp từ Hội Tim mạch Châu Âu.</p>
+                    <div class="flex items-center gap-4 text-sm text-primary-100">
+                        <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            15 phút đọc
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            2.4k lượt xem
+                        </span>
+                        <span>Cập nhật: 15/01/2026</span>
+                    </div>
+                </div>
+                
+                <!-- Article Card 1 -->
+                <div class="bg-white rounded-2xl border border-surface-200 p-5 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs">Tim mạch</span>
+                            </div>
+                            <h4 class="font-semibold text-surface-900 mb-1">Quản lý rung nhĩ: Từ chẩn đoán đến điều trị</h4>
+                            <p class="text-sm text-surface-600 mb-3">Hướng dẫn toàn diện về rung nhĩ, bao gồm các phương pháp kiểm soát nhịp và tần số, thuốc chống đông...</p>
+                            <div class="flex items-center gap-4 text-xs text-surface-400">
+                                <span>10 phút đọc</span>
+                                <span>1.2k lượt xem</span>
+                                <span>BS. Nguyễn Văn A</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Article Card 2 -->
+                <div class="bg-white rounded-2xl border border-surface-200 p-5 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-xs">Nội tiết</span>
+                            </div>
+                            <h4 class="font-semibold text-surface-900 mb-1">Đái tháo đường type 2: Phác đồ điều trị theo ADA 2024</h4>
+                            <p class="text-sm text-surface-600 mb-3">Cập nhật mới nhất về điều trị đái tháo đường type 2, bao gồm lựa chọn thuốc và mục tiêu điều trị...</p>
+                            <div class="flex items-center gap-4 text-xs text-surface-400">
+                                <span>12 phút đọc</span>
+                                <span>980 lượt xem</span>
+                                <span>BS. Trần Thị Hoa</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Article Card 3 -->
+                <div class="bg-white rounded-2xl border border-surface-200 p-5 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs">Dược lý</span>
+                                <span class="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs">Quan trọng</span>
+                            </div>
+                            <h4 class="font-semibold text-surface-900 mb-1">Tương tác thuốc thường gặp trong thực hành lâm sàng</h4>
+                            <p class="text-sm text-surface-600 mb-3">Tổng hợp các tương tác thuốc quan trọng cần lưu ý khi kê đơn, bao gồm tương tác với thực phẩm...</p>
+                            <div class="flex items-center gap-4 text-xs text-surface-400">
+                                <span>20 phút đọc</span>
+                                <span>3.1k lượt xem</span>
+                                <span>DS. Phạm Minh Đức</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Article Card 4 -->
+                <div class="bg-white rounded-2xl border border-surface-200 p-5 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-0.5 bg-primary-100 text-primary-700 rounded-full text-xs">Hô hấp</span>
+                            </div>
+                            <h4 class="font-semibold text-surface-900 mb-1">Hen phế quản: Phân loại mức độ và tiếp cận điều trị theo GINA</h4>
+                            <p class="text-sm text-surface-600 mb-3">Hướng dẫn phân loại mức độ kiểm soát hen, lựa chọn bậc điều trị và xử trí cơn hen cấp...</p>
+                            <div class="flex items-center gap-4 text-xs text-surface-400">
+                                <span>8 phút đọc</span>
+                                <span>756 lượt xem</span>
+                                <span>BS. Lê Văn Hải</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Article Card 5 -->
+                <div class="bg-white rounded-2xl border border-surface-200 p-5 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 bg-secondary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-2 py-0.5 bg-secondary-100 text-secondary-700 rounded-full text-xs">Phác đồ</span>
+                            </div>
+                            <h4 class="font-semibold text-surface-900 mb-1">Phác đồ kháng sinh theo kinh nghiệm trong nhiễm khuẩn hô hấp cộng đồng</h4>
+                            <p class="text-sm text-surface-600 mb-3">Hướng dẫn lựa chọn kháng sinh kinh nghiệm cho viêm phổi cộng đồng, viêm phế quản cấp...</p>
+                            <div class="flex items-center gap-4 text-xs text-surface-400">
+                                <span>6 phút đọc</span>
+                                <span>1.5k lượt xem</span>
+                                <span>BS. Nguyễn Thị Mai</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="flex items-center justify-center gap-2 pt-4">
+                    <button class="p-2 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <button class="w-10 h-10 bg-primary-500 text-white font-medium rounded-lg cursor-pointer">1</button>
+                    <button class="w-10 h-10 text-surface-600 hover:bg-surface-100 font-medium rounded-lg transition-colors duration-200 cursor-pointer">2</button>
+                    <button class="w-10 h-10 text-surface-600 hover:bg-surface-100 font-medium rounded-lg transition-colors duration-200 cursor-pointer">3</button>
+                    <span class="text-surface-400">...</span>
+                    <button class="w-10 h-10 text-surface-600 hover:bg-surface-100 font-medium rounded-lg transition-colors duration-200 cursor-pointer">16</button>
+                    <button class="p-2 text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

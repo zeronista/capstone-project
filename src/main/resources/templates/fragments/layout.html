@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">ISSVSG - Healthcare Management</title>
+    
+    <!-- Google Fonts - Poppins + Open Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#ECFEFF',
+                            100: '#CFFAFE',
+                            200: '#A5F3FC',
+                            300: '#67E8F9',
+                            400: '#22D3EE',
+                            500: '#0891B2',
+                            600: '#0E7490',
+                            700: '#155E75',
+                            800: '#164E63',
+                            900: '#083344'
+                        },
+                        secondary: {
+                            50: '#F0FDF4',
+                            100: '#DCFCE7',
+                            200: '#BBF7D0',
+                            300: '#86EFAC',
+                            400: '#4ADE80',
+                            500: '#22C55E',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065F46',
+                            900: '#064E3B'
+                        },
+                        surface: {
+                            50: '#F8FAFC',
+                            100: '#F1F5F9',
+                            200: '#E2E8F0',
+                            300: '#CBD5E1',
+                            400: '#94A3B8',
+                            500: '#64748B',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1E293B',
+                            900: '#0F172A'
+                        }
+                    },
+                    fontFamily: {
+                        heading: ['Poppins', 'sans-serif'],
+                        body: ['Open Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+        
+        /* Smooth transitions */
+        .transition-smooth {
+            transition: all 0.2s ease-out;
+        }
+        
+        /* Sidebar active state */
+        .sidebar-link.active {
+            background-color: rgba(8, 145, 178, 0.1);
+            color: #0891B2;
+            border-right: 3px solid #0891B2;
+        }
+        
+        /* Card hover effect */
+        .card-hover:hover {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Respect reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<!-- Sidebar Fragment -->
+<nav th:fragment="sidebar" class="fixed left-0 top-0 h-full w-64 bg-white border-r border-surface-200 z-40 flex flex-col">
+    <!-- Logo -->
+    <div class="h-16 flex items-center px-6 border-b border-surface-200">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-xl flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+            </div>
+            <span class="font-heading font-bold text-xl text-surface-900">ISSVSG</span>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    <div class="flex-1 overflow-y-auto py-4">
+        <!-- Dashboard -->
+        <div class="px-4 mb-6">
+            <p class="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3 px-2">Tổng quan</p>
+            <a href="/dashboard" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span class="font-medium">Dashboard</span>
+            </a>
+        </div>
+        
+        <!-- Quản trị hệ thống -->
+        <div class="px-4 mb-6">
+            <p class="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3 px-2">Quản trị</p>
+            <div class="space-y-1">
+                <a href="/admin/accounts" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>Quản lý tài khoản</span>
+                </a>
+                <a href="/admin/users" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                    </svg>
+                    <span>Quản lý người dùng</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Y tế & Lâm sàng -->
+        <div class="px-4 mb-6">
+            <p class="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3 px-2">Y tế & Lâm sàng</p>
+            <div class="space-y-1">
+                <a href="/medical/prescriptions" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span>Kê đơn thuốc</span>
+                </a>
+                <a href="/medical/treatments" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                    </svg>
+                    <span>Kế hoạch điều trị</span>
+                </a>
+                <a href="/medical/forecast" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <span>Dự báo sức khỏe</span>
+                </a>
+                <a href="/medical/knowledge" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                    <span>Cơ sở tri thức</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- AI & Call Center -->
+        <div class="px-4 mb-6">
+            <p class="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3 px-2">AI & Thoại</p>
+            <div class="space-y-1">
+                <a href="/ai/calls" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                    </svg>
+                    <span>Quản lý cuộc gọi AI</span>
+                </a>
+                <a href="/ai/voice" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+                    </svg>
+                    <span>Xử lý giọng nói</span>
+                </a>
+                <a href="/ai/config" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span>Cấu hình AI Call</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- CRM -->
+        <div class="px-4 mb-6">
+            <p class="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3 px-2">Chăm sóc khách hàng</p>
+            <div class="space-y-1">
+                <a href="/crm/tickets" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                    </svg>
+                    <span>Quản lý Ticket</span>
+                </a>
+                <a href="/crm/surveys" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                    <span>Khảo sát</span>
+                </a>
+                <a href="/crm/social" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/>
+                    </svg>
+                    <span>Mạng xã hội</span>
+                </a>
+                <a href="/crm/notifications" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span>Thông báo & Nhắc nhở</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Báo cáo -->
+        <div class="px-4 mb-6">
+            <p class="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3 px-2">Báo cáo</p>
+            <a href="/reports" class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>Kho báo cáo</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- User Profile at Bottom -->
+    <div class="border-t border-surface-200 p-4">
+        <a href="/profile" class="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-100 transition-smooth cursor-pointer">
+            <div class="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center">
+                <span class="text-white font-semibold text-sm">NV</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-surface-900 truncate">Nguyễn Văn A</p>
+                <p class="text-xs text-surface-500 truncate">Bác sĩ</p>
+            </div>
+            <svg class="w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+        </a>
+    </div>
+</nav>
+
+<!-- Top Navbar Fragment -->
+<header th:fragment="navbar" class="fixed top-4 left-72 right-4 h-14 bg-white/90 backdrop-blur-sm border border-surface-200 rounded-2xl z-30 flex items-center justify-between px-6 shadow-sm">
+    <!-- Search -->
+    <div class="flex-1 max-w-md">
+        <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" placeholder="Tìm kiếm bệnh nhân, đơn thuốc..." class="w-full pl-10 pr-4 py-2 bg-surface-50 border border-surface-200 rounded-xl text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-smooth">
+        </div>
+    </div>
+    
+    <!-- Right Actions -->
+    <div class="flex items-center gap-4">
+        <!-- Notifications -->
+        <button class="relative p-2 text-surface-500 hover:text-surface-900 hover:bg-surface-100 rounded-xl transition-smooth cursor-pointer" aria-label="Thông báo">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+            </svg>
+            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        </button>
+        
+        <!-- Settings -->
+        <button class="p-2 text-surface-500 hover:text-surface-900 hover:bg-surface-100 rounded-xl transition-smooth cursor-pointer" aria-label="Cài đặt">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+        </button>
+        
+        <!-- Divider -->
+        <div class="h-8 w-px bg-surface-200"></div>
+        
+        <!-- User Quick Menu -->
+        <button class="flex items-center gap-2 cursor-pointer">
+            <div class="w-9 h-9 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center">
+                <span class="text-white font-semibold text-sm">NV</span>
+            </div>
+            <svg class="w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+    </div>
+</header>
+
+<!-- Main Content Wrapper -->
+<main th:fragment="content-wrapper" class="ml-64 pt-24 pb-8 px-4 md:px-6 lg:px-8 min-h-screen bg-surface-50">
+    <!-- Content goes here -->
+</main>
+</html>

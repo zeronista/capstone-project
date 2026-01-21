@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý cuộc gọi AI - ISSVSG</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#ECFEFF', 100: '#CFFAFE', 200: '#A5F3FC', 300: '#67E8F9', 400: '#22D3EE', 500: '#0891B2', 600: '#0E7490', 700: '#155E75', 800: '#164E63', 900: '#083344' },
+                        secondary: { 50: '#F0FDF4', 100: '#DCFCE7', 500: '#22C55E', 600: '#059669' },
+                        surface: { 50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1', 400: '#94A3B8', 500: '#64748B', 600: '#475569', 700: '#334155', 800: '#1E293B', 900: '#0F172A' }
+                    },
+                    fontFamily: { heading: ['Poppins', 'sans-serif'], body: ['Open Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Open Sans', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; }
+        .sidebar-link.active { background-color: rgba(8, 145, 178, 0.1); color: #0891B2; border-right: 3px solid #0891B2; }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        .pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
+    </style>
+</head>
+<body class="bg-surface-50">
+    <!-- Sidebar -->
+    <nav th:replace="~{fragments/layout :: sidebar}"></nav>
+    
+    <!-- Top Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    
+    <!-- Main Content -->
+    <main class="ml-64 pt-24 pb-8 px-4 md:px-6 lg:px-8 min-h-screen">
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-surface-900 font-heading">Quản lý cuộc gọi AI</h1>
+                <p class="text-surface-500 mt-1">Giám sát và quản lý cuộc gọi AI tự động</p>
+            </div>
+            <div class="flex items-center gap-3 mt-4 md:mt-0">
+                <button class="inline-flex items-center gap-2 px-4 py-2.5 border border-surface-200 text-surface-700 font-medium rounded-xl hover:bg-surface-50 transition-colors duration-200 cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                    Xuất báo cáo
+                </button>
+                <button class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 text-white font-medium rounded-xl hover:bg-primary-600 transition-colors duration-200 cursor-pointer shadow-lg shadow-primary-500/25">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                    </svg>
+                    Khởi tạo chiến dịch
+                </button>
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <!-- Total Calls -->
+            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs text-secondary-600 font-medium bg-secondary-50 px-2 py-1 rounded-full">+12%</span>
+                </div>
+                <h3 class="text-3xl font-bold text-surface-900">1,248</h3>
+                <p class="text-surface-500 text-sm mt-1">Tổng cuộc gọi hôm nay</p>
+            </div>
+            
+            <!-- Success Rate -->
+            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-secondary-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs text-secondary-600 font-medium bg-secondary-50 px-2 py-1 rounded-full">+3%</span>
+                </div>
+                <h3 class="text-3xl font-bold text-surface-900">87.5%</h3>
+                <p class="text-surface-500 text-sm mt-1">Tỷ lệ thành công</p>
+            </div>
+            
+            <!-- Active Calls -->
+            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center relative">
+                        <div class="absolute inset-0 bg-amber-400 rounded-xl pulse-ring"></div>
+                        <svg class="w-6 h-6 text-amber-600 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs text-amber-600 font-medium bg-amber-50 px-2 py-1 rounded-full">Live</span>
+                </div>
+                <h3 class="text-3xl font-bold text-surface-900">23</h3>
+                <p class="text-surface-500 text-sm mt-1">Cuộc gọi đang diễn ra</p>
+            </div>
+            
+            <!-- Avg Duration -->
+            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs text-red-600 font-medium bg-red-50 px-2 py-1 rounded-full">-5%</span>
+                </div>
+                <h3 class="text-3xl font-bold text-surface-900">3:42</h3>
+                <p class="text-surface-500 text-sm mt-1">Thời gian TB cuộc gọi</p>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Calls Chart -->
+            <div class="lg:col-span-2 bg-white rounded-2xl border border-surface-200 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="font-semibold text-surface-900">Thống kê cuộc gọi</h3>
+                    <div class="flex gap-2">
+                        <button class="px-3 py-1.5 bg-primary-500 text-white text-sm font-medium rounded-lg cursor-pointer">Ngày</button>
+                        <button class="px-3 py-1.5 text-surface-600 hover:bg-surface-100 text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer">Tuần</button>
+                        <button class="px-3 py-1.5 text-surface-600 hover:bg-surface-100 text-sm font-medium rounded-lg transition-colors duration-200 cursor-pointer">Tháng</button>
+                    </div>
+                </div>
+                <canvas id="callsChart" height="200"></canvas>
+            </div>
+            
+            <!-- Call Status Distribution -->
+            <div class="bg-white rounded-2xl border border-surface-200 p-6">
+                <h3 class="font-semibold text-surface-900 mb-6">Phân bố trạng thái</h3>
+                <canvas id="statusChart" height="200"></canvas>
+                <div class="mt-4 space-y-2">
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3 h-3 bg-secondary-500 rounded-full"></span>
+                            Thành công
+                        </span>
+                        <span class="font-medium">1,092</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3 h-3 bg-amber-500 rounded-full"></span>
+                            Chờ xử lý
+                        </span>
+                        <span class="font-medium">89</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="flex items-center gap-2">
+                            <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+                            Thất bại
+                        </span>
+                        <span class="font-medium">67</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Active Calls Panel -->
+        <div class="bg-white rounded-2xl border border-surface-200 p-6 mb-6">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-3 h-3 bg-secondary-500 rounded-full animate-pulse"></div>
+                    <h3 class="font-semibold text-surface-900">Cuộc gọi đang diễn ra</h3>
+                </div>
+                <button class="text-primary-600 font-medium text-sm hover:text-primary-700 cursor-pointer">Xem tất cả</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Active Call Card 1 -->
+                <div class="bg-surface-50 rounded-xl p-4 border border-surface-100">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">NH</span>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-surface-900">Nguyễn Văn Hùng</h4>
+                                <p class="text-xs text-surface-500">0912 345 678</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 bg-secondary-100 text-secondary-700 text-xs font-medium rounded-full">2:34</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-surface-500">Nhắc lịch tái khám</span>
+                        <div class="flex items-center gap-2">
+                            <button class="p-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200 cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                            <button class="p-1.5 bg-primary-100 text-primary-600 rounded-lg hover:bg-primary-200 transition-colors duration-200 cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Active Call Card 2 -->
+                <div class="bg-surface-50 rounded-xl p-4 border border-surface-100">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">TM</span>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-surface-900">Trần Thị Mai</h4>
+                                <p class="text-xs text-surface-500">0987 654 321</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 bg-secondary-100 text-secondary-700 text-xs font-medium rounded-full">1:15</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-surface-500">Khảo sát hài lòng</span>
+                        <div class="flex items-center gap-2">
+                            <button class="p-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200 cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                            <button class="p-1.5 bg-primary-100 text-primary-600 rounded-lg hover:bg-primary-200 transition-colors duration-200 cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Active Call Card 3 -->
+                <div class="bg-surface-50 rounded-xl p-4 border border-surface-100">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-sm">PD</span>
+                            </div>
+                            <div>
+                                <h4 class="font-medium text-surface-900">Phạm Văn Đức</h4>
+                                <p class="text-xs text-surface-500">0909 123 456</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 bg-secondary-100 text-secondary-700 text-xs font-medium rounded-full">0:45</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-surface-500">Thông báo kết quả XN</span>
+                        <div class="flex items-center gap-2">
+                            <button class="p-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors duration-200 cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                            <button class="p-1.5 bg-primary-100 text-primary-600 rounded-lg hover:bg-primary-200 transition-colors duration-200 cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Call History Table -->
+        <div class="bg-white rounded-2xl border border-surface-200 overflow-hidden">
+            <div class="p-6 border-b border-surface-100">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <h3 class="font-semibold text-surface-900">Lịch sử cuộc gọi</h3>
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" placeholder="Tìm kiếm..." class="pl-10 pr-4 py-2 bg-surface-50 border border-surface-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 w-64">
+                        </div>
+                        <select class="px-4 py-2 bg-surface-50 border border-surface-200 rounded-lg text-sm cursor-pointer">
+                            <option>Tất cả loại</option>
+                            <option>Nhắc tái khám</option>
+                            <option>Khảo sát</option>
+                            <option>Thông báo</option>
+                        </select>
+                        <select class="px-4 py-2 bg-surface-50 border border-surface-200 rounded-lg text-sm cursor-pointer">
+                            <option>Tất cả trạng thái</option>
+                            <option>Thành công</option>
+                            <option>Thất bại</option>
+                            <option>Không trả lời</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-surface-50">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-surface-600 uppercase tracking-wider">Bệnh nhân</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-surface-600 uppercase tracking-wider">SĐT</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-surface-600 uppercase tracking-wider">Loại cuộc gọi</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-surface-600 uppercase tracking-wider">Thời gian</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-surface-600 uppercase tracking-wider">Thời lượng</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-surface-600 uppercase tracking-wider">Trạng thái</th>
+                            <th class="px-6 py-4 text-center text-xs font-semibold text-surface-600 uppercase tracking-wider">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-surface-100">
+                        <tr class="hover:bg-surface-50 transition-colors duration-200">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center">
+                                        <span class="text-white font-bold text-xs">LH</span>
+                                    </div>
+                                    <span class="font-medium text-surface-900">Lê Văn Hải</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-surface-600">0934 567 890</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 bg-primary-100 text-primary-700 text-xs font-medium rounded-full">Nhắc tái khám</span>
+                            </td>
+                            <td class="px-6 py-4 text-surface-600">21/01/2026 14:30</td>
+                            <td class="px-6 py-4 text-surface-600">3:24</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 bg-secondary-100 text-secondary-700 text-xs font-medium rounded-full">Thành công</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button class="p-1.5 text-surface-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200 cursor-pointer" title="Nghe lại">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="p-1.5 text-surface-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200 cursor-pointer" title="Xem transcript">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-surface-50 transition-colors duration-200">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center">
+                                        <span class="text-white font-bold text-xs">NL</span>
+                                    </div>
+                                    <span class="font-medium text-surface-900">Nguyễn Thị Lan</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-surface-600">0978 123 456</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">Khảo sát</span>
+                            </td>
+                            <td class="px-6 py-4 text-surface-600">21/01/2026 14:15</td>
+                            <td class="px-6 py-4 text-surface-600">2:45</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 bg-secondary-100 text-secondary-700 text-xs font-medium rounded-full">Thành công</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button class="p-1.5 text-surface-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200 cursor-pointer" title="Nghe lại">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="p-1.5 text-surface-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200 cursor-pointer" title="Xem transcript">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-surface-50 transition-colors duration-200">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
+                                        <span class="text-white font-bold text-xs">TT</span>
+                                    </div>
+                                    <span class="font-medium text-surface-900">Trần Văn Tùng</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-surface-600">0965 789 012</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">Thông báo</span>
+                            </td>
+                            <td class="px-6 py-4 text-surface-600">21/01/2026 13:50</td>
+                            <td class="px-6 py-4 text-surface-600">0:00</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 bg-surface-100 text-surface-700 text-xs font-medium rounded-full">Không trả lời</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button class="p-1.5 text-surface-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200 cursor-pointer" title="Gọi lại">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-surface-50 transition-colors duration-200">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-secondary-400 to-secondary-600 rounded-full flex items-center justify-center">
+                                        <span class="text-white font-bold text-xs">HN</span>
+                                    </div>
+                                    <span class="font-medium text-surface-900">Hoàng Văn Nam</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-surface-600">0901 234 567</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 bg-primary-100 text-primary-700 text-xs font-medium rounded-full">Nhắc tái khám</span>
+                            </td>
+                            <td class="px-6 py-4 text-surface-600">21/01/2026 13:30</td>
+                            <td class="px-6 py-4 text-surface-600">1:58</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">Thất bại</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button class="p-1.5 text-surface-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200 cursor-pointer" title="Nghe lại">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="p-1.5 text-surface-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200 cursor-pointer" title="Gọi lại">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="px-6 py-4 border-t border-surface-100 flex items-center justify-between">
+                <span class="text-sm text-surface-500">Hiển thị 1-10 trong 1,248 cuộc gọi</span>
+                <div class="flex items-center gap-2">
+                    <button class="p-2 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                    </button>
+                    <button class="w-10 h-10 bg-primary-500 text-white font-medium rounded-lg cursor-pointer">1</button>
+                    <button class="w-10 h-10 text-surface-600 hover:bg-surface-100 font-medium rounded-lg transition-colors duration-200 cursor-pointer">2</button>
+                    <button class="w-10 h-10 text-surface-600 hover:bg-surface-100 font-medium rounded-lg transition-colors duration-200 cursor-pointer">3</button>
+                    <span class="text-surface-400">...</span>
+                    <button class="w-10 h-10 text-surface-600 hover:bg-surface-100 font-medium rounded-lg transition-colors duration-200 cursor-pointer">125</button>
+                    <button class="p-2 text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // Calls Chart
+        new Chart(document.getElementById('callsChart'), {
+            type: 'bar',
+            data: {
+                labels: ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'],
+                datasets: [
+                    {
+                        label: 'Thành công',
+                        data: [12, 8, 5, 15, 85, 120, 95, 110, 98, 75, 45, 20],
+                        backgroundColor: '#059669',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Thất bại',
+                        data: [2, 1, 0, 3, 8, 12, 10, 8, 7, 5, 4, 2],
+                        backgroundColor: '#EF4444',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'top' } },
+                scales: { x: { stacked: true }, y: { stacked: true } }
+            }
+        });
+        
+        // Status Chart
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Thành công', 'Chờ xử lý', 'Thất bại'],
+                datasets: [{
+                    data: [1092, 89, 67],
+                    backgroundColor: ['#059669', '#F59E0B', '#EF4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                cutout: '70%'
+            }
+        });
+    </script>
+</body>
+</html>

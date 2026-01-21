@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - ISSVSG</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#ECFEFF', 100: '#CFFAFE', 200: '#A5F3FC', 300: '#67E8F9', 400: '#22D3EE', 500: '#0891B2', 600: '#0E7490', 700: '#155E75', 800: '#164E63', 900: '#083344' },
+                        secondary: { 50: '#F0FDF4', 100: '#DCFCE7', 500: '#22C55E', 600: '#059669' },
+                        surface: { 50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1', 400: '#94A3B8', 500: '#64748B', 600: '#475569', 700: '#334155', 800: '#1E293B', 900: '#0F172A' }
+                    },
+                    fontFamily: { heading: ['Poppins', 'sans-serif'], body: ['Open Sans', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Open Sans', sans-serif; }
+        h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; }
+        .sidebar-link.active { background-color: rgba(8, 145, 178, 0.1); color: #0891B2; border-right: 3px solid #0891B2; }
+    </style>
+</head>
+<body class="bg-surface-50">
+    <!-- Sidebar -->
+    <nav th:replace="~{fragments/layout :: sidebar}"></nav>
+    
+    <!-- Top Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    
+    <!-- Main Content -->
+    <main class="ml-64 pt-24 pb-8 px-4 md:px-6 lg:px-8 min-h-screen">
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-surface-900 font-heading">Dashboard</h1>
+                <p class="text-surface-500 mt-1">Xin chào, Bác sĩ Nguyễn Văn A! Đây là tổng quan hôm nay.</p>
+            </div>
+            <div class="flex items-center gap-3 mt-4 md:mt-0">
+                <select class="px-4 py-2 bg-white border border-surface-200 rounded-xl text-sm text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer">
+                    <option>Hôm nay</option>
+                    <option>7 ngày qua</option>
+                    <option>30 ngày qua</option>
+                    <option>Tháng này</option>
+                </select>
+                <button class="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors duration-200 cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Xuất báo cáo
+                </button>
+            </div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Patients -->
+            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-surface-500">Tổng bệnh nhân</p>
+                        <p class="text-3xl font-bold text-surface-900 mt-2">1,284</p>
+                        <p class="text-sm text-secondary-600 mt-2 flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                            </svg>
+                            +12.5% so với tháng trước
+                        </p>
+                    </div>
+                    <div class="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center">
+                        <svg class="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Today Appointments -->
+            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-surface-500">Lịch hẹn hôm nay</p>
+                        <p class="text-3xl font-bold text-surface-900 mt-2">24</p>
+                        <p class="text-sm text-surface-500 mt-2">8 đã hoàn thành</p>
+                    </div>
+                    <div class="w-14 h-14 bg-secondary-100 rounded-2xl flex items-center justify-center">
+                        <svg class="w-7 h-7 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Prescriptions -->
+            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-surface-500">Đơn thuốc tháng này</p>
+                        <p class="text-3xl font-bold text-surface-900 mt-2">156</p>
+                        <p class="text-sm text-red-500 mt-2 flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                            </svg>
+                            -3.2% so với tháng trước
+                        </p>
+                    </div>
+                    <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center">
+                        <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- AI Calls -->
+            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-surface-500">Cuộc gọi AI</p>
+                        <p class="text-3xl font-bold text-surface-900 mt-2">89</p>
+                        <p class="text-sm text-secondary-600 mt-2 flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                            </svg>
+                            +28.4% so với tháng trước
+                        </p>
+                    </div>
+                    <div class="w-14 h-14 bg-purple-100 rounded-2xl flex items-center justify-center">
+                        <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Patient Trend Chart -->
+            <div class="bg-white rounded-2xl border border-surface-200 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-surface-900 font-heading">Xu hướng bệnh nhân</h3>
+                    <select class="px-3 py-1.5 bg-surface-50 border border-surface-200 rounded-lg text-sm text-surface-600 focus:outline-none cursor-pointer">
+                        <option>6 tháng</option>
+                        <option>12 tháng</option>
+                    </select>
+                </div>
+                <canvas id="patientTrendChart" height="200"></canvas>
+            </div>
+            
+            <!-- Department Distribution -->
+            <div class="bg-white rounded-2xl border border-surface-200 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-surface-900 font-heading">Phân bố theo khoa</h3>
+                    <button class="text-primary-600 text-sm font-medium hover:text-primary-700 cursor-pointer">Xem chi tiết</button>
+                </div>
+                <canvas id="departmentChart" height="200"></canvas>
+            </div>
+        </div>
+        
+        <!-- Recent Activity & Upcoming -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Recent Patients -->
+            <div class="lg:col-span-2 bg-white rounded-2xl border border-surface-200 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-surface-900 font-heading">Bệnh nhân gần đây</h3>
+                    <a href="/admin/users" class="text-primary-600 text-sm font-medium hover:text-primary-700">Xem tất cả</a>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left text-sm text-surface-500 border-b border-surface-200">
+                                <th class="pb-3 font-medium">Bệnh nhân</th>
+                                <th class="pb-3 font-medium">Mã hồ sơ</th>
+                                <th class="pb-3 font-medium">Ngày khám</th>
+                                <th class="pb-3 font-medium">Trạng thái</th>
+                                <th class="pb-3 font-medium"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-surface-100">
+                            <tr class="hover:bg-surface-50 transition-colors duration-150">
+                                <td class="py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                                            <span class="text-primary-600 font-semibold text-sm">TH</span>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-surface-900">Trần Văn Hùng</p>
+                                            <p class="text-sm text-surface-500">0912 345 678</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 text-surface-600">BN-2026-0142</td>
+                                <td class="py-4 text-surface-600">21/01/2026</td>
+                                <td class="py-4">
+                                    <span class="px-2.5 py-1 bg-secondary-100 text-secondary-700 text-xs font-medium rounded-full">Hoàn thành</span>
+                                </td>
+                                <td class="py-4">
+                                    <button class="p-2 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer" aria-label="Xem chi tiết">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-surface-50 transition-colors duration-150">
+                                <td class="py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                            <span class="text-purple-600 font-semibold text-sm">LM</span>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-surface-900">Lê Thị Mai</p>
+                                            <p class="text-sm text-surface-500">0987 654 321</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 text-surface-600">BN-2026-0141</td>
+                                <td class="py-4 text-surface-600">21/01/2026</td>
+                                <td class="py-4">
+                                    <span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">Đang khám</span>
+                                </td>
+                                <td class="py-4">
+                                    <button class="p-2 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer" aria-label="Xem chi tiết">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-surface-50 transition-colors duration-150">
+                                <td class="py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center">
+                                            <span class="text-secondary-600 font-semibold text-sm">PD</span>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-surface-900">Phạm Văn Đức</p>
+                                            <p class="text-sm text-surface-500">0901 234 567</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 text-surface-600">BN-2026-0140</td>
+                                <td class="py-4 text-surface-600">20/01/2026</td>
+                                <td class="py-4">
+                                    <span class="px-2.5 py-1 bg-primary-100 text-primary-700 text-xs font-medium rounded-full">Chờ tái khám</span>
+                                </td>
+                                <td class="py-4">
+                                    <button class="p-2 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer" aria-label="Xem chi tiết">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-surface-50 transition-colors duration-150">
+                                <td class="py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                                            <span class="text-amber-600 font-semibold text-sm">NH</span>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-surface-900">Nguyễn Hoàng</p>
+                                            <p class="text-sm text-surface-500">0923 456 789</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 text-surface-600">BN-2026-0139</td>
+                                <td class="py-4 text-surface-600">20/01/2026</td>
+                                <td class="py-4">
+                                    <span class="px-2.5 py-1 bg-secondary-100 text-secondary-700 text-xs font-medium rounded-full">Hoàn thành</span>
+                                </td>
+                                <td class="py-4">
+                                    <button class="p-2 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer" aria-label="Xem chi tiết">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Upcoming Schedule -->
+            <div class="bg-white rounded-2xl border border-surface-200 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-surface-900 font-heading">Lịch sắp tới</h3>
+                    <a href="#" class="text-primary-600 text-sm font-medium hover:text-primary-700">Xem lịch</a>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex items-start gap-4 p-3 bg-primary-50 rounded-xl border border-primary-100">
+                        <div class="text-center min-w-[48px]">
+                            <p class="text-xs font-medium text-primary-600">THỨ 3</p>
+                            <p class="text-xl font-bold text-primary-700">21</p>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium text-surface-900">Tái khám - Trần Văn B</p>
+                            <p class="text-sm text-surface-500 mt-0.5">09:00 - 09:30</p>
+                            <span class="inline-block mt-2 px-2 py-0.5 bg-primary-100 text-primary-700 text-xs font-medium rounded">Khoa Nội</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4 p-3 bg-surface-50 rounded-xl border border-surface-100">
+                        <div class="text-center min-w-[48px]">
+                            <p class="text-xs font-medium text-surface-500">THỨ 3</p>
+                            <p class="text-xl font-bold text-surface-700">21</p>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium text-surface-900">Khám mới - Lê Thị C</p>
+                            <p class="text-sm text-surface-500 mt-0.5">10:00 - 10:45</p>
+                            <span class="inline-block mt-2 px-2 py-0.5 bg-surface-200 text-surface-600 text-xs font-medium rounded">Khoa Nội</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4 p-3 bg-surface-50 rounded-xl border border-surface-100">
+                        <div class="text-center min-w-[48px]">
+                            <p class="text-xs font-medium text-surface-500">THỨ 3</p>
+                            <p class="text-xl font-bold text-surface-700">21</p>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium text-surface-900">Tái khám - Nguyễn Văn D</p>
+                            <p class="text-sm text-surface-500 mt-0.5">14:00 - 14:30</p>
+                            <span class="inline-block mt-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">Theo dõi thuốc</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-4 p-3 bg-surface-50 rounded-xl border border-surface-100">
+                        <div class="text-center min-w-[48px]">
+                            <p class="text-xs font-medium text-surface-500">THỨ 4</p>
+                            <p class="text-xl font-bold text-surface-700">22</p>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-medium text-surface-900">Họp khoa</p>
+                            <p class="text-sm text-surface-500 mt-0.5">08:00 - 09:00</p>
+                            <span class="inline-block mt-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">Nội bộ</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // Patient Trend Chart
+        const patientCtx = document.getElementById('patientTrendChart').getContext('2d');
+        new Chart(patientCtx, {
+            type: 'line',
+            data: {
+                labels: ['Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12', 'Tháng 1'],
+                datasets: [{
+                    label: 'Bệnh nhân mới',
+                    data: [165, 159, 180, 181, 156, 195],
+                    borderColor: '#0891B2',
+                    backgroundColor: 'rgba(8, 145, 178, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Tái khám',
+                    data: [128, 148, 140, 159, 146, 160],
+                    borderColor: '#059669',
+                    backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#E2E8F0'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Department Chart
+        const deptCtx = document.getElementById('departmentChart').getContext('2d');
+        new Chart(deptCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Nội tổng quát', 'Tim mạch', 'Thần kinh', 'Xương khớp', 'Tiêu hóa', 'Khác'],
+                datasets: [{
+                    data: [35, 20, 15, 12, 10, 8],
+                    backgroundColor: [
+                        '#0891B2',
+                        '#059669',
+                        '#7C3AED',
+                        '#F59E0B',
+                        '#EF4444',
+                        '#64748B'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
