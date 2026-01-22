@@ -34,3 +34,13 @@ build/
 .github
 .shared
 .cursor
+
+### Security - Sensitive Files ###
+application-local.properties
+application-dev.properties
+application-prod.properties
+.env
+*.env
+secrets.properties
+# Chỉ commit file example/template
+!application.properties.example

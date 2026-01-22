@@ -4,12 +4,15 @@ import com.g4.capstoneproject.model.Prescription;
 import com.g4.capstoneproject.model.TreatmentPlan;
 import com.g4.capstoneproject.model.Ticket;
 import com.g4.capstoneproject.service.PrescriptionService;
+import com.g4.capstoneproject.service.S3Service;
 import com.g4.capstoneproject.service.TreatmentPlanService;
 import com.g4.capstoneproject.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +33,9 @@ public class ApiController {
 
     @Autowired
     private TicketService ticketService;
+
+    @Autowired
+    private S3Service s3Service;
 
     // ==================== PRESCRIPTION APIs ====================
 
@@ -298,5 +304,22 @@ public class ApiController {
         response.put("documentsPending", 42);
         response.put("lastUpdate", "2026-01-22T10:30:00");
         return ResponseEntity.ok(response);
+    }
+
+    // ==================== FILE UPLOAD API ====================
+
+    /**
+     * POST /api/upload - Upload file lên AWS S3
+     * @param file
+     * @return
+     */
+    @PostMapping("/upload")
+    public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file) {
+        try {
+            String fileUrl = s3Service.uploadFile(file);
+            return ResponseEntity.ok("Upload thành công: " + fileUrl);
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body("Lỗi upload file");
+        }
     }
 }
