@@ -333,5 +333,342 @@
             </div>
         </div>
     </main>
+    
+    <!-- Modal Assign Role -->
+    <div id="assignRoleModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl transform transition-all">
+            <div class="p-6 border-b border-surface-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-surface-900">Phân quyền tài khoản</h3>
+                    <button onclick="closeAssignRoleModal()" class="text-surface-400 hover:text-surface-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <p class="text-sm text-surface-600 mb-2">Tên người dùng:</p>
+                    <p id="modalUserName" class="font-semibold text-surface-900"></p>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-surface-700 mb-2">Vai trò mới:</label>
+                    <select id="newRoleSelect" class="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <option value="">-- Chọn vai trò --</option>
+                        <option value="ADMIN">Admin</option>
+                        <option value="DOCTOR">Bác sĩ</option>
+                        <option value="NURSE">Y tá</option>
+                        <option value="STAFF">Nhân viên</option>
+                    </select>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeAssignRoleModal()" class="flex-1 px-4 py-2.5 border border-surface-300 text-surface-700 font-medium rounded-xl hover:bg-surface-50 transition-colors">
+                        Hủy
+                    </button>
+                    <button onclick="confirmAssignRole()" class="flex-1 px-4 py-2.5 bg-primary-500 text-white font-medium rounded-xl hover:bg-primary-600 transition-colors">
+                        Xác nhận
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // State
+        let currentUserId = null;
+        let allAccounts = [];
+        let currentFilter = '';
+        
+        // Load accounts on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAccounts();
+            setupEventListeners();
+        });
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search input
+            const searchInput = document.querySelector('input[type="text"]');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    const keyword = e.target.value.trim();
+                    if (keyword.length >= 2) {
+                        searchAccounts(keyword);
+                    } else if (keyword.length === 0) {
+                        loadAccounts();
+                    }
+                });
+            }
+            
+            // Role filter
+            const roleFilter = document.querySelector('select');
+            if (roleFilter) {
+                roleFilter.addEventListener('change', function(e) {
+                    const role = e.target.value;
+                    if (role) {
+                        filterByRole(role);
+                    } else {
+                        loadAccounts();
+                    }
+                });
+            }
+        }
+        
+        // Load all accounts
+        async function loadAccounts() {
+            try {
+                const response = await fetch('/api/admin/accounts?size=100');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allAccounts = data.accounts;
+                    renderAccounts(allAccounts);
+                    updatePagination(data);
+                } else {
+                    showError('Không thể tải danh sách tài khoản');
+                }
+            } catch (error) {
+                console.error('Error loading accounts:', error);
+                showError('Lỗi kết nối đến server');
+            }
+        }
+        
+        // Search accounts
+        async function searchAccounts(keyword) {
+            try {
+                const response = await fetch(`/api/admin/accounts/search?keyword=${encodeURIComponent(keyword)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderAccounts(data.accounts);
+                } else {
+                    showError('Không thể tìm kiếm tài khoản');
+                }
+            } catch (error) {
+                console.error('Error searching accounts:', error);
+                showError('Lỗi kết nối đến server');
+            }
+        }
+        
+        // Filter by role
+        async function filterByRole(role) {
+            try {
+                const response = await fetch(`/api/admin/accounts/filter?role=${role}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    renderAccounts(data.accounts);
+                } else {
+                    showError('Không thể lọc tài khoản');
+                }
+            } catch (error) {
+                console.error('Error filtering accounts:', error);
+                showError('Lỗi kết nối đến server');
+            }
+        }
+        
+        // Render accounts table
+        function renderAccounts(accounts) {
+            const tbody = document.querySelector('tbody');
+            if (!tbody) return;
+            
+            if (accounts.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center text-surface-500">
+                            Không tìm thấy tài khoản nào
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = accounts.map(account => {
+                const initials = getInitials(account.fullName);
+                const roleInfo = getRoleInfo(account.role);
+                const statusInfo = getStatusInfo(account.enabled);
+                const createdDate = formatDate(account.createdAt);
+                
+                return `
+                    <tr class="hover:bg-surface-50 transition-colors duration-150">
+                        <td class="px-6 py-4">
+                            <input type="checkbox" class="w-4 h-4 rounded border-surface-300 text-primary-500 focus:ring-primary-500 cursor-pointer">
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gradient-to-br ${roleInfo.gradient} rounded-full flex items-center justify-center">
+                                    <span class="text-white font-semibold text-sm">${initials}</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-surface-900">${account.fullName}</p>
+                                    <p class="text-sm text-surface-500">${account.email || account.phone || '-'}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 ${roleInfo.bgColor} ${roleInfo.textColor} text-xs font-medium rounded-full">${roleInfo.label}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 ${statusInfo.bgColor} ${statusInfo.textColor} text-xs font-medium rounded-full">
+                                <span class="w-1.5 h-1.5 ${statusInfo.dotColor} rounded-full"></span>
+                                ${statusInfo.label}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-surface-600">-</td>
+                        <td class="px-6 py-4 text-sm text-surface-600">${createdDate}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-end gap-2">
+                                <button onclick="openAssignRoleModal(${account.id}, '${account.fullName}', '${account.role}')" 
+                                        class="p-2 text-surface-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors duration-200 cursor-pointer" 
+                                        title="Phân quyền">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                                    </svg>
+                                </button>
+                                <button onclick="toggleAccountStatus(${account.id})" 
+                                        class="p-2 text-surface-400 hover:text-${account.enabled ? 'red' : 'secondary'}-600 hover:bg-${account.enabled ? 'red' : 'secondary'}-50 rounded-lg transition-colors duration-200 cursor-pointer" 
+                                        title="${account.enabled ? 'Vô hiệu hóa' : 'Kích hoạt'}">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${account.enabled ? 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636' : 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'}"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // Open assign role modal
+        function openAssignRoleModal(userId, userName, currentRole) {
+            currentUserId = userId;
+            document.getElementById('modalUserName').textContent = userName;
+            document.getElementById('newRoleSelect').value = '';
+            document.getElementById('assignRoleModal').classList.remove('hidden');
+        }
+        
+        // Close assign role modal
+        function closeAssignRoleModal() {
+            currentUserId = null;
+            document.getElementById('assignRoleModal').classList.add('hidden');
+        }
+        
+        // Confirm assign role
+        async function confirmAssignRole() {
+            const newRole = document.getElementById('newRoleSelect').value;
+            
+            if (!newRole) {
+                showError('Vui lòng chọn vai trò');
+                return;
+            }
+            
+            if (!currentUserId) {
+                showError('Lỗi: Không xác định được user');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/admin/accounts/assign-role', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userId: currentUserId,
+                        role: newRole
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccess(data.message || 'Cập nhật vai trò thành công');
+                    closeAssignRoleModal();
+                    loadAccounts();
+                } else {
+                    showError(data.message || 'Không thể cập nhật vai trò');
+                }
+            } catch (error) {
+                console.error('Error assigning role:', error);
+                showError('Lỗi kết nối đến server');
+            }
+        }
+        
+        // Toggle account status
+        async function toggleAccountStatus(userId) {
+            if (!confirm('Bạn có chắc muốn thay đổi trạng thái tài khoản này?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/admin/accounts/${userId}/toggle-status`, {
+                    method: 'PUT'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccess(data.message);
+                    loadAccounts();
+                } else {
+                    showError(data.message || 'Không thể cập nhật trạng thái');
+                }
+            } catch (error) {
+                console.error('Error toggling account status:', error);
+                showError('Lỗi kết nối đến server');
+            }
+        }
+        
+        // Utility functions
+        function getInitials(fullName) {
+            if (!fullName) return '??';
+            const parts = fullName.trim().split(' ');
+            if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        
+        function getRoleInfo(role) {
+            const roleMap = {
+                'ADMIN': { label: 'Admin', bgColor: 'bg-purple-100', textColor: 'text-purple-700', gradient: 'from-purple-400 to-purple-600' },
+                'DOCTOR': { label: 'Bác sĩ', bgColor: 'bg-primary-100', textColor: 'text-primary-700', gradient: 'from-primary-400 to-primary-600' },
+                'NURSE': { label: 'Y tá', bgColor: 'bg-amber-100', textColor: 'text-amber-700', gradient: 'from-amber-400 to-amber-600' },
+                'STAFF': { label: 'Nhân viên', bgColor: 'bg-blue-100', textColor: 'text-blue-700', gradient: 'from-blue-400 to-blue-600' },
+                'PATIENT': { label: 'Bệnh nhân', bgColor: 'bg-surface-100', textColor: 'text-surface-700', gradient: 'from-surface-400 to-surface-600' }
+            };
+            return roleMap[role] || roleMap['PATIENT'];
+        }
+        
+        function getStatusInfo(enabled) {
+            return enabled 
+                ? { label: 'Hoạt động', bgColor: 'bg-secondary-100', textColor: 'text-secondary-700', dotColor: 'bg-secondary-500' }
+                : { label: 'Vô hiệu hóa', bgColor: 'bg-surface-100', textColor: 'text-surface-600', dotColor: 'bg-surface-400' };
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+        
+        function updatePagination(data) {
+            const paginationText = document.querySelector('.text-sm.text-surface-500');
+            if (paginationText && data.totalItems) {
+                const showing = data.accounts.length;
+                paginationText.textContent = `Hiển thị ${showing} của ${data.totalItems} tài khoản`;
+            }
+        }
+        
+        function showSuccess(message) {
+            alert(message); // Replace with better notification system
+        }
+        
+        function showError(message) {
+            alert('Lỗi: ' + message); // Replace with better notification system
+        }
+    </script>
 </body>
 </html>

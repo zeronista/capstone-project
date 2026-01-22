@@ -22,9 +22,7 @@ public class SecurityConfig {
                 // Cho phép truy cập public các trang auth và static resources
                 .requestMatchers(
                     "/", 
-                    "/auth/**", 
-                    "/login", 
-                    "/register",
+                    "/auth/**",
                     "/css/**", 
                     "/js/**", 
                     "/image/**",

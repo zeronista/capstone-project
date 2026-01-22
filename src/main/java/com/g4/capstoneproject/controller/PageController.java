@@ -27,19 +27,9 @@ public class PageController {
 
     // ==================== AUTHENTICATION ====================
 
-    @GetMapping("/login")
-    public String loginShort() {
-        return "auth/login";
-    }
-
     @GetMapping("/auth/login")
     public String login() {
         return "auth/login";
-    }
-
-    @GetMapping("/register")
-    public String registerShort() {
-        return "auth/register";
     }
 
     @GetMapping("/auth/register")
@@ -147,5 +137,12 @@ public class PageController {
     @GetMapping("/profile")
     public String profile() {
         return "profile/index";
+    }
+
+    // ==================== PATIENT ====================
+
+    @GetMapping("/patient")
+    public String patientHome() {
+        return "patient/index";
     }
 }

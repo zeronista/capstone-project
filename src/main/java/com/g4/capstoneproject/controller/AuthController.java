@@ -3,18 +3,27 @@ package com.g4.capstoneproject.controller;
 import com.g4.capstoneproject.dto.AuthResponse;
 import com.g4.capstoneproject.dto.LoginRequest;
 import com.g4.capstoneproject.dto.RegisterRequest;
+import com.g4.capstoneproject.entity.User;
 import com.g4.capstoneproject.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Collections;
 
 /**
  * Controller xử lý authentication
@@ -76,24 +85,43 @@ public class AuthController {
         // Xử lý đăng nhập
         AuthResponse response = authService.login(request);
         
-        if (response.getSuccess()) {
-            // Lưu thông tin user vào session
-            session.setAttribute("userId", response.getUserId());
-            session.setAttribute("userFullName", response.getFullName());
-            session.setAttribute("userEmail", response.getEmail());
-            session.setAttribute("userPhone", response.getPhone());
-            session.setAttribute("userRole", response.getRole());
-            
-            log.info("User logged in and session created for: {}", 
-                    response.getEmail() != null ? response.getEmail() : response.getPhone());
-            
-            // Redirect về dashboard
-            return "redirect:/dashboard";
-        } else {
+        if (!response.getSuccess()) {
             model.addAttribute("error", response.getMessage());
             model.addAttribute("loginRequest", request);
             return "auth/login";
         }
+        
+        // Lưu thông tin user vào session
+        session.setAttribute("userId", response.getUserId());
+        session.setAttribute("userFullName", response.getFullName());
+        session.setAttribute("userEmail", response.getEmail());
+        session.setAttribute("userPhone", response.getPhone());
+        session.setAttribute("userRole", response.getRole());
+        
+        // Tạo Spring Security Authentication
+        String username = response.getEmail() != null ? response.getEmail() : response.getPhone();
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+            username,
+            null,
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + response.getRole()))
+        );
+        
+        // Tạo SecurityContext mới và lưu vào session
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        
+        // Lưu SecurityContext vào HttpSession (quan trọng cho Spring Security 6+)
+        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+        
+        log.info("User logged in and session created for: {}", username);
+        
+        // Điều hướng theo role
+        if (response.getRole() == User.UserRole.PATIENT) {
+            return "redirect:/patient";
+        }
+        
+        return "redirect:/dashboard";
     }
     
     /**
@@ -139,7 +167,12 @@ public class AuthController {
                 
                 log.info("OAuth2 login successful for: {}", email);
                 
-                return "redirect:/dashboard";
+                // Điều hướng theo role
+                if (response.getRole() == User.UserRole.PATIENT) {
+                    return "redirect:/patient";
+                } else {
+                    return "redirect:/dashboard";
+                }
             } else {
                 log.error("OAuth2 login failed: {}", response.getMessage());
                 return "redirect:/auth/login?error=" + response.getMessage();
