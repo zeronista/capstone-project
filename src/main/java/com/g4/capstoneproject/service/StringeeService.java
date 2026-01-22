@@ -106,9 +106,11 @@ public class StringeeService {
                     .withHeader(headerClaims)
                     .withKeyId(keySid)
                     .withJWTId(jti) // QUAN TRỌNG: JWT ID là required cho Stringee
+                    .withIssuer(keySid) // QUAN TRỌNG: Issuer phải là keySid
                     .withIssuedAt(now)
                     .withExpiresAt(exp)
                     .withClaim("userId", userId) // QUAN TRỌNG: Định danh user
+                    // TUYỆT ĐỐI KHÔNG thêm .withClaim("rest_api", true) cho Client Token
                     .sign(algorithm);
 
             logger.info("Stringee Client Access Token created successfully for userId: {} (jti: {})", userId, jti);

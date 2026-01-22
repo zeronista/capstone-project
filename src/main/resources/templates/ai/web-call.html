@@ -70,6 +70,12 @@
     <div id="remote_videos" style="display: none;"></div>
 
     <script>
+        // Cấu hình Stringee Server Addresses (Best Practice)
+        const STRINGEE_SERVER_ADDRS = [
+            "wss://v1.stringee.com:6899/", 
+            "wss://v2.stringee.com:6899/"
+        ];
+        
         var stringeeClient;
         var currentCall;
         var myToken;
@@ -93,25 +99,43 @@
             if (!userId) return alert('Vui lòng nhập User ID');
 
             console.log('Bắt đầu kết nối với userId:', userId);
+            addLog('Đang kết nối với user: ' + userId, 'info');
 
             try {
                 console.log('Đang lấy access token từ server...');
+                addLog('Đang lấy access token từ server...', 'info');
+                
                 const res = await fetch('/api/stringee/access-token?userId=' + userId);
+                
+                if (!res.ok) {
+                    throw new Error('HTTP error! status: ' + res.status + ' - ' + res.statusText);
+                }
+                
                 const data = await res.json();
+                
+                if (!data.token) {
+                    throw new Error('Token không có trong response từ server');
+                }
+                
                 myToken = data.token;
-                console.log('Đã nhận được token');
+                console.log('Đã nhận được token:', myToken.substring(0, 50) + '...');
+                addLog('✅ Đã nhận được access token từ server', 'success');
             } catch (err) {
                 console.error('Lỗi lấy token:', err);
-                return alert('Lỗi lấy token từ server: ' + err.message);
+                addLog('❌ Lỗi lấy token: ' + err.message, 'error');
+                alert('Lỗi lấy token từ server: ' + err.message + '\n\nVui lòng kiểm tra:\n1. Server đang chạy\n2. API endpoint /api/stringee/access-token hoạt động\n3. UserId hợp lệ');
+                return;
             }
 
-            stringeeClient = new StringeeClient();
-            console.log('Đã khởi tạo Stringee Client');
+            stringeeClient = new StringeeClient(STRINGEE_SERVER_ADDRS);
+            console.log('Đã khởi tạo Stringee Client với server addresses');
+            addLog('Đã khởi tạo Stringee Client', 'info');
 
             stringeeClient.on('connect', function () {
                 console.log('Đã kết nối tới Stringee Server');
                 document.getElementById('connectionStatus').innerText = '🟢 Đã kết nối';
                 document.getElementById('connectionStatus').className = 'status status-connected';
+                addLog('Đã kết nối tới Stringee Server', 'success');
             });
 
             stringeeClient.on('authen', function (res) {
@@ -121,10 +145,11 @@
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('call-screen').classList.remove('hidden');
                     document.getElementById('displayUserId').innerText = userId;
-                    addLog('Kết nối thành công! User ID: ' + res.userId, 'success');
+                    addLog('✅ Xác thực thành công! User ID: ' + res.userId, 'success');
                     addLog('Bạn có thể thực hiện cuộc gọi ngay bây giờ', 'success');
                 } else {
                     console.error('Xác thực thất bại:', res);
+                    addLog('❌ Xác thực thất bại: ' + res.message, 'error');
                     alert('Xác thực thất bại: ' + res.message);
                 }
             });
@@ -133,16 +158,18 @@
                 console.log('Đã ngắt kết nối khỏi Stringee');
                 document.getElementById('connectionStatus').innerText = '🔴 Đã ngắt kết nối';
                 document.getElementById('connectionStatus').className = 'status status-disconnected';
+                addLog('Đã ngắt kết nối', 'error');
             });
 
             stringeeClient.on('requestnewtoken', function () {
                 console.log('Token hết hạn');
-                alert('Token đã hết hạn. Vui lòng đăng nhập lại.');
+                addLog('Token hết hạn!', 'error');
+                alert('Token đã hết hạn. Vui lòng làm mới trang.');
             });
 
             stringeeClient.on('incomingcall', function (incomingCall) {
                 console.log('Cuộc gọi đến:', incomingCall);
-                addLog('Cuộc gọi đến từ: ' + incomingCall.fromNumber, 'info');
+                addLog('📞 Cuộc gọi đến từ: ' + incomingCall.fromNumber, 'info');
                 currentCall = incomingCall;
                 
                 document.getElementById('callStatus').innerText = '📞 Đang có cuộc gọi đến từ: ' + incomingCall.fromNumber;
@@ -186,6 +213,7 @@
         function settingCallEvents(call) {
             call.on('addremotestream', function (stream) {
                 console.log('Adding remote stream');
+                addLog('Đã nhận luồng âm thanh', 'success');
                 var videoElement = document.createElement('video');
                 videoElement.setAttribute('autoplay', '');
                 videoElement.setAttribute('playsinline', '');
