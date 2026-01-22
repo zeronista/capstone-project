@@ -103,6 +103,11 @@ public class PageController {
         return "ai/config";
     }
 
+    @GetMapping("/ai/web-call")
+    public String aiWebCall() {
+        return "ai/web-call";
+    }
+
     // ==================== CRM ====================
 
     @GetMapping("/crm/tickets")

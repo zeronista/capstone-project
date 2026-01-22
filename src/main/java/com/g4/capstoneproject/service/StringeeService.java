@@ -79,6 +79,47 @@ public class StringeeService {
     }
 
     /**
+     * Tạo Access Token cho Client (Web/Mobile App) kết nối tới Stringee
+     * Token này cần chứa userId để định danh người dùng
+     * 
+     * @param userId ID của người dùng cần kết nối
+     * @return JWT token string cho client
+     * @throws RuntimeException nếu không thể tạo token
+     */
+    public String getClientAccessToken(String userId) {
+        try {
+            long nowMillis = System.currentTimeMillis();
+            Date now = new Date(nowMillis);
+            // Token hết hạn sau 1 giờ
+            long expMillis = nowMillis + 3600000; 
+            Date exp = new Date(expMillis);
+
+            Algorithm algorithm = Algorithm.HMAC256(keySecret);
+            
+            Map<String, Object> headerClaims = new HashMap<>();
+            headerClaims.put("cty", "stringee-api;v=1");
+
+            // Tạo unique JWT ID
+            String jti = keySid + "-" + nowMillis;
+
+            String token = JWT.create()
+                    .withHeader(headerClaims)
+                    .withKeyId(keySid)
+                    .withJWTId(jti) // QUAN TRỌNG: JWT ID là required cho Stringee
+                    .withIssuedAt(now)
+                    .withExpiresAt(exp)
+                    .withClaim("userId", userId) // QUAN TRỌNG: Định danh user
+                    .sign(algorithm);
+
+            logger.info("Stringee Client Access Token created successfully for userId: {} (jti: {})", userId, jti);
+            return token;
+        } catch (Exception e) {
+            logger.error("Error creating Client Access Token for userId: " + userId, e);
+            throw new RuntimeException("Error creating Client Access Token", e);
+        }
+    }
+
+    /**
      * Thực hiện cuộc gọi ra cho khách hàng (Outbound Call)
      * 
      * @param fromNumber Số Voice Brandname đã đăng ký (hoặc số test của Stringee)

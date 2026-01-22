@@ -192,6 +192,39 @@ public class StringeeController {
     }
 
     /**
+     * API để lấy Access Token cho Client (Web-to-Web Call)
+     * Token này dùng để client kết nối tới Stringee Server
+     * 
+     * Query param:
+     * - userId: ID của người dùng (ví dụ: user1, user2)
+     * 
+     * Response:
+     * {
+     *   "userId": "user1",
+     *   "token": "eyJhbGc..."
+     * }
+     */
+    @GetMapping("/access-token")
+    public ResponseEntity<?> getClientAccessToken(@RequestParam String userId) {
+        try {
+            logger.info("Requesting access token for userId: {}", userId);
+            
+            String token = stringeeService.getClientAccessToken(userId);
+            
+            logger.info("Successfully created token for userId: {} (length: {})", userId, token.length());
+            
+            return ResponseEntity.ok(Map.of(
+                "userId", userId,
+                "token", token
+            ));
+        } catch (Exception e) {
+            logger.error("Error getting client access token for userId: " + userId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
      * API để lấy thông tin cuộc gọi
      */
     @GetMapping("/call/info/{callId}")

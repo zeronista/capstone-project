@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Stringee Web Call Demo</title>
+    <script src="/js/latest.sdk.bundle.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .box { border: 1px solid #ccc; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+        .status { font-weight: bold; color: blue; }
+        .status-connecting { color: orange; }
+        .status-connected { color: green; }
+        .status-disconnected { color: red; }
+        button { padding: 10px 20px; cursor: pointer; margin-right: 10px; }
+        .hidden { display: none; }
+        .log-box { 
+            background: #f5f5f5; 
+            border: 1px solid #ddd; 
+            padding: 10px; 
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry { 
+            margin: 3px 0; 
+            padding: 3px;
+        }
+        .log-info { color: blue; }
+        .log-success { color: green; }
+        .log-error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Demo Web-to-Web Call</h1>
+
+    <div id="login-screen" class="box">
+        <h3>Bước 1: Kết nối</h3>
+        <p>Nhập User ID của bạn để kết nối:</p>
+        <input type="text" id="myUserId" placeholder="Ví dụ: user1">
+        <button onclick="connectStringee()">Kết nối</button>
+    </div>
+
+    <div id="call-screen" class="box hidden">
+        <h3>Xin chào: <span id="displayUserId"></span></h3>
+        <p>
+            Trạng thái kết nối: 
+            <span id="connectionStatus" class="status status-connecting">Đang kết nối...</span>
+        </p>
+        
+        <div class="log-box" id="logConsole">
+            <div class="log-entry log-info">Nhật ký hoạt động sẽ hiển thị ở đây...</div>
+        </div>
+        
+        <hr>
+        
+        <h4>Thực hiện cuộc gọi</h4>
+        <input type="text" id="remoteUserId" placeholder="Nhập ID người nhận (ví dụ: user2)">
+        
+        <div style="margin-top: 10px;">
+            <button id="btnCall" onclick="makeCall()">📞 Gọi Voice</button>
+            <button id="btnAnswer" onclick="answerCall()" class="hidden" style="background: green; color: white;">✅ Trả lời</button>
+            <button id="btnHangup" onclick="hangupCall()" class="hidden" style="background: red; color: white;">❌ Kết thúc</button>
+        </div>
+
+        <p id="callStatus" style="font-weight: bold; margin-top: 10px;">Sẵn sàng</p>
+    </div>
+
+    <div id="remote_videos" style="display: none;"></div>
+
+    <script>
+        var stringeeClient;
+        var currentCall;
+        var myToken;
+
+        function addLog(message, type) {
+            type = type || 'info';
+            const logBox = document.getElementById('logConsole');
+            const timestamp = new Date().toLocaleTimeString();
+            const logClass = type === 'success' ? 'log-success' : (type === 'error' ? 'log-error' : 'log-info');
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry ' + logClass;
+            logEntry.textContent = '[' + timestamp + '] ' + message;
+            
+            logBox.appendChild(logEntry);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        async function connectStringee() {
+            const userId = document.getElementById('myUserId').value;
+            if (!userId) return alert('Vui lòng nhập User ID');
+
+            console.log('Bắt đầu kết nối với userId:', userId);
+
+            try {
+                console.log('Đang lấy access token từ server...');
+                const res = await fetch('/api/stringee/access-token?userId=' + userId);
+                const data = await res.json();
+                myToken = data.token;
+                console.log('Đã nhận được token');
+            } catch (err) {
+                console.error('Lỗi lấy token:', err);
+                return alert('Lỗi lấy token từ server: ' + err.message);
+            }
+
+            stringeeClient = new StringeeClient();
+            console.log('Đã khởi tạo Stringee Client');
+
+            stringeeClient.on('connect', function () {
+                console.log('Đã kết nối tới Stringee Server');
+                document.getElementById('connectionStatus').innerText = '🟢 Đã kết nối';
+                document.getElementById('connectionStatus').className = 'status status-connected';
+            });
+
+            stringeeClient.on('authen', function (res) {
+                console.log('Xác thực:', res);
+                if (res.r === 0) {
+                    console.log('Đăng nhập thành công');
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('call-screen').classList.remove('hidden');
+                    document.getElementById('displayUserId').innerText = userId;
+                    addLog('Kết nối thành công! User ID: ' + res.userId, 'success');
+                    addLog('Bạn có thể thực hiện cuộc gọi ngay bây giờ', 'success');
+                } else {
+                    console.error('Xác thực thất bại:', res);
+                    alert('Xác thực thất bại: ' + res.message);
+                }
+            });
+
+            stringeeClient.on('disconnect', function () {
+                console.log('Đã ngắt kết nối khỏi Stringee');
+                document.getElementById('connectionStatus').innerText = '🔴 Đã ngắt kết nối';
+                document.getElementById('connectionStatus').className = 'status status-disconnected';
+            });
+
+            stringeeClient.on('requestnewtoken', function () {
+                console.log('Token hết hạn');
+                alert('Token đã hết hạn. Vui lòng đăng nhập lại.');
+            });
+
+            stringeeClient.on('incomingcall', function (incomingCall) {
+                console.log('Cuộc gọi đến:', incomingCall);
+                addLog('Cuộc gọi đến từ: ' + incomingCall.fromNumber, 'info');
+                currentCall = incomingCall;
+                
+                document.getElementById('callStatus').innerText = '📞 Đang có cuộc gọi đến từ: ' + incomingCall.fromNumber;
+                document.getElementById('btnAnswer').classList.remove('hidden');
+                document.getElementById('btnCall').classList.add('hidden');
+
+                settingCallEvents(currentCall);
+            });
+
+            console.log('Đang kết nối tới Stringee...');
+            stringeeClient.connect(myToken);
+        }
+
+        function makeCall() {
+            const callerId = document.getElementById('myUserId').value;
+            const calleeId = document.getElementById('remoteUserId').value;
+
+            if (!calleeId) return alert('Nhập ID người nhận');
+
+            console.log('Đang gọi...');
+            addLog('Đang gọi tới: ' + calleeId, 'info');
+
+            currentCall = new StringeeCall(stringeeClient, callerId, calleeId, false);
+
+            settingCallEvents(currentCall);
+
+            currentCall.makeCall(function (res) {
+                console.log('makeCall response:', res);
+                if (res.r !== 0) {
+                    console.error('Gọi thất bại:', res.message);
+                    addLog('Gọi thất bại: ' + res.message, 'error');
+                    alert(res.message);
+                } else {
+                    addLog('Đang thực hiện cuộc gọi...', 'success');
+                }
+            });
+            
+            showInCallUI();
+        }
+
+        function settingCallEvents(call) {
+            call.on('addremotestream', function (stream) {
+                console.log('Adding remote stream');
+                var videoElement = document.createElement('video');
+                videoElement.setAttribute('autoplay', '');
+                videoElement.setAttribute('playsinline', '');
+                
+                document.getElementById('remote_videos').appendChild(videoElement);
+                stream.play(videoElement);
+            });
+
+            call.on('signalingstate', function (state) {
+                console.log('Signaling state:', state);
+                document.getElementById('callStatus').innerText = state.reason;
+                addLog('Trạng thái: ' + state.reason, 'info');
+                
+                if (state.code === 6) {
+                    addLog('Cuộc gọi đã kết thúc', 'success');
+                    resetUI();
+                }
+            });
+
+            call.on('mediastate', function (state) {
+                console.log('Media state:', state);
+            });
+            
+            call.on('info', function (info) {
+                console.log('Call info:', info);
+            });
+        }
+
+        function answerCall() {
+            if (currentCall) {
+                currentCall.answer(function (res) {
+                    console.log('answer res', res);
+                    if (res.r === 0) {
+                        showInCallUI();
+                    }
+                });
+            }
+        }
+
+        function hangupCall() {
+            if (currentCall) {
+                currentCall.hangup(function (res) {
+                    console.log('hangup res', res);
+                });
+            }
+            resetUI();
+        }
+
+        function showInCallUI() {
+            document.getElementById('btnCall').classList.add('hidden');
+            document.getElementById('btnAnswer').classList.add('hidden');
+            document.getElementById('btnHangup').classList.remove('hidden');
+        }
+
+        function resetUI() {
+            document.getElementById('callStatus').innerText = 'Sẵn sàng';
+            document.getElementById('btnCall').classList.remove('hidden');
+            document.getElementById('btnAnswer').classList.add('hidden');
+            document.getElementById('btnHangup').classList.add('hidden');
+            document.getElementById('remote_videos').innerHTML = '';
+            currentCall = null;
+        }
+    </script>
+</body>
+</html>
