@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS S3 Upload Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            background-color: #f8f9ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area.dragover {
+            background-color: #e8eaff;
+            border-color: #764ba2;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 16px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-info {
+            background-color: #f8f9ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-name {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .file-size {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .btn-upload {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-upload:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-clear {
+            background: transparent;
+            color: #666;
+            border: 2px solid #ddd;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .btn-clear:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        .result.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .result-url {
+            word-break: break-all;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .result-url a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .result-url a:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .status-badge.online {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.offline {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .divider {
+            border-top: 2px solid #e0e0e0;
+            margin: 40px 0 30px;
+            position: relative;
+        }
+
+        .divider::after {
+            content: "HOẶC";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 0 15px;
+            color: #999;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .generate-section {
+            margin-top: 30px;
+        }
+
+        .section-title {
+            color: #667eea;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .url-expiry-info {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 AWS S3 Upload Test</h1>
+        <p class="subtitle">Kiểm tra chức năng upload file lên Amazon S3</p>
+        
+        <div style="text-align: center;">
+            <span id="statusBadge" class="status-badge">Đang kiểm tra...</span>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">
+                <strong>Kéo thả file vào đây</strong><br>
+                hoặc click để chọn file
+            </div>
+            <input type="file" id="fileInput" accept="*/*">
+        </div>
+
+        <div class="file-info" id="fileInfo">
+            <div class="file-name" id="fileName"></div>
+            <div class="file-size" id="fileSize"></div>
+        </div>
+
+        <button class="btn-upload" id="btnUpload" disabled>
+            📤 Upload lên S3
+        </button>
+
+        <button class="btn-clear" id="btnClear">
+            🗑️ Xóa và chọn file khác
+        </button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>Đang upload file...</div>
+        </div>
+
+        <div class="result" id="result"></div>
+
+        <!-- Divider -->
+        <div class="divider"></div>
+
+        <!-- Section để generate URL cho file đã upload -->
+        <div class="generate-section">
+            <div class="section-title">🔗 Tạo URL truy cập cho file đã upload</div>
+            <p style="text-align: center; color: #666; font-size: 13px; margin-bottom: 20px;">
+                Nhập fileKey từ file đã upload để tạo Pre-signed URL có thời hạn
+            </p>
+            
+            <div class="form-group">
+                <label class="form-label">File Key (tên file trong S3):</label>
+                <input type="text" 
+                       id="fileKeyInput" 
+                       class="form-input" 
+                       placeholder="Ví dụ: dc69048e-9aba-4e50-8cc8-c237bb3d75f0_1767422927070.jpg">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Thời gian hiệu lực (giây):</label>
+                <input type="number" 
+                       id="durationInput" 
+                       class="form-input" 
+                       value="3600" 
+                       min="60" 
+                       max="604800"
+                       placeholder="3600 = 1 giờ">
+                <small style="color: #666; font-size: 11px;">
+                    Tối thiểu: 60 giây | Tối đa: 604800 giây (7 ngày)
+                </small>
+            </div>
+
+            <button class="btn-generate" id="btnGenerate">
+                🔑 Tạo Pre-signed URL
+            </button>
+
+            <div class="loading" id="loadingGenerate" style="display: none;">
+                <div class="spinner"></div>
+                <div>Đang tạo URL...</div>
+            </div>
+
+            <div class="result" id="resultGenerate"></div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const btnUpload = document.getElementById('btnUpload');
+        const btnClear = document.getElementById('btnClear');
+        const result = document.getElementById('result');
+        const loading = document.getElementById('loading');
+        const statusBadge = document.getElementById('statusBadge');
+
+        let selectedFile = null;
+
+        // Kiểm tra kết nối S3 khi load trang
+        checkS3Connection();
+
+        // Click vào upload area để chọn file
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // Xử lý khi chọn file
+        fileInput.addEventListener('change', (e) => {
+            handleFileSelect(e.target.files[0]);
+        });
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFileSelect(e.dataTransfer.files[0]);
+        });
+
+        // Xử lý file được chọn
+        function handleFileSelect(file) {
+            if (!file) return;
+
+            selectedFile = file;
+            fileName.textContent = `📄 ${file.name}`;
+            fileSize.textContent = `Kích thước: ${formatFileSize(file.size)}`;
+            fileInfo.classList.add('show');
+            btnUpload.disabled = false;
+            result.classList.remove('show');
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        // Upload file
+        btnUpload.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            loading.classList.add('show');
+            btnUpload.disabled = true;
+            result.classList.remove('show');
+
+            try {
+                const response = await fetch('/s3-test/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Tự động điền fileKey vào form generate URL
+                    document.getElementById('fileKeyInput').value = data.fileKey;
+                    
+                    showResult('success', `
+                        <div class="result-title">✅ Upload thành công!</div>
+                        <div>File: ${data.fileName}</div>
+                        <div>File Key: <code>${data.fileKey}</code></div>
+                        <div>Kích thước: ${formatFileSize(data.fileSize)}</div>
+                        <div>Content-Type: ${data.contentType}</div>
+                        <div class="url-expiry-info">
+                            ⏰ <strong>Lưu ý:</strong> URL này có hiệu lực trong ${data.urlExpiresIn}. 
+                            Sau thời gian đó, bạn cần tạo URL mới ở phần bên dưới.
+                        </div>
+                        <div class="result-url">
+                            <strong>Pre-signed URL (có thời hạn):</strong><br>
+                            <a href="${data.fileUrl}" target="_blank">${data.fileUrl.substring(0, 100)}...</a>
+                        </div>
+                    `);
+                } else {
+                    showResult('error', `
+                        <div class="result-title">❌ Upload thất bại</div>
+                        <div>${data.message}</div>
+                    `);
+                }
+            } catch (error) {
+                showResult('error', `
+                    <div class="result-title">❌ Lỗi kết nối</div>
+                    <div>Không thể kết nối đến server. Vui lòng kiểm tra lại.</div>
+                    <div style="margin-top: 10px; font-size: 12px;">${error.message}</div>
+                `);
+            } finally {
+                loading.classList.remove('show');
+                btnUpload.disabled = false;
+            }
+        });
+
+        // Clear file
+        btnClear.addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.classList.remove('show');
+            btnUpload.disabled = true;
+            result.classList.remove('show');
+        });
+
+        // Hiển thị kết quả
+        function showResult(type, html) {
+            result.className = `result show ${type}`;
+            result.innerHTML = html;
+        }
+
+        // Kiểm tra kết nối S3
+        async function checkS3Connection() {
+            try {
+                const response = await fetch('/s3-test/health');
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusBadge.textContent = '✅ S3 Service Online';
+                    statusBadge.className = 'status-badge online';
+                } else {
+                    statusBadge.textContent = '❌ S3 Service Offline';
+                    statusBadge.className = 'status-badge offline';
+                }
+            } catch (error) {
+                statusBadge.textContent = '❌ Không thể kết nối';
+                statusBadge.className = 'status-badge offline';
+            }
+        }
+
+        // === GENERATE URL SECTION ===
+        const fileKeyInput = document.getElementById('fileKeyInput');
+        const durationInput = document.getElementById('durationInput');
+        const btnGenerate = document.getElementById('btnGenerate');
+        const loadingGenerate = document.getElementById('loadingGenerate');
+        const resultGenerate = document.getElementById('resultGenerate');
+
+        // Xử lý generate presigned URL
+        btnGenerate.addEventListener('click', async () => {
+            const fileKey = fileKeyInput.value.trim();
+            const duration = parseInt(durationInput.value);
+
+            // Validate
+            if (!fileKey) {
+                showResultGenerate('error', `
+                    <div class="result-title">❌ Lỗi</div>
+                    <div>Vui lòng nhập File Key</div>
+                `);
+                return;
+            }
+
+            if (duration < 60 || duration > 604800) {
+                showResultGenerate('error', `
+                    <div class="result-title">❌ Lỗi</div>
+                    <div>Thời gian phải từ 60 đến 604800 giây</div>
+                `);
+                return;
+            }
+
+            loadingGenerate.style.display = 'block';
+            btnGenerate.disabled = true;
+            resultGenerate.classList.remove('show');
+
+            try {
+                const response = await fetch(`/s3-test/generate-url?fileKey=${encodeURIComponent(fileKey)}&duration=${duration}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const expiresDate = new Date(data.expiresAt);
+                    showResultGenerate('success', `
+                        <div class="result-title">✅ Tạo URL thành công!</div>
+                        <div>File Key: <code>${data.fileKey}</code></div>
+                        <div>Thời gian hiệu lực: ${data.expiresIn}</div>
+                        <div>Hết hạn lúc: ${expiresDate.toLocaleString('vi-VN')}</div>
+                        <div class="url-expiry-info">
+                            ⏰ <strong>Quan trọng:</strong> URL này chỉ có hiệu lực trong thời gian trên. 
+                            Sau đó cần tạo URL mới.
+                        </div>
+                        <div class="result-url">
+                            <strong>Pre-signed URL:</strong><br>
+                            <a href="${data.presignedUrl}" target="_blank">${data.presignedUrl.substring(0, 100)}...</a>
+                        </div>
+                    `);
+                } else {
+                    showResultGenerate('error', `
+                        <div class="result-title">❌ Tạo URL thất bại</div>
+                        <div>${data.message}</div>
+                    `);
+                }
+            } catch (error) {
+                showResultGenerate('error', `
+                    <div class="result-title">❌ Lỗi kết nối</div>
+                    <div>Không thể kết nối đến server</div>
+                    <div style="margin-top: 10px; font-size: 12px;">${error.message}</div>
+                `);
+            } finally {
+                loadingGenerate.style.display = 'none';
+                btnGenerate.disabled = false;
+            }
+        });
+
+        function showResultGenerate(type, html) {
+            resultGenerate.className = `result show ${type}`;
+            resultGenerate.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

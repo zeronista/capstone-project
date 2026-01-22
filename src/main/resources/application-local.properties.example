@@ -33,3 +33,15 @@ stringee.webhook.domain=https://abc123.ngrok.io
 # ============================================
 logging.level.com.g4.capstoneproject=DEBUG
 logging.level.org.springframework.web=DEBUG
+
+# ============================================
+# AWS S3 CONFIGURATION - ĐIỀN GIÁ TRỊ THỰC
+# ============================================
+aws.accessKeyId=YOUR_AWS_ACCESS_KEY_ID
+aws.secretAccessKey=YOUR_AWS_SECRET_ACCESS_KEY
+aws.s3.region=ap-southeast-1
+aws.s3.bucketName=your-bucket-name
+
+# Thời gian Pre-signed URL có hiệu lực (giây)
+# Mặc định: 3600 giây = 1 giờ
+aws.s3.presignedUrlDuration=3600
