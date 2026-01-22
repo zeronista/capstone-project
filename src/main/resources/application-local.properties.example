@@ -45,3 +45,8 @@ aws.s3.bucketName=your-bucket-name
 # Thời gian Pre-signed URL có hiệu lực (giây)
 # Mặc định: 3600 giây = 1 giờ
 aws.s3.presignedUrlDuration=3600
+
+# Google OAuth2 Config
+spring.security.oauth2.client.registration.google.client-id=YOUR_CLIENT_ID
+spring.security.oauth2.client.registration.google.client-secret=YOUR_CLIENT_SECRET
+spring.security.oauth2.client.registration.google.scope=profile, email
