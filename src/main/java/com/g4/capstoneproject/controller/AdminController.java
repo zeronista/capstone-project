@@ -2,6 +2,7 @@ package com.g4.capstoneproject.controller;
 
 import com.g4.capstoneproject.dto.AccountResponse;
 import com.g4.capstoneproject.dto.AssignRoleRequest;
+import com.g4.capstoneproject.dto.CreateAccountRequest;
 import com.g4.capstoneproject.entity.User;
 import com.g4.capstoneproject.service.AdminService;
 import jakarta.validation.Valid;
@@ -243,6 +244,36 @@ public class AdminController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "Không thể lấy thống kê tài khoản");
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+    
+    /**
+     * POST /api/admin/accounts - Tạo tài khoản mới
+     */
+    @PostMapping("/accounts")
+    public ResponseEntity<Map<String, Object>> createAccount(
+            @Valid @RequestBody CreateAccountRequest request) {
+        
+        try {
+            AccountResponse account = adminService.createAccount(request);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Tạo tài khoản thành công");
+            response.put("account", account);
+            
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            log.error("Error creating account", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Không thể tạo tài khoản");
             return ResponseEntity.internalServerError().body(errorResponse);
         }
     }

@@ -2,12 +2,14 @@ package com.g4.capstoneproject.service;
 
 import com.g4.capstoneproject.dto.AccountResponse;
 import com.g4.capstoneproject.dto.AssignRoleRequest;
+import com.g4.capstoneproject.dto.CreateAccountRequest;
 import com.g4.capstoneproject.entity.User;
 import com.g4.capstoneproject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 public class AdminService {
     
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     
     /**
      * Lấy danh sách tất cả accounts (không bao gồm bệnh nhân)
@@ -205,6 +208,67 @@ public class AdminService {
         } catch (Exception e) {
             log.error("Error fetching account statistics", e);
             throw new RuntimeException("Không thể lấy thống kê tài khoản");
+        }
+    }
+    
+    /**
+     * Tạo tài khoản mới với role được chỉ định (dành cho admin)
+     */
+    @Transactional
+    public AccountResponse createAccount(CreateAccountRequest request) {
+        try {
+            // Validate email hoặc phone phải có ít nhất 1
+            if (!request.hasEmailOrPhone()) {
+                throw new IllegalArgumentException("Vui lòng cung cấp email hoặc số điện thoại");
+            }
+            
+            // Validate mật khẩu khớp
+            if (!request.isPasswordMatch()) {
+                throw new IllegalArgumentException("Mật khẩu xác nhận không khớp");
+            }
+            
+            // Kiểm tra email đã tồn tại
+            if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+                if (userRepository.existsByEmail(request.getEmail())) {
+                    throw new IllegalArgumentException("Email đã được sử dụng");
+                }
+            }
+            
+            // Kiểm tra số điện thoại đã tồn tại
+            if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
+                if (userRepository.existsByPhone(request.getPhone())) {
+                    throw new IllegalArgumentException("Số điện thoại đã được sử dụng");
+                }
+            }
+            
+            // Tạo user mới
+            User user = User.builder()
+                    .fullName(request.getFullName())
+                    .email(request.getEmail() != null && !request.getEmail().trim().isEmpty() 
+                            ? request.getEmail() : null)
+                    .phone(request.getPhone() != null && !request.getPhone().trim().isEmpty() 
+                            ? request.getPhone() : null)
+                    .password(passwordEncoder.encode(request.getPassword())) // Mã hóa password
+                    .role(request.getRole()) // Role được chọn bởi admin
+                    .provider(User.AuthProvider.LOCAL)
+                    .enabled(true)
+                    .accountNonLocked(true)
+                    .build();
+            
+            user = userRepository.save(user);
+            
+            log.info("Account created successfully by admin: {} with role {}", 
+                    user.getEmail() != null ? user.getEmail() : user.getPhone(), 
+                    user.getRole());
+            
+            return AccountResponse.fromUser(user);
+                    
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid create account request: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Error creating account", e);
+            throw new RuntimeException("Không thể tạo tài khoản mới");
         }
     }
 }

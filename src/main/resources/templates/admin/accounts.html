@@ -47,7 +47,7 @@
                 <h1 class="text-2xl font-bold text-surface-900 font-heading">Quản lý tài khoản</h1>
                 <p class="text-surface-500 mt-1">Quản lý tất cả tài khoản trong hệ thống</p>
             </div>
-            <button class="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 text-white font-medium rounded-xl hover:bg-primary-600 transition-colors duration-200 cursor-pointer shadow-lg shadow-primary-500/25">
+            <button onclick="openCreateAccountModal()" class="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 text-white font-medium rounded-xl hover:bg-primary-600 transition-colors duration-200 cursor-pointer shadow-lg shadow-primary-500/25">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                 </svg>
@@ -334,6 +334,81 @@
         </div>
     </main>
     
+    <!-- Modal Create Account -->
+    <div id="createAccountModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl transform transition-all max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-surface-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-surface-900">Thêm tài khoản mới</h3>
+                    <button onclick="closeCreateAccountModal()" class="text-surface-400 hover:text-surface-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <form id="createAccountForm" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-surface-700 mb-2">Họ và tên <span class="text-red-500">*</span></label>
+                    <input type="text" id="createFullName" required
+                        class="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="Nhập họ và tên">
+                    <span id="errorFullName" class="text-red-500 text-xs mt-1 hidden"></span>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-surface-700 mb-2">Email</label>
+                    <input type="email" id="createEmail"
+                        class="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="email@example.com">
+                    <span id="errorEmail" class="text-red-500 text-xs mt-1 hidden"></span>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-surface-700 mb-2">Số điện thoại</label>
+                    <input type="tel" id="createPhone"
+                        class="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="0901234567">
+                    <span id="errorPhone" class="text-red-500 text-xs mt-1 hidden"></span>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-surface-700 mb-2">Vai trò <span class="text-red-500">*</span></label>
+                    <select id="createRole" required
+                        class="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <option value="">-- Chọn vai trò --</option>
+                        <option value="ADMIN">Admin</option>
+                        <option value="DOCTOR">Bác sĩ</option>
+                        <option value="NURSE">Y tá</option>
+                        <option value="STAFF">Nhân viên</option>
+                        <option value="PATIENT">Bệnh nhân</option>
+                    </select>
+                    <span id="errorRole" class="text-red-500 text-xs mt-1 hidden"></span>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-surface-700 mb-2">Mật khẩu <span class="text-red-500">*</span></label>
+                    <input type="password" id="createPassword" required
+                        class="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="Tối thiểu 8 ký tự">
+                    <p class="text-xs text-surface-500 mt-1">Phải chứa ít nhất 1 chữ thường, 1 chữ hoa và 1 số</p>
+                    <span id="errorPassword" class="text-red-500 text-xs mt-1 hidden"></span>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-surface-700 mb-2">Xác nhận mật khẩu <span class="text-red-500">*</span></label>
+                    <input type="password" id="createConfirmPassword" required
+                        class="w-full px-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-surface-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="Nhập lại mật khẩu">
+                    <span id="errorConfirmPassword" class="text-red-500 text-xs mt-1 hidden"></span>
+                </div>
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeCreateAccountModal()" class="flex-1 px-4 py-2.5 border border-surface-300 text-surface-700 font-medium rounded-xl hover:bg-surface-50 transition-colors">
+                        Hủy
+                    </button>
+                    <button type="submit" class="flex-1 px-4 py-2.5 bg-primary-500 text-white font-medium rounded-xl hover:bg-primary-600 transition-colors">
+                        Tạo tài khoản
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <!-- Modal Assign Role -->
     <div id="assignRoleModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl transform transition-all">
@@ -552,6 +627,142 @@
         function closeAssignRoleModal() {
             currentUserId = null;
             document.getElementById('assignRoleModal').classList.add('hidden');
+        }
+        
+        // Open create account modal
+        function openCreateAccountModal() {
+            // Clear form
+            document.getElementById('createAccountForm').reset();
+            // Clear error messages
+            document.querySelectorAll('[id^="error"]').forEach(el => {
+                el.textContent = '';
+                el.classList.add('hidden');
+            });
+            // Show modal
+            document.getElementById('createAccountModal').classList.remove('hidden');
+        }
+        
+        // Close create account modal
+        function closeCreateAccountModal() {
+            document.getElementById('createAccountModal').classList.add('hidden');
+        }
+        
+        // Create account form submit
+        document.getElementById('createAccountForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Clear previous errors
+            document.querySelectorAll('[id^="error"]').forEach(el => {
+                el.textContent = '';
+                el.classList.add('hidden');
+            });
+            
+            // Get form data
+            const fullName = document.getElementById('createFullName').value.trim();
+            const email = document.getElementById('createEmail').value.trim();
+            const phone = document.getElementById('createPhone').value.trim();
+            const role = document.getElementById('createRole').value;
+            const password = document.getElementById('createPassword').value;
+            const confirmPassword = document.getElementById('createConfirmPassword').value;
+            
+            // Client-side validation
+            let hasError = false;
+            
+            if (!fullName || fullName.length < 2) {
+                showFieldError('errorFullName', 'Họ và tên phải có ít nhất 2 ký tự');
+                hasError = true;
+            }
+            
+            if (!email && !phone) {
+                showFieldError('errorEmail', 'Vui lòng cung cấp email hoặc số điện thoại');
+                showFieldError('errorPhone', 'Vui lòng cung cấp email hoặc số điện thoại');
+                hasError = true;
+            }
+            
+            if (email && !isValidEmail(email)) {
+                showFieldError('errorEmail', 'Email không hợp lệ');
+                hasError = true;
+            }
+            
+            if (phone && !isValidPhone(phone)) {
+                showFieldError('errorPhone', 'Số điện thoại không hợp lệ (VD: 0901234567)');
+                hasError = true;
+            }
+            
+            if (!role) {
+                showFieldError('errorRole', 'Vui lòng chọn vai trò');
+                hasError = true;
+            }
+            
+            if (!password || password.length < 8) {
+                showFieldError('errorPassword', 'Mật khẩu phải có ít nhất 8 ký tự');
+                hasError = true;
+            } else if (!isValidPassword(password)) {
+                showFieldError('errorPassword', 'Mật khẩu phải chứa ít nhất 1 chữ thường, 1 chữ hoa và 1 số');
+                hasError = true;
+            }
+            
+            if (password !== confirmPassword) {
+                showFieldError('errorConfirmPassword', 'Mật khẩu xác nhận không khớp');
+                hasError = true;
+            }
+            
+            if (hasError) return;
+            
+            // Call API
+            try {
+                const response = await fetch('/api/admin/accounts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fullName,
+                        email: email || null,
+                        phone: phone || null,
+                        role,
+                        password,
+                        confirmPassword
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showSuccess(data.message || 'Tạo tài khoản thành công');
+                    closeCreateAccountModal();
+                    loadAccounts();
+                } else {
+                    showError(data.message || 'Không thể tạo tài khoản');
+                }
+            } catch (error) {
+                console.error('Error creating account:', error);
+                showError('Lỗi kết nối đến server');
+            }
+        });
+        
+        // Validation helper functions
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+        
+        function isValidPhone(phone) {
+            const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
+            return phoneRegex.test(phone);
+        }
+        
+        function isValidPassword(password) {
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
+            return passwordRegex.test(password);
+        }
+        
+        function showFieldError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.classList.remove('hidden');
+            }
         }
         
         // Confirm assign role
