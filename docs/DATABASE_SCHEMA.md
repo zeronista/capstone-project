@@ -8,31 +8,26 @@ Hệ thống quản lý phòng khám với tính năng AI Callbot tự động g
 
 ## 1. QUẢN LÝ NGƯỜI DÙNG
 
-### 📋 Bảng `users` - Thông tin người dùng
+### 📋 Bảng `users` - Thông tin tài khoản và bảo mật
 
-**Mục đích**: Lưu trữ thông tin tất cả người dùng trong hệ thống (bệnh nhân, lễ tân, bác sĩ, admin).
+**Mục đích**: Lưu trữ thông tin đăng nhập, phân quyền và trạng thái bảo mật của tất cả người dùng trong hệ thống.
 
 **Các thông tin chính**:
 
-| Tên trường | Ý nghĩa | Ví dụ |
-|------------|---------|-------|
-| `id` | Mã số định danh duy nhất | 1, 2, 3... |
-| `email` | Địa chỉ email | nguyen.van.a@gmail.com |
-| `phone_number` | Số điện thoại | 0912345678 |
-| `password_hash` | Mật khẩu đã mã hóa | (được bảo mật) |
-| `google_id` | ID Google (nếu đăng ký bằng Google) | 123456789... |
-| `role` | Vai trò | PATIENT, DOCTOR, RECEPTIONIST, ADMIN |
-| `is_active` | Tài khoản có đang hoạt động không | true/false |
-| `email_verified` | Email đã xác thực chưa | true/false |
-| `phone_verified` | SĐT đã xác thực chưa | true/false |
-| `full_name` | Họ và tên đầy đủ | Nguyễn Văn A |
-| `date_of_birth` | Ngày sinh | 15/03/1990 |
-| `gender` | Giới tính | MALE, FEMALE, OTHER |
-| `address` | Địa chỉ | 123 Đường ABC, Quận 1, TP.HCM |
-| `avatar_url` | Link ảnh đại diện | https://... |
-| `created_at` | Ngày tạo tài khoản | 26/01/2026 10:30 |
-| `updated_at` | Ngày cập nhật gần nhất | 26/01/2026 15:45 |
-| `last_login` | Lần đăng nhập cuối | 26/01/2026 14:20 |
+| Tên trường | Ý nghĩa | Ví dụ | Bắt buộc |
+|------------|---------|-------|----------|
+| `id` | Mã số định danh duy nhất | 1, 2, 3... | ✅ |
+| `email` | Địa chỉ email (dùng để đăng nhập) | nguyen.van.a@gmail.com | ⚠️ Ít nhất 1 trong email/phone |
+| `phone` | Số điện thoại (dùng để đăng nhập) | 0912345678 | ⚠️ Ít nhất 1 trong email/phone |
+| `password_hash` | Mật khẩu đã mã hóa | (được bảo mật) | ✅ (trừ OAuth) |
+| `google_id` | ID Google (nếu đăng ký bằng Google) | 123456789... | ❌ |
+| `role` | Vai trò trong hệ thống | PATIENT, DOCTOR, RECEPTIONIST, ADMIN | ✅ |
+| `is_active` | Tài khoản có đang hoạt động không | true/false | ✅ (default: true) |
+| `email_verified` | Email đã xác thực chưa | true/false | ✅ (default: false) |
+| `phone_verified` | SĐT đã xác thực chưa | true/false | ✅ (default: false) |
+| `created_at` | Ngày tạo tài khoản | 26/01/2026 10:30 | ✅ |
+| `updated_at` | Ngày cập nhật gần nhất | 26/01/2026 15:45 | ✅ |
+| `last_login` | Lần đăng nhập cuối | 26/01/2026 14:20 | ❌ |
 
 **Các vai trò (role)**:
 - **PATIENT**: Bệnh nhân - người sử dụng dịch vụ phòng khám
@@ -44,6 +39,42 @@ Hệ thống quản lý phòng khám với tính năng AI Callbot tự động g
 - Bắt buộc phải có email HOẶC số điện thoại (ít nhất 1)
 - Có thể đăng ký/đăng nhập bằng Google
 - Email và số điện thoại phải duy nhất (không trùng lặp)
+
+---
+
+### 👤 Bảng `user_info` - Thông tin cá nhân người dùng
+
+**Mục đích**: Lưu trữ thông tin cá nhân của người dùng, tách riêng khỏi thông tin bảo mật để dễ quản lý và tuân thủ quy định bảo vệ dữ liệu.
+
+**Quan hệ**: OneToOne với bảng `users` (mỗi user có một record user_info)
+
+**Các thông tin chính**:
+
+| Tên trường | Ý nghĩa | Ví dụ | Bắt buộc |
+|------------|---------|-------|----------|
+| `id` | Mã số định danh | 1, 2, 3... | ✅ |
+| `user_id` | Liên kết đến bảng users (unique) | 5 (tham chiếu users.id) | ✅ |
+| `full_name` | Họ và tên đầy đủ | Nguyễn Văn A | ❌ |
+| `date_of_birth` | Ngày sinh | 15/03/1990 | ❌ |
+| `gender` | Giới tính | MALE, FEMALE, OTHER | ❌ |
+| `address` | Địa chỉ | 123 Đường ABC, Quận 1, TP.HCM | ❌ |
+| `avatar_url` | Link ảnh đại diện | https://... | ❌ |
+| `created_at` | Ngày tạo | 26/01/2026 10:30 | ✅ |
+| `updated_at` | Ngày cập nhật gần nhất | 26/01/2026 15:45 | ✅ |
+
+**Các giá trị giới tính (gender)**:
+- **MALE**: Nam
+- **FEMALE**: Nữ  
+- **OTHER**: Khác
+
+**Ví dụ thực tế**:
+```
+- User ID: 1
+  + Họ tên: Nguyễn Văn A
+  + Ngày sinh: 15/03/1990
+  + Giới tính: MALE
+  + Địa chỉ: 123 Đường ABC, Quận 1, TP.HCM
+```
 
 ---
 

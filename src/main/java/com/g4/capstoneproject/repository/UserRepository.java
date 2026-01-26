@@ -79,8 +79,21 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findAllActiveReceptionists();
     
     /**
-     * Tìm kiếm user theo tên hoặc email
+     * Tìm kiếm user theo tên (từ UserInfo) hoặc email
+     * Sử dụng LEFT JOIN để truy vấn vào bảng user_info
      */
-    @Query("SELECT u FROM User u WHERE u.fullName LIKE %:keyword% OR u.email LIKE %:keyword%")
+    @Query("SELECT u FROM User u LEFT JOIN u.userInfo ui WHERE ui.fullName LIKE %:keyword% OR u.email LIKE %:keyword%")
     List<User> searchByKeyword(@Param("keyword") String keyword);
+    
+    /**
+     * Tìm user kèm theo thông tin cá nhân (eager fetch)
+     */
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.userInfo WHERE u.id = :id")
+    Optional<User> findByIdWithUserInfo(@Param("id") Long id);
+    
+    /**
+     * Tìm tất cả users kèm theo thông tin cá nhân
+     */
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.userInfo")
+    List<User> findAllWithUserInfo();
 }

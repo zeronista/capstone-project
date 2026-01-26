@@ -4,6 +4,7 @@ import com.g4.capstoneproject.dto.AuthResponse;
 import com.g4.capstoneproject.dto.LoginRequest;
 import com.g4.capstoneproject.dto.RegisterRequest;
 import com.g4.capstoneproject.entity.User;
+import com.g4.capstoneproject.entity.UserInfo;
 import com.g4.capstoneproject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -67,9 +68,8 @@ public class AuthService {
                 }
             }
             
-            // Tạo user mới
+            // Tạo user mới (thông tin bảo mật)
             User user = User.builder()
-                    .fullName(request.getFullName())
                     .email(request.getEmail() != null && !request.getEmail().trim().isEmpty() 
                             ? request.getEmail() : null)
                     .phoneNumber(request.getPhone() != null && !request.getPhone().trim().isEmpty() 
@@ -81,6 +81,13 @@ public class AuthService {
                     .phoneVerified(false)
                     .build();
             
+            // Tạo UserInfo (thông tin cá nhân)
+            UserInfo userInfo = UserInfo.builder()
+                    .user(user)
+                    .fullName(request.getFullName())
+                    .build();
+            
+            user.setUserInfo(userInfo);
             user = userRepository.save(user);
             
             log.info("User registered successfully: {}", user.getEmail() != null ? user.getEmail() : user.getPhoneNumber());
@@ -175,9 +182,8 @@ public class AuthService {
             Optional<User> userOpt = userRepository.findByEmail(email);
             
             if (userOpt.isEmpty()) {
-                // Nếu chưa có user, tạo mới
+                // Nếu chưa có user, tạo mới (thông tin bảo mật)
                 User newUser = User.builder()
-                        .fullName(name)
                         .email(email)
                         .password(passwordEncoder.encode(googleId)) // Mật khẩu tạm từ googleId
                         .googleId(googleId)
@@ -187,6 +193,13 @@ public class AuthService {
                         .phoneVerified(false)
                         .build();
                 
+                // Tạo UserInfo (thông tin cá nhân)
+                UserInfo userInfo = UserInfo.builder()
+                        .user(newUser)
+                        .fullName(name)
+                        .build();
+                
+                newUser.setUserInfo(userInfo);
                 newUser = userRepository.save(newUser);
                 
                 log.info("New user registered via Google OAuth: {}", email);

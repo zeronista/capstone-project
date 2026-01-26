@@ -1,6 +1,7 @@
 package com.g4.capstoneproject.dto;
 
 import com.g4.capstoneproject.entity.User;
+import com.g4.capstoneproject.entity.UserInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -27,7 +28,7 @@ public class AccountResponse {
     private Boolean emailVerified;
     private Boolean phoneVerified;
     private LocalDate dateOfBirth;
-    private User.Gender gender;
+    private UserInfo.Gender gender;
     private String address;
     private String avatarUrl;
     private LocalDateTime createdAt;
@@ -36,21 +37,22 @@ public class AccountResponse {
     
     /**
      * Chuyển đổi từ User entity sang AccountResponse
+     * Thông tin cá nhân được lấy từ UserInfo thông qua helper methods trong User
      */
     public static AccountResponse fromUser(User user) {
         return AccountResponse.builder()
                 .id(user.getId())
-                .fullName(user.getFullName())
+                .fullName(user.getFullName())  // Sử dụng helper method
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole())
                 .isActive(user.getIsActive())
                 .emailVerified(user.getEmailVerified())
                 .phoneVerified(user.getPhoneVerified())
-                .dateOfBirth(user.getDateOfBirth())
-                .gender(user.getGender())
-                .address(user.getAddress())
-                .avatarUrl(user.getAvatarUrl())
+                .dateOfBirth(user.getDateOfBirth())  // Sử dụng helper method
+                .gender(user.getGender())  // Sử dụng helper method
+                .address(user.getAddress())  // Sử dụng helper method
+                .avatarUrl(user.getAvatarUrl())  // Sử dụng helper method
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .lastLogin(user.getLastLogin())

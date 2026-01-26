@@ -4,6 +4,7 @@ import com.g4.capstoneproject.dto.AccountResponse;
 import com.g4.capstoneproject.dto.AssignRoleRequest;
 import com.g4.capstoneproject.dto.CreateAccountRequest;
 import com.g4.capstoneproject.entity.User;
+import com.g4.capstoneproject.entity.UserInfo;
 import com.g4.capstoneproject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -240,9 +241,8 @@ public class AdminService {
                 }
             }
             
-            // Tạo user mới
+            // Tạo user mới (thông tin bảo mật)
             User user = User.builder()
-                    .fullName(request.getFullName())
                     .email(request.getEmail() != null && !request.getEmail().trim().isEmpty() 
                             ? request.getEmail() : null)
                     .phoneNumber(request.getPhone() != null && !request.getPhone().trim().isEmpty() 
@@ -254,6 +254,13 @@ public class AdminService {
                     .phoneVerified(false)
                     .build();
             
+            // Tạo UserInfo (thông tin cá nhân)
+            UserInfo userInfo = UserInfo.builder()
+                    .user(user)
+                    .fullName(request.getFullName())
+                    .build();
+            
+            user.setUserInfo(userInfo);
             user = userRepository.save(user);
             
             log.info("Account created successfully by admin: {} with role {}", 

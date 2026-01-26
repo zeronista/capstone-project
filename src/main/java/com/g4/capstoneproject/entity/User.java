@@ -8,11 +8,12 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
- * Entity User - Đại diện cho người dùng trong hệ thống
+ * Entity User - Thông tin tài khoản và bảo mật của người dùng
+ * Chỉ chứa các thông tin liên quan đến đăng nhập và phân quyền.
+ * Thông tin cá nhân được lưu trong bảng user_info.
  */
 @Entity
 @Table(name = "users", 
@@ -36,6 +37,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    // ========== Thông tin đăng nhập ==========
     @Column(unique = true, length = 100)
     private String email;
     
@@ -48,11 +50,13 @@ public class User {
     @Column(name = "google_id", unique = true, length = 100)
     private String googleId;
     
+    // ========== Phân quyền ==========
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private UserRole role = UserRole.PATIENT;
     
+    // ========== Trạng thái tài khoản ==========
     @Builder.Default
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
@@ -65,22 +69,9 @@ public class User {
     @Column(name = "phone_verified", nullable = false)
     private Boolean phoneVerified = false;
     
-    // ========== Profile Fields ==========
-    @Column(name = "full_name", length = 100)
-    private String fullName;
-    
-    @Column(name = "date_of_birth")
-    private LocalDate dateOfBirth;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(length = 10)
-    private Gender gender;
-    
-    @Column(length = 500)
-    private String address;
-    
-    @Column(name = "avatar_url", length = 500)
-    private String avatarUrl;
+    // ========== Quan hệ với UserInfo ==========
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private UserInfo userInfo;
     
     // ========== Timestamps ==========
     @CreationTimestamp
@@ -104,12 +95,40 @@ public class User {
         ADMIN           // Quản trị viên
     }
     
+    // ========== Helper methods để truy cập thông tin cá nhân ==========
+    
     /**
-     * Enum cho giới tính
+     * Lấy họ tên từ UserInfo (để tương thích ngược)
      */
-    public enum Gender {
-        MALE,       // Nam
-        FEMALE,     // Nữ
-        OTHER       // Khác
+    public String getFullName() {
+        return userInfo != null ? userInfo.getFullName() : null;
+    }
+    
+    /**
+     * Lấy ngày sinh từ UserInfo (để tương thích ngược)
+     */
+    public java.time.LocalDate getDateOfBirth() {
+        return userInfo != null ? userInfo.getDateOfBirth() : null;
+    }
+    
+    /**
+     * Lấy giới tính từ UserInfo (để tương thích ngược)
+     */
+    public UserInfo.Gender getGender() {
+        return userInfo != null ? userInfo.getGender() : null;
+    }
+    
+    /**
+     * Lấy địa chỉ từ UserInfo (để tương thích ngược)
+     */
+    public String getAddress() {
+        return userInfo != null ? userInfo.getAddress() : null;
+    }
+    
+    /**
+     * Lấy URL avatar từ UserInfo (để tương thích ngược)
+     */
+    public String getAvatarUrl() {
+        return userInfo != null ? userInfo.getAvatarUrl() : null;
     }
 }
