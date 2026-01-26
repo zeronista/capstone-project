@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -20,13 +21,18 @@ public class AccountResponse {
     private Long id;
     private String fullName;
     private String email;
-    private String phone;
+    private String phoneNumber;
     private User.UserRole role;
-    private User.AuthProvider provider;
-    private Boolean enabled;
-    private Boolean accountNonLocked;
+    private Boolean isActive;
+    private Boolean emailVerified;
+    private Boolean phoneVerified;
+    private LocalDate dateOfBirth;
+    private User.Gender gender;
+    private String address;
+    private String avatarUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime lastLogin;
     
     /**
      * Chuyển đổi từ User entity sang AccountResponse
@@ -36,13 +42,18 @@ public class AccountResponse {
                 .id(user.getId())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
-                .phone(user.getPhone())
+                .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole())
-                .provider(user.getProvider())
-                .enabled(user.getEnabled())
-                .accountNonLocked(user.getAccountNonLocked())
+                .isActive(user.getIsActive())
+                .emailVerified(user.getEmailVerified())
+                .phoneVerified(user.getPhoneVerified())
+                .dateOfBirth(user.getDateOfBirth())
+                .gender(user.getGender())
+                .address(user.getAddress())
+                .avatarUrl(user.getAvatarUrl())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
+                .lastLogin(user.getLastLogin())
                 .build();
     }
 }

@@ -44,3 +44,5 @@ application-prod.properties
 secrets.properties
 # Chỉ commit file example/template
 !application.properties.example
+
+google-credentials.json

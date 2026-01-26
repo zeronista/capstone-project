@@ -72,7 +72,7 @@ public class AdminService {
                     .filter(user -> {
                         String fullName = user.getFullName() != null ? user.getFullName().toLowerCase() : "";
                         String email = user.getEmail() != null ? user.getEmail().toLowerCase() : "";
-                        String phone = user.getPhone() != null ? user.getPhone() : "";
+                        String phone = user.getPhoneNumber() != null ? user.getPhoneNumber() : "";
                         
                         return fullName.contains(keyword.toLowerCase()) 
                                 || email.contains(keyword.toLowerCase())
@@ -169,12 +169,12 @@ public class AdminService {
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy user với ID: " + id));
             
-            // Toggle enabled status
-            user.setEnabled(!user.getEnabled());
+            // Toggle isActive status
+            user.setIsActive(!user.getIsActive());
             user = userRepository.save(user);
             
-            log.info("Account status toggled for user {}: enabled = {}", 
-                    user.getId(), user.getEnabled());
+            log.info("Account status toggled for user {}: isActive = {}", 
+                    user.getId(), user.getIsActive());
             
             return AccountResponse.fromUser(user);
         } catch (IllegalArgumentException e) {
@@ -198,11 +198,10 @@ public class AdminService {
             stats.put("total", (long) allUsers.size());
             stats.put("admin", allUsers.stream().filter(u -> u.getRole() == User.UserRole.ADMIN).count());
             stats.put("doctor", allUsers.stream().filter(u -> u.getRole() == User.UserRole.DOCTOR).count());
-            stats.put("nurse", allUsers.stream().filter(u -> u.getRole() == User.UserRole.NURSE).count());
-            stats.put("staff", allUsers.stream().filter(u -> u.getRole() == User.UserRole.STAFF).count());
+            stats.put("receptionist", allUsers.stream().filter(u -> u.getRole() == User.UserRole.RECEPTIONIST).count());
             stats.put("patient", allUsers.stream().filter(u -> u.getRole() == User.UserRole.PATIENT).count());
-            stats.put("active", allUsers.stream().filter(User::getEnabled).count());
-            stats.put("disabled", allUsers.stream().filter(u -> !u.getEnabled()).count());
+            stats.put("active", allUsers.stream().filter(User::getIsActive).count());
+            stats.put("disabled", allUsers.stream().filter(u -> !u.getIsActive()).count());
             
             return stats;
         } catch (Exception e) {
@@ -236,7 +235,7 @@ public class AdminService {
             
             // Kiểm tra số điện thoại đã tồn tại
             if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
-                if (userRepository.existsByPhone(request.getPhone())) {
+                if (userRepository.existsByPhoneNumber(request.getPhone())) {
                     throw new IllegalArgumentException("Số điện thoại đã được sử dụng");
                 }
             }
@@ -246,19 +245,19 @@ public class AdminService {
                     .fullName(request.getFullName())
                     .email(request.getEmail() != null && !request.getEmail().trim().isEmpty() 
                             ? request.getEmail() : null)
-                    .phone(request.getPhone() != null && !request.getPhone().trim().isEmpty() 
+                    .phoneNumber(request.getPhone() != null && !request.getPhone().trim().isEmpty() 
                             ? request.getPhone() : null)
                     .password(passwordEncoder.encode(request.getPassword())) // Mã hóa password
                     .role(request.getRole()) // Role được chọn bởi admin
-                    .provider(User.AuthProvider.LOCAL)
-                    .enabled(true)
-                    .accountNonLocked(true)
+                    .isActive(true)
+                    .emailVerified(false)
+                    .phoneVerified(false)
                     .build();
             
             user = userRepository.save(user);
             
             log.info("Account created successfully by admin: {} with role {}", 
-                    user.getEmail() != null ? user.getEmail() : user.getPhone(), 
+                    user.getEmail() != null ? user.getEmail() : user.getPhoneNumber(), 
                     user.getRole());
             
             return AccountResponse.fromUser(user);

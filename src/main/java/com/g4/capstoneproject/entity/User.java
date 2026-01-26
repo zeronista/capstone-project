@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -17,7 +18,8 @@ import java.time.LocalDateTime;
 @Table(name = "users", 
     uniqueConstraints = {
         @UniqueConstraint(columnNames = "email"),
-        @UniqueConstraint(columnNames = "phone")
+        @UniqueConstraint(columnNames = "phone"),
+        @UniqueConstraint(columnNames = "google_id")
     },
     indexes = {
         @Index(name = "idx_email", columnList = "email"),
@@ -34,17 +36,17 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = false, length = 100)
-    private String fullName;
-    
     @Column(unique = true, length = 100)
     private String email;
     
-    @Column(unique = true, length = 20)
-    private String phone;
+    @Column(name = "phone", unique = true, length = 20)
+    private String phoneNumber;
     
-    @Column(nullable = false)
+    @Column(name = "password_hash")
     private String password;
+    
+    @Column(name = "google_id", unique = true, length = 100)
+    private String googleId;
     
     @Builder.Default
     @Enumerated(EnumType.STRING)
@@ -52,46 +54,62 @@ public class User {
     private UserRole role = UserRole.PATIENT;
     
     @Builder.Default
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
+    
+    @Builder.Default
+    @Column(name = "email_verified", nullable = false)
+    private Boolean emailVerified = false;
+    
+    @Builder.Default
+    @Column(name = "phone_verified", nullable = false)
+    private Boolean phoneVerified = false;
+    
+    // ========== Profile Fields ==========
+    @Column(name = "full_name", length = 100)
+    private String fullName;
+    
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
+    
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private AuthProvider provider = AuthProvider.LOCAL;
+    @Column(length = 10)
+    private Gender gender;
     
-    @Column(unique = true, length = 100)
-    private String providerId; // Google ID, Facebook ID, etc.
+    @Column(length = 500)
+    private String address;
     
-    @Builder.Default
-    @Column(nullable = false)
-    private Boolean enabled = true;
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
     
-    @Builder.Default
-    @Column(nullable = false)
-    private Boolean accountNonLocked = true;
-    
+    // ========== Timestamps ==========
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
     
     @UpdateTimestamp
-    @Column(nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+    
+    @Column(name = "last_login")
+    private LocalDateTime lastLogin;
     
     /**
      * Enum cho vai trò người dùng
      */
     public enum UserRole {
-        PATIENT,    // Bệnh nhân
-        DOCTOR,     // Bác sĩ
-        NURSE,      // Y tá
-        STAFF,      // Nhân viên
-        ADMIN       // Quản trị viên
+        PATIENT,        // Bệnh nhân
+        RECEPTIONIST,   // Lễ tân
+        DOCTOR,         // Bác sĩ
+        ADMIN           // Quản trị viên
     }
     
     /**
-     * Enum cho phương thức đăng ký
+     * Enum cho giới tính
      */
-    public enum AuthProvider {
-        LOCAL,      // Đăng ký thông thường
-        GOOGLE,     // Đăng ký qua Google
-        FACEBOOK    // Đăng ký qua Facebook (dự phòng)
+    public enum Gender {
+        MALE,       // Nam
+        FEMALE,     // Nữ
+        OTHER       // Khác
     }
 }

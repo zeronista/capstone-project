@@ -206,7 +206,7 @@ public class AdminController {
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("message", account.getEnabled() 
+            response.put("message", account.getIsActive() 
                     ? "Kích hoạt tài khoản thành công" 
                     : "Vô hiệu hóa tài khoản thành công");
             response.put("account", account);

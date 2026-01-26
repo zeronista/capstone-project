@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -58,7 +59,7 @@ public class AuthService {
             
             // Kiểm tra số điện thoại đã tồn tại
             if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
-                if (userRepository.existsByPhone(request.getPhone())) {
+                if (userRepository.existsByPhoneNumber(request.getPhone())) {
                     return AuthResponse.builder()
                             .success(false)
                             .message("Số điện thoại đã được sử dụng")
@@ -71,25 +72,25 @@ public class AuthService {
                     .fullName(request.getFullName())
                     .email(request.getEmail() != null && !request.getEmail().trim().isEmpty() 
                             ? request.getEmail() : null)
-                    .phone(request.getPhone() != null && !request.getPhone().trim().isEmpty() 
+                    .phoneNumber(request.getPhone() != null && !request.getPhone().trim().isEmpty() 
                             ? request.getPhone() : null)
                     .password(passwordEncoder.encode(request.getPassword()))
                     .role(User.UserRole.PATIENT) // Mặc định là bệnh nhân
-                    .provider(User.AuthProvider.LOCAL)
-                    .enabled(true)
-                    .accountNonLocked(true)
+                    .isActive(true)
+                    .emailVerified(false)
+                    .phoneVerified(false)
                     .build();
             
             user = userRepository.save(user);
             
-            log.info("User registered successfully: {}", user.getEmail() != null ? user.getEmail() : user.getPhone());
+            log.info("User registered successfully: {}", user.getEmail() != null ? user.getEmail() : user.getPhoneNumber());
             
             return AuthResponse.builder()
                     .success(true)
                     .userId(user.getId())
                     .fullName(user.getFullName())
                     .email(user.getEmail())
-                    .phone(user.getPhone())
+                    .phone(user.getPhoneNumber())
                     .role(user.getRole())
                     .message("Đăng ký thành công! Vui lòng đăng nhập.")
                     .build();
@@ -106,13 +107,13 @@ public class AuthService {
     /**
      * Đăng nhập người dùng
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         try {
             String username = request.getUsername();
             
             // Tìm user theo email hoặc phone
-            Optional<User> userOpt = userRepository.findByEmailOrPhone(username, username);
+            Optional<User> userOpt = userRepository.findByEmailOrPhoneNumber(username, username);
             
             if (userOpt.isEmpty()) {
                 return AuthResponse.builder()
@@ -131,30 +132,26 @@ public class AuthService {
                         .build();
             }
             
-            // Kiểm tra tài khoản có bị khóa không
-            if (!user.getAccountNonLocked()) {
-                return AuthResponse.builder()
-                        .success(false)
-                        .message("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.")
-                        .build();
-            }
-            
             // Kiểm tra tài khoản có được kích hoạt không
-            if (!user.getEnabled()) {
+            if (!user.getIsActive()) {
                 return AuthResponse.builder()
                         .success(false)
-                        .message("Tài khoản của bạn chưa được kích hoạt.")
+                        .message("Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.")
                         .build();
             }
             
-            log.info("User logged in successfully: {}", user.getEmail() != null ? user.getEmail() : user.getPhone());
+            // Cập nhật last login
+            user.setLastLogin(LocalDateTime.now());
+            userRepository.save(user);
+            
+            log.info("User logged in successfully: {}", user.getEmail() != null ? user.getEmail() : user.getPhoneNumber());
             
             return AuthResponse.builder()
                     .success(true)
                     .userId(user.getId())
                     .fullName(user.getFullName())
                     .email(user.getEmail())
-                    .phone(user.getPhone())
+                    .phone(user.getPhoneNumber())
                     .role(user.getRole())
                     .message("Đăng nhập thành công!")
                     .build();
@@ -183,11 +180,11 @@ public class AuthService {
                         .fullName(name)
                         .email(email)
                         .password(passwordEncoder.encode(googleId)) // Mật khẩu tạm từ googleId
+                        .googleId(googleId)
                         .role(User.UserRole.PATIENT)
-                        .provider(User.AuthProvider.GOOGLE)
-                        .providerId(googleId)
-                        .enabled(true)
-                        .accountNonLocked(true)
+                        .isActive(true)
+                        .emailVerified(true) // Email từ Google được coi là đã xác minh
+                        .phoneVerified(false)
                         .build();
                 
                 newUser = userRepository.save(newUser);
@@ -199,7 +196,7 @@ public class AuthService {
                         .userId(newUser.getId())
                         .fullName(newUser.getFullName())
                         .email(newUser.getEmail())
-                        .phone(newUser.getPhone())
+                        .phone(newUser.getPhoneNumber())
                         .role(newUser.getRole())
                         .message("Đăng ký và đăng nhập thành công qua Google!")
                         .build();
@@ -207,12 +204,15 @@ public class AuthService {
                 // User đã tồn tại, đăng nhập
                 User user = userOpt.get();
                 
-                // Update provider info if needed
-                if (user.getProvider() == User.AuthProvider.LOCAL) {
-                    user.setProvider(User.AuthProvider.GOOGLE);
-                    user.setProviderId(googleId);
-                    userRepository.save(user);
+                // Update googleId if needed
+                if (user.getGoogleId() == null) {
+                    user.setGoogleId(googleId);
+                    user.setEmailVerified(true);
                 }
+                
+                // Cập nhật last login
+                user.setLastLogin(LocalDateTime.now());
+                userRepository.save(user);
                 
                 log.info("User logged in via Google OAuth: {}", email);
                 
@@ -221,7 +221,7 @@ public class AuthService {
                         .userId(user.getId())
                         .fullName(user.getFullName())
                         .email(user.getEmail())
-                        .phone(user.getPhone())
+                        .phone(user.getPhoneNumber())
                         .role(user.getRole())
                         .message("Đăng nhập thành công qua Google!")
                         .build();

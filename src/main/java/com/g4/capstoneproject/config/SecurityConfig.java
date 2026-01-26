@@ -27,7 +27,13 @@ public class SecurityConfig {
                     "/js/**", 
                     "/image/**",
                     "/static/**",
-                    "/error"
+                    "/error",
+                    // Swagger UI endpoints
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/swagger-resources/**",
+                    "/webjars/**"
                 ).permitAll()
                 // Các trang khác cần authentication
                 .anyRequest().authenticated()
