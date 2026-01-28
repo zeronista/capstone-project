@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -284,5 +285,58 @@ public class StringeeController {
         scco.add(connect);
 
         return scco;
+    }
+
+    /**
+     * API để upload file ghi âm từ Web-to-Web Call lên S3
+     * 
+     * Form data:
+     * - file: File ghi âm (audio/webm)
+     * - callId: ID của cuộc gọi
+     * - userId: ID của user thực hiện ghi âm
+     * 
+     * Response:
+     * {
+     *   "success": true,
+     *   "s3Key": "voice/20260128_143025_user1_web_123.webm",
+     *   "presignedUrl": "https://..."
+     * }
+     */
+    @PostMapping("/upload-recording")
+    public ResponseEntity<?> uploadRecording(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("callId") String callId,
+            @RequestParam("userId") String userId) {
+        try {
+            logger.info("Nhận file ghi âm: {} (size: {} bytes) từ user: {}, callId: {}", 
+                file.getOriginalFilename(), file.getSize(), userId, callId);
+
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "error", "File trống"));
+            }
+
+            // Upload file lên S3 vào folder voice/
+            String s3Key = s3Service.uploadRecordingFile(file, callId, userId);
+            logger.info("✅ Đã upload file lên S3: {}", s3Key);
+
+            // Tạo pre-signed URL (hiệu lực 7 ngày)
+            String presignedUrl = s3Service.generatePresignedUrl(s3Key, 7 * 24 * 3600);
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "s3Key", s3Key,
+                "presignedUrl", presignedUrl,
+                "message", "Upload thành công"
+            ));
+
+        } catch (Exception e) {
+            logger.error("❌ Lỗi upload recording: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "success", false,
+                    "error", e.getMessage()
+                ));
+        }
     }
 }

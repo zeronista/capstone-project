@@ -59,6 +59,37 @@ public class S3Service {
     }
 
     /**
+     * Upload file recording lên S3 vào folder voice/
+     * @param file File ghi âm cần upload
+     * @param callId ID của cuộc gọi
+     * @param userId ID của user
+     * @return Key của file trong S3 (voice/xxx.webm)
+     */
+    public String uploadRecordingFile(MultipartFile file, String callId, String userId) throws IOException {
+        // Tạo tên file với timestamp, userId và callId
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String originalFilename = file.getOriginalFilename();
+        String extension = originalFilename != null && originalFilename.contains(".") 
+            ? originalFilename.substring(originalFilename.lastIndexOf(".")) 
+            : ".webm";
+        
+        String fileName = "voice/" + timestamp + "_" + userId + "_" + callId + extension;
+
+        // Tạo request upload
+        PutObjectRequest putOb = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(fileName)
+                .contentType(file.getContentType() != null ? file.getContentType() : "audio/webm")
+                .build();
+
+        // Thực hiện upload
+        s3Client.putObject(putOb, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+
+        // Trả về key của file
+        return fileName;
+    }
+
+    /**
      * Tạo Pre-signed URL để truy cập file trong thời gian giới hạn
      * @param fileKey Key của file trong S3
      * @param durationInSeconds Thời gian URL có hiệu lực (giây)

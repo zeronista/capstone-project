@@ -30,6 +30,26 @@
         .log-info { color: blue; }
         .log-success { color: green; }
         .log-error { color: red; }
+        .recording-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: red;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+            margin-left: 5px;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        .recording-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -55,6 +75,18 @@
         
         <hr>
         
+        <div style="margin-bottom: 10px;">
+            <label>
+                <input type="checkbox" id="autoRecordCheckbox" checked>
+                <strong>🎙️ Tự động ghi âm khi cuộc gọi kết nối</strong>
+            </label>
+            <p style="font-size: 12px; color: #666; margin: 5px 0 0 24px;">
+                (File sẽ được lưu tự động vào S3 khi cuộc gọi kết thúc)
+            </p>
+        </div>
+        
+        <hr>
+        
         <h4>Thực hiện cuộc gọi</h4>
         <input type="text" id="remoteUserId" placeholder="Nhập ID người nhận (ví dụ: user2)">
         
@@ -65,7 +97,20 @@
             <button id="btnHangup" onclick="hangupCall()" class="hidden" style="background: red; color: white;">❌ Kết thúc</button>
         </div>
 
+        <div id="manualRecordButtons" style="margin-top: 10px;">
+            <button id="btnStartRecord" onclick="startRecording()" class="hidden" style="background: #007bff; color: white;">🎙️ Bắt đầu ghi âm</button>
+            <button id="btnStopRecord" onclick="stopRecording()" class="hidden" style="background: #6c757d; color: white;">⏹️ Dừng ghi âm</button>
+        </div>
+
         <p id="callStatus" style="font-weight: bold; margin-top: 10px;">Sẵn sàng</p>
+        
+        <div id="recordingInfo" class="recording-info hidden">
+            <p style="margin: 0;">
+                <strong>🎙️ Đang ghi âm</strong>
+                <span class="recording-indicator"></span>
+                <span id="recordingDuration">00:00</span>
+            </p>
+        </div>
     </div>
 
     <div id="remote_videos" style="display: none;"></div>
@@ -80,6 +125,23 @@
         var stringeeClient;
         var currentCall;
         var myToken;
+        var mediaRecorder;
+        var recordedChunks = [];
+        var recordingStartTime;
+        var recordingInterval;
+
+        // Event listener cho checkbox auto-record
+        document.addEventListener('DOMContentLoaded', function() {
+            const autoRecordCheckbox = document.getElementById('autoRecordCheckbox');
+            autoRecordCheckbox.addEventListener('change', function() {
+                const manualButtons = document.getElementById('manualRecordButtons');
+                if (this.checked) {
+                    addLog('✅ Đã bật tự động ghi âm', 'success');
+                } else {
+                    addLog('ℹ️ Đã tắt tự động ghi âm - Bạn cần bấm nút để ghi âm', 'info');
+                }
+            });
+        });
 
         function addLog(message, type) {
             type = type || 'info';
@@ -222,6 +284,13 @@
                 
                 document.getElementById('remote_videos').appendChild(videoElement);
                 stream.play(videoElement);
+                
+                // Tự động bắt đầu ghi âm nếu bật auto-record
+                const autoRecord = document.getElementById('autoRecordCheckbox').checked;
+                if (autoRecord && (!mediaRecorder || mediaRecorder.state !== 'recording')) {
+                    addLog('🎙️ Tự động bắt đầu ghi âm...', 'info');
+                    setTimeout(() => startRecording(), 500); // Delay nhỏ để đảm bảo stream đã ready
+                }
             });
 
             call.on('signalingstate', function (state) {
@@ -285,16 +354,135 @@
             document.getElementById('btnAnswer').classList.add('hidden');
             document.getElementById('btnReject').classList.add('hidden');
             document.getElementById('btnHangup').classList.remove('hidden');
+            
+            // Chỉ hiển nút ghi âm thủ công nếu tắt auto-record
+            const autoRecord = document.getElementById('autoRecordCheckbox').checked;
+            if (!autoRecord) {
+                document.getElementById('btnStartRecord').classList.remove('hidden');
+            }
         }
 
         function resetUI() {
+            // Tự động dừng và upload recording nếu đang ghi
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                addLog('Đang kết thúc ghi âm và upload...', 'info');
+                stopRecording();
+            }
+            
             document.getElementById('callStatus').innerText = 'Sẵn sàng';
             document.getElementById('btnCall').classList.remove('hidden');
             document.getElementById('btnAnswer').classList.add('hidden');
             document.getElementById('btnHangup').classList.add('hidden');
             document.getElementById('btnReject').classList.add('hidden');
+            document.getElementById('btnStartRecord').classList.add('hidden');
+            document.getElementById('btnStopRecord').classList.add('hidden');
+            document.getElementById('recordingInfo').classList.add('hidden');
             document.getElementById('remote_videos').innerHTML = '';
             currentCall = null;
+        }
+
+        async function startRecording() {
+            try {
+                // Lấy audio stream từ microphone
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                recordedChunks = [];
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'audio/webm;codecs=opus'
+                });
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = async () => {
+                    // Dừng tất cả tracks
+                    stream.getTracks().forEach(track => track.stop());
+                    
+                    // Tạo blob từ chunks
+                    const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+                    
+                    // Upload lên server
+                    await uploadRecording(blob);
+                    
+                    // Clear interval
+                    if (recordingInterval) {
+                        clearInterval(recordingInterval);
+                    }
+                };
+
+                mediaRecorder.start();
+                recordingStartTime = Date.now();
+                
+                // Hiển thị UI
+                document.getElementById('btnStartRecord').classList.add('hidden');
+                document.getElementById('btnStopRecord').classList.remove('hidden');
+                document.getElementById('recordingInfo').classList.remove('hidden');
+                
+                // Cập nhật duration
+                recordingInterval = setInterval(() => {
+                    const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
+                    const minutes = Math.floor(duration / 60).toString().padStart(2, '0');
+                    const seconds = (duration % 60).toString().padStart(2, '0');
+                    document.getElementById('recordingDuration').textContent = minutes + ':' + seconds;
+                }, 1000);
+                
+                addLog('Bắt đầu ghi âm cuộc gọi', 'success');
+                
+            } catch (err) {
+                console.error('Lỗi khi bắt đầu ghi âm:', err);
+                addLog('Lỗi: ' + err.message, 'error');
+                alert('Không thể truy cập microphone. Vui lòng cho phép truy cập.');
+            }
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                
+                document.getElementById('btnStartRecord').classList.remove('hidden');
+                document.getElementById('btnStopRecord').classList.add('hidden');
+                document.getElementById('recordingInfo').classList.add('hidden');
+                
+                addLog('Đã dừng ghi âm. Đang upload lên S3...', 'info');
+            }
+        }
+
+        async function uploadRecording(blob) {
+            try {
+                const userId = document.getElementById('myUserId').value;
+                const remoteUserId = document.getElementById('remoteUserId').value;
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const filename = `call_${userId}_to_${remoteUserId}_${timestamp}.webm`;
+                
+                const formData = new FormData();
+                formData.append('file', blob, filename);
+                formData.append('callId', 'web_' + Date.now());
+                formData.append('userId', userId);
+                
+                addLog('Đang upload file ghi âm lên S3...', 'info');
+                
+                const response = await fetch('/api/stringee/upload-recording', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    addLog('✅ Upload thành công! File: ' + result.s3Key, 'success');
+                    console.log('S3 Key:', result.s3Key);
+                    console.log('Pre-signed URL:', result.presignedUrl);
+                } else {
+                    addLog('❌ Upload thất bại: ' + result.error, 'error');
+                }
+                
+            } catch (err) {
+                console.error('Lỗi upload:', err);
+                addLog('❌ Lỗi upload: ' + err.message, 'error');
+            }
         }
     </script>
 </body>
