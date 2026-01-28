@@ -1,5 +1,6 @@
 package com.g4.capstoneproject.controller;
 
+import com.g4.capstoneproject.service.S3Service;
 import com.g4.capstoneproject.service.StringeeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,9 @@ public class StringeeController {
 
     @Autowired
     private StringeeService stringeeService;
+
+    @Autowired
+    private S3Service s3Service;
 
     /**
      * API để thực hiện cuộc gọi ra cho khách hàng
@@ -187,8 +191,22 @@ public class StringeeController {
         String callId = (String) event.get("callId");
         String recordingUrl = (String) event.get("recordingUrl");
         logger.info("Recording available for call {}: {}", callId, recordingUrl);
-        // TODO: Tải file ghi âm về để AI phân tích
-        // TODO: Hoặc lưu URL vào database
+        
+        try {
+            // Tự động download và upload file ghi âm lên S3 vào folder voice/
+            String s3Key = s3Service.uploadFileFromUrl(recordingUrl, callId, "audio/mpeg");
+            logger.info("✅ Đã lưu file ghi âm vào S3: {}", s3Key);
+            
+            // Tạo pre-signed URL để truy cập file (hiệu lực 7 ngày)
+            String presignedUrl = s3Service.generatePresignedUrl(s3Key, 7 * 24 * 3600);
+            logger.info("Pre-signed URL: {}", presignedUrl);
+            
+            // TODO: Lưu thông tin vào database (callId, s3Key, presignedUrl)
+            // TODO: Gửi file cho AI phân tích nội dung cuộc gọi
+            
+        } catch (Exception e) {
+            logger.error("❌ Lỗi khi lưu file ghi âm từ Stringee vào S3: {}", e.getMessage(), e);
+        }
     }
 
     /**

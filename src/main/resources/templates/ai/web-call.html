@@ -60,6 +60,7 @@
         
         <div style="margin-top: 10px;">
             <button id="btnCall" onclick="makeCall()">📞 Gọi Voice</button>
+            <button id="btnReject" onclick="rejectCall()" class="hidden" style="background: #dc3545; color: white;">⛔ Từ chối</button>
             <button id="btnAnswer" onclick="answerCall()" class="hidden" style="background: green; color: white;">✅ Trả lời</button>
             <button id="btnHangup" onclick="hangupCall()" class="hidden" style="background: red; color: white;">❌ Kết thúc</button>
         </div>
@@ -174,6 +175,7 @@
                 
                 document.getElementById('callStatus').innerText = '📞 Đang có cuộc gọi đến từ: ' + incomingCall.fromNumber;
                 document.getElementById('btnAnswer').classList.remove('hidden');
+                document.getElementById('btnReject').classList.remove('hidden');
                 document.getElementById('btnCall').classList.add('hidden');
 
                 settingCallEvents(currentCall);
@@ -253,6 +255,22 @@
             }
         }
 
+        function rejectCall() {
+            if (currentCall) {
+                // Gọi hàm reject của SDK
+                currentCall.reject(function (res) {
+                    console.log('reject res', res);
+                    if (res.r === 0) {
+                        addLog('Đã từ chối cuộc gọi', 'info');
+                    } else {
+                        addLog('Lỗi từ chối: ' + res.message, 'error');
+                    }
+                });
+                // Reset giao diện ngay lập tức sau khi bấm từ chối
+                resetUI();
+            }
+        }
+
         function hangupCall() {
             if (currentCall) {
                 currentCall.hangup(function (res) {
@@ -265,6 +283,7 @@
         function showInCallUI() {
             document.getElementById('btnCall').classList.add('hidden');
             document.getElementById('btnAnswer').classList.add('hidden');
+            document.getElementById('btnReject').classList.add('hidden');
             document.getElementById('btnHangup').classList.remove('hidden');
         }
 
@@ -273,6 +292,7 @@
             document.getElementById('btnCall').classList.remove('hidden');
             document.getElementById('btnAnswer').classList.add('hidden');
             document.getElementById('btnHangup').classList.add('hidden');
+            document.getElementById('btnReject').classList.add('hidden');
             document.getElementById('remote_videos').innerHTML = '';
             currentCall = null;
         }

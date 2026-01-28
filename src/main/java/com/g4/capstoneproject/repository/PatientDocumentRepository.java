@@ -36,16 +36,6 @@ public interface PatientDocumentRepository extends JpaRepository<PatientDocument
     List<PatientDocument> findByPatientIdAndDocumentType(Long patientId, PatientDocument.DocumentType documentType);
     
     /**
-     * Tìm tài liệu đã xác minh của bệnh nhân
-     */
-    List<PatientDocument> findByPatientIdAndIsVerifiedTrue(Long patientId);
-    
-    /**
-     * Tìm tài liệu chưa xác minh
-     */
-    List<PatientDocument> findByIsVerifiedFalse();
-    
-    /**
      * Đếm số tài liệu của bệnh nhân
      */
     long countByPatientId(Long patientId);

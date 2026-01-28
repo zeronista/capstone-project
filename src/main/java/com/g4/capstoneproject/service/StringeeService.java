@@ -170,6 +170,9 @@ public class StringeeService {
             requestBody.put("to", to);
             requestBody.put("answer_url", new String[]{answerUrl});
             
+            // ✅ BẬT GHI ÂM TỰ ĐỘNG cho cuộc gọi
+            requestBody.put("record", true);
+            
             // Cấu hình actions ban đầu (optional)
             // Actions này sẽ thực thi khi khách hàng bắt máy
             List<Map<String, Object>> actions = new ArrayList<>();

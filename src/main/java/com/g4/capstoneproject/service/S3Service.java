@@ -13,7 +13,11 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 @Service
@@ -82,5 +86,68 @@ public class S3Service {
      */
     public String generatePresignedUrl(String fileKey) {
         return generatePresignedUrl(fileKey, presignedUrlDuration);
+    }
+
+    /**
+     * Download file từ URL (Stringee recording) và upload lên S3 vào folder voice/
+     * @param fileUrl URL của file cần download (từ Stringee)
+     * @param callId ID của cuộc gọi (để đặt tên file)
+     * @param contentType Content type của file (ví dụ: audio/mpeg, audio/wav)
+     * @return Key của file trong S3 (voice/xxx.mp3)
+     */
+    public String uploadFileFromUrl(String fileUrl, String callId, String contentType) throws IOException {
+        // Tạo tên file với timestamp và callId
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String fileExtension = getFileExtensionFromUrl(fileUrl, contentType);
+        String fileName = "voice/" + timestamp + "_" + callId + fileExtension;
+
+        // Download file từ URL
+        URL url = new URL(fileUrl);
+        try (InputStream inputStream = url.openStream()) {
+            // Tạo request upload lên S3
+            PutObjectRequest putOb = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileName)
+                    .contentType(contentType != null ? contentType : "audio/mpeg")
+                    .build();
+
+            // Upload lên S3
+            s3Client.putObject(putOb, RequestBody.fromInputStream(inputStream, inputStream.available()));
+        }
+
+        return fileName;
+    }
+
+    /**
+     * Lấy extension của file từ URL hoặc content type
+     */
+    private String getFileExtensionFromUrl(String fileUrl, String contentType) {
+        // Thử lấy extension từ URL trước
+        if (fileUrl.contains(".")) {
+            String urlExtension = fileUrl.substring(fileUrl.lastIndexOf("."));
+            // Loại bỏ query string nếu có
+            if (urlExtension.contains("?")) {
+                urlExtension = urlExtension.substring(0, urlExtension.indexOf("?"));
+            }
+            if (urlExtension.matches("\\.(mp3|wav|m4a|ogg)$")) {
+                return urlExtension;
+            }
+        }
+
+        // Nếu không có extension hợp lệ, dùng content type
+        if (contentType != null) {
+            if (contentType.contains("mpeg") || contentType.contains("mp3")) {
+                return ".mp3";
+            } else if (contentType.contains("wav")) {
+                return ".wav";
+            } else if (contentType.contains("m4a")) {
+                return ".m4a";
+            } else if (contentType.contains("ogg")) {
+                return ".ogg";
+            }
+        }
+
+        // Mặc định là .mp3
+        return ".mp3";
     }
 }
