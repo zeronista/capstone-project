@@ -251,7 +251,6 @@ public class AdminService {
                     .role(request.getRole()) // Role được chọn bởi admin
                     .isActive(true)
                     .emailVerified(false)
-                    .phoneVerified(false)
                     .build();
             
             // Tạo UserInfo (thông tin cá nhân)

@@ -78,7 +78,6 @@ public class AuthService {
                     .role(User.UserRole.PATIENT) // Mặc định là bệnh nhân
                     .isActive(true)
                     .emailVerified(false)
-                    .phoneVerified(false)
                     .build();
             
             // Tạo UserInfo (thông tin cá nhân)
@@ -190,7 +189,6 @@ public class AuthService {
                         .role(User.UserRole.PATIENT)
                         .isActive(true)
                         .emailVerified(true) // Email từ Google được coi là đã xác minh
-                        .phoneVerified(false)
                         .build();
                 
                 // Tạo UserInfo (thông tin cá nhân)

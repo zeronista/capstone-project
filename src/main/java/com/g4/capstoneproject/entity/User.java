@@ -65,10 +65,6 @@ public class User {
     @Column(name = "email_verified", nullable = false)
     private Boolean emailVerified = false;
     
-    @Builder.Default
-    @Column(name = "phone_verified", nullable = false)
-    private Boolean phoneVerified = false;
-    
     // ========== Quan hệ với UserInfo ==========
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private UserInfo userInfo;

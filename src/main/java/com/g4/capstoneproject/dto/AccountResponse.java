@@ -26,7 +26,6 @@ public class AccountResponse {
     private User.UserRole role;
     private Boolean isActive;
     private Boolean emailVerified;
-    private Boolean phoneVerified;
     private LocalDate dateOfBirth;
     private Gender gender;
     private String address;
@@ -48,7 +47,6 @@ public class AccountResponse {
                 .role(user.getRole())
                 .isActive(user.getIsActive())
                 .emailVerified(user.getEmailVerified())
-                .phoneVerified(user.getPhoneVerified())
                 .dateOfBirth(user.getDateOfBirth())  // Sử dụng helper method
                 .gender(user.getGender())  // Sử dụng helper method
                 .address(user.getAddress())  // Sử dụng helper method

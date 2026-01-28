@@ -44,17 +44,6 @@ public class PatientDocument {
     @Column(length = 500)
     private String description;
     
-    @Builder.Default
-    @Column(name = "is_verified")
-    private Boolean isVerified = false;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "verified_by")
-    private User verifiedBy;
-    
-    @Column(name = "verified_at")
-    private LocalDateTime verifiedAt;
-    
     @CreationTimestamp
     @Column(name = "upload_date", updatable = false)
     private LocalDateTime uploadDate;
