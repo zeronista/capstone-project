@@ -91,6 +91,16 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     long countByStatus(Ticket.Status status);
     
     /**
+     * Đếm ticket của bệnh nhân
+     */
+    long countByPatient(User patient);
+    
+    /**
+     * Đếm ticket của bệnh nhân theo trạng thái
+     */
+    long countByPatientAndStatus(User patient, Ticket.Status status);
+    
+    /**
      * Đếm ticket được gán cho user
      */
     long countByAssignedToIdAndStatus(Long assignedToId, Ticket.Status status);

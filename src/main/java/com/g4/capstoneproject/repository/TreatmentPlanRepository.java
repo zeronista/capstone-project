@@ -74,4 +74,9 @@ public interface TreatmentPlanRepository extends JpaRepository<TreatmentPlan, Lo
      * Đếm kế hoạch của bệnh nhân
      */
     long countByPatientId(Long patientId);
+    
+    /**
+     * Đếm kế hoạch của bệnh nhân (dùng entity)
+     */
+    long countByPatient(User patient);
 }

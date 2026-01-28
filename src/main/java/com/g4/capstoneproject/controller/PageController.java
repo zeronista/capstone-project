@@ -132,13 +132,6 @@ public class PageController {
         return "reports/detail";
     }
 
-    // ==================== PROFILE ====================
-
-    @GetMapping("/profile")
-    public String profile() {
-        return "profile/index";
-    }
-
     // ==================== PATIENT ====================
 
     @GetMapping("/patient")
