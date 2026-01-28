@@ -2,8 +2,8 @@
 -- CAPSTONE PROJECT - AI CALLBOT PHÒNG KHÁM
 -- FULL DATABASE SCHEMA - MySQL 8.0+
 -- ============================================
--- Ngày tạo: 26/01/2026
--- Phiên bản: 2.0 (Tách users thành users + user_info)
+-- Ngày tạo: 28/01/2026
+-- Phiên bản: 2.1 (Cập nhật theo Entity classes)
 -- Nhóm: G4
 -- ============================================
 
@@ -32,15 +32,12 @@ CREATE TABLE IF NOT EXISTS users (
     role                ENUM('PATIENT', 'RECEPTIONIST', 'DOCTOR', 'ADMIN') NOT NULL DEFAULT 'PATIENT',
     is_active           BOOLEAN         NOT NULL DEFAULT TRUE,
     email_verified      BOOLEAN         NOT NULL DEFAULT FALSE,
-    phone_verified      BOOLEAN         NOT NULL DEFAULT FALSE,
     created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     last_login          DATETIME,
     
     INDEX idx_email (email),
-    INDEX idx_phone (phone),
-    INDEX idx_role (role),
-    INDEX idx_is_active (is_active)
+    INDEX idx_phone (phone)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Bảng lưu thông tin tài khoản và bảo mật người dùng';
 
@@ -63,26 +60,6 @@ CREATE TABLE IF NOT EXISTS user_info (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 COMMENT='Bảng lưu thông tin cá nhân người dùng (nullable fields)';
 
--- Bảng STAFF_INFO - Thông tin chi tiết nhân viên
--- Lưu thông tin bổ sung cho lễ tân và bác sĩ
-CREATE TABLE IF NOT EXISTS staff_info (
-    id                  BIGINT          AUTO_INCREMENT PRIMARY KEY,
-    user_id             BIGINT          NOT NULL UNIQUE,
-    employee_code       VARCHAR(20)     UNIQUE,
-    department          VARCHAR(100),
-    specialization      VARCHAR(100)    COMMENT 'Chuyên khoa (cho bác sĩ)',
-    license_number      VARCHAR(50)     UNIQUE COMMENT 'Số giấy phép hành nghề',
-    hire_date           DATE,
-    status              ENUM('ACTIVE', 'INACTIVE', 'ON_LEAVE') DEFAULT 'ACTIVE',
-    created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
-    CONSTRAINT fk_staff_info_user 
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    INDEX idx_staff_status (status)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Bảng lưu thông tin chi tiết nhân viên (lễ tân, bác sĩ)';
-
 -- ============================================
 -- 2. QUẢN LÝ TÀI LIỆU BỆNH NHÂN
 -- ============================================
@@ -96,15 +73,10 @@ CREATE TABLE IF NOT EXISTS patient_documents (
     file_url            VARCHAR(500)    NOT NULL,
     file_size           BIGINT,
     description         VARCHAR(500),
-    is_verified         BOOLEAN         DEFAULT FALSE,
-    verified_by         BIGINT,
-    verified_at         DATETIME,
     upload_date         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     CONSTRAINT fk_doc_patient 
         FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_doc_verified_by 
-        FOREIGN KEY (verified_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_doc_patient (patient_id),
     INDEX idx_doc_type (document_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
@@ -381,59 +353,7 @@ CREATE TABLE IF NOT EXISTS feedbacks (
 COMMENT='Bảng lưu phản hồi từ người dùng';
 
 -- ============================================
--- 7. HUẤN LUYỆN AI
--- ============================================
-
--- Bảng KNOWLEDGE_BASE - Cơ sở tri thức để huấn luyện AI
-CREATE TABLE IF NOT EXISTS knowledge_base (
-    id                  BIGINT          AUTO_INCREMENT PRIMARY KEY,
-    category            VARCHAR(100),
-    question            TEXT            NOT NULL,
-    answer              TEXT            NOT NULL,
-    context             TEXT,
-    source_type         ENUM('CALL', 'TICKET', 'MANUAL', 'IMPORTED'),
-    source_id           BIGINT          COMMENT 'Reference to call_id or ticket_id',
-    confidence_score    DOUBLE,
-    usage_count         INT             DEFAULT 0,
-    is_approved         BOOLEAN         DEFAULT FALSE,
-    approved_by         BIGINT,
-    approved_at         DATETIME,
-    created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    last_used_at        DATETIME,
-    
-    CONSTRAINT fk_kb_approved_by 
-        FOREIGN KEY (approved_by) REFERENCES users(id) ON DELETE SET NULL,
-    INDEX idx_kb_category (category),
-    INDEX idx_kb_approved (is_approved),
-    INDEX idx_kb_source (source_type)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Bảng lưu cơ sở tri thức để huấn luyện AI Callbot';
-
--- Bảng AI_TRAINING_DATA - Dữ liệu huấn luyện AI
-CREATE TABLE IF NOT EXISTS ai_training_data (
-    id                      BIGINT          AUTO_INCREMENT PRIMARY KEY,
-    call_id                 BIGINT,
-    ticket_id               BIGINT,
-    input_text              TEXT            NOT NULL,
-    expected_output         TEXT,
-    actual_output           TEXT,
-    feedback_score          INT             CHECK (feedback_score BETWEEN 1 AND 5),
-    is_used_for_training    BOOLEAN         DEFAULT FALSE,
-    training_batch_id       VARCHAR(50),
-    created_at              DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    
-    CONSTRAINT fk_training_call 
-        FOREIGN KEY (call_id) REFERENCES call_logs(id) ON DELETE SET NULL,
-    CONSTRAINT fk_training_ticket 
-        FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE SET NULL,
-    INDEX idx_training_batch (training_batch_id),
-    INDEX idx_training_used (is_used_for_training)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-COMMENT='Bảng lưu dữ liệu huấn luyện AI từ cuộc gọi và ticket';
-
--- ============================================
--- 8. DỮ LIỆU MẪU (SAMPLE DATA)
+-- 7. DỮ LIỆU MẪU (SAMPLE DATA)
 -- ============================================
 
 -- Tạo tài khoản Admin mặc định
@@ -445,7 +365,7 @@ INSERT INTO user_info (user_id, full_name) VALUES
 (1, 'Quản trị viên hệ thống');
 
 -- ============================================
--- 9. VIEWS HỮU ÍCH
+-- 8. VIEWS HỮU ÍCH
 -- ============================================
 
 -- View hiển thị thông tin user đầy đủ (kết hợp users + user_info)
@@ -457,7 +377,6 @@ SELECT
     u.role,
     u.is_active,
     u.email_verified,
-    u.phone_verified,
     u.last_login,
     u.created_at,
     ui.full_name,
@@ -491,7 +410,7 @@ FROM call_logs
 GROUP BY DATE(start_time), call_type, call_status;
 
 -- ============================================
--- 10. STORED PROCEDURES
+-- 9. STORED PROCEDURES
 -- ============================================
 
 DELIMITER //
@@ -532,22 +451,19 @@ DELIMITER ;
 -- ============================================
 -- THÔNG TIN SCHEMA
 -- ============================================
--- Tổng số bảng: 15
--- 1. users              - Thông tin tài khoản
--- 2. user_info          - Thông tin cá nhân
--- 3. staff_info         - Thông tin nhân viên
--- 4. patient_documents  - Tài liệu bệnh nhân
--- 5. survey_templates   - Mẫu khảo sát
--- 6. call_campaigns     - Chiến dịch gọi điện
--- 7. call_logs          - Lịch sử cuộc gọi
--- 8. tickets            - Yêu cầu hỗ trợ
--- 9. ticket_messages    - Tin nhắn ticket
--- 10. prescriptions     - Đơn thuốc
--- 11. prescription_details - Chi tiết đơn thuốc
--- 12. treatment_plans   - Kế hoạch điều trị
--- 13. treatment_plan_items - Chi tiết kế hoạch
--- 14. notifications     - Thông báo
--- 15. feedbacks         - Phản hồi
--- 16. knowledge_base    - Cơ sở tri thức AI
--- 17. ai_training_data  - Dữ liệu huấn luyện AI
+-- Tổng số bảng: 13 (theo Entity classes hiện tại)
+-- 1. users                 - Thông tin tài khoản (User.java)
+-- 2. user_info             - Thông tin cá nhân (UserInfo.java)
+-- 3. patient_documents     - Tài liệu bệnh nhân (PatientDocument.java)
+-- 4. survey_templates      - Mẫu khảo sát (SurveyTemplate.java)
+-- 5. call_campaigns        - Chiến dịch gọi điện (CallCampaign.java)
+-- 6. call_logs             - Lịch sử cuộc gọi (CallLog.java)
+-- 7. tickets               - Yêu cầu hỗ trợ (Ticket.java)
+-- 8. ticket_messages       - Tin nhắn ticket (TicketMessage.java)
+-- 9. prescriptions         - Đơn thuốc (Prescription.java)
+-- 10. prescription_details - Chi tiết đơn thuốc (PrescriptionDetail.java)
+-- 11. treatment_plans      - Kế hoạch điều trị (TreatmentPlan.java)
+-- 12. treatment_plan_items - Chi tiết kế hoạch (TreatmentPlanItem.java)
+-- 13. notifications        - Thông báo (Notification.java)
+-- 14. feedbacks            - Phản hồi (Feedback.java)
 -- ============================================
