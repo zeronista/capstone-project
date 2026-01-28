@@ -32,7 +32,8 @@ public class ReceptionistController {
      */
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User receptionist = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
 
         if (receptionist != null) {
             // Statistics
@@ -58,7 +59,8 @@ public class ReceptionistController {
      */
     @GetMapping("/appointments")
     public String appointments(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User receptionist = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
         model.addAttribute("receptionist", receptionist);
         return "receptionist/appointments";
     }
@@ -68,7 +70,8 @@ public class ReceptionistController {
      */
     @GetMapping("/patients")
     public String patients(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User receptionist = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
 
         // Get all patients (role = PATIENT)
         List<User> patients = userRepository.findByRole(User.UserRole.PATIENT);
@@ -84,7 +87,8 @@ public class ReceptionistController {
      */
     @GetMapping("/reminders")
     public String reminders(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User receptionist = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
         model.addAttribute("receptionist", receptionist);
         return "receptionist/reminders";
     }
@@ -94,7 +98,8 @@ public class ReceptionistController {
      */
     @GetMapping("/tickets")
     public String tickets(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User receptionist = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
 
         if (receptionist != null) {
             List<Ticket> tickets = ticketService.getTicketsByCreatedByUserId(receptionist.getId());
@@ -122,7 +127,8 @@ public class ReceptionistController {
      */
     @GetMapping("/calls")
     public String calls(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User receptionist = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
         model.addAttribute("receptionist", receptionist);
         return "ai/calls";
     }

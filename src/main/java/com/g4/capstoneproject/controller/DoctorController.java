@@ -38,7 +38,8 @@ public class DoctorController {
      */
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User doctor = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
 
         if (doctor != null) {
             // Statistics
@@ -67,7 +68,8 @@ public class DoctorController {
      */
     @GetMapping("/patients")
     public String patients(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User doctor = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
 
         if (doctor != null) {
             // Get patients from treatment plans
@@ -84,7 +86,8 @@ public class DoctorController {
      */
     @GetMapping("/appointments")
     public String appointments(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User doctor = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
         model.addAttribute("doctor", doctor);
         return "doctor/appointments";
     }
@@ -94,7 +97,8 @@ public class DoctorController {
      */
     @GetMapping("/prescriptions")
     public String prescriptions(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User doctor = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
 
         if (doctor != null) {
             List<Prescription> prescriptions = prescriptionService.getPrescriptionsByDoctorId(doctor.getId());
@@ -116,7 +120,8 @@ public class DoctorController {
     public String createPrescriptionForm(@RequestParam(required = false) Long patientId,
             @AuthenticationPrincipal UserDetails userDetails,
             Model model) {
-        User doctor = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
 
         if (doctor != null && patientId != null) {
             User patient = userRepository.findById(patientId).orElse(null);
@@ -138,7 +143,8 @@ public class DoctorController {
      */
     @GetMapping("/treatments")
     public String treatments(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User doctor = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
 
         if (doctor != null) {
             List<TreatmentPlan> plans = treatmentPlanService.getTreatmentPlansByDoctorId(doctor.getId());
@@ -156,7 +162,8 @@ public class DoctorController {
      */
     @GetMapping("/tickets")
     public String tickets(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User doctor = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
 
         if (doctor != null) {
             List<Ticket> tickets = ticketService.getTicketsByAssignedUserId(doctor.getId());
@@ -176,7 +183,8 @@ public class DoctorController {
      */
     @GetMapping("/medical-records")
     public String medicalRecords(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        User doctor = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
         model.addAttribute("doctor", doctor);
         return "doctor/medical-records";
     }

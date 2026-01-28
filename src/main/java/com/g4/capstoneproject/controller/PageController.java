@@ -37,7 +37,8 @@ public class PageController {
             return "redirect:/auth/login";
         }
 
-        User user = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String username = userDetails.getUsername();
+        User user = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
 
         if (user == null) {
             return "redirect:/auth/login";
