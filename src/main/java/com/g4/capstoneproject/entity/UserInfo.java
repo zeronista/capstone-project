@@ -74,13 +74,4 @@ public class UserInfo {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-    
-    /**
-     * Enum cho giới tính
-     */
-    public enum Gender {
-        MALE,       // Nam
-        FEMALE,     // Nữ
-        OTHER       // Khác
-    }
 }

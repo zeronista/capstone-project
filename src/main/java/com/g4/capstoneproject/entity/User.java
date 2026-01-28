@@ -114,7 +114,7 @@ public class User {
     /**
      * Lấy giới tính từ UserInfo (để tương thích ngược)
      */
-    public UserInfo.Gender getGender() {
+    public Gender getGender() {
         return userInfo != null ? userInfo.getGender() : null;
     }
     

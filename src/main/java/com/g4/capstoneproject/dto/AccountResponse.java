@@ -1,7 +1,7 @@
 package com.g4.capstoneproject.dto;
 
+import com.g4.capstoneproject.entity.Gender;
 import com.g4.capstoneproject.entity.User;
-import com.g4.capstoneproject.entity.UserInfo;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,7 +28,7 @@ public class AccountResponse {
     private Boolean emailVerified;
     private Boolean phoneVerified;
     private LocalDate dateOfBirth;
-    private UserInfo.Gender gender;
+    private Gender gender;
     private String address;
     private String avatarUrl;
     private LocalDateTime createdAt;
