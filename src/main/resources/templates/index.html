@@ -1,807 +1,709 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISSVSG - Smart Healthcare Management System</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts - Figtree + Noto Sans for medical readability -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <!-- Heroicons -->
-    <script src="https://unpkg.com/@heroicons/react@2.0.18/24/outline"></script>
-    
-    <style>
-        body {
-            font-family: 'Noto Sans', sans-serif;
-        }
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Figtree', sans-serif;
-        }
-        
-        /* Respect reduced motion preference */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-        
-        /* Smooth scroll */
-        html {
-            scroll-behavior: smooth;
-        }
-        
-        /* Custom gradient */
-        .gradient-bg {
-            background: linear-gradient(135deg, #0891B2 0%, #059669 100%);
-        }
-        
-        /* Soft shadow */
-        .soft-shadow {
-            box-shadow: 0 8px 24px rgba(8, 145, 178, 0.12);
-        }
-        
-        /* Hover lift */
-        .hover-lift {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .hover-lift:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 32px rgba(8, 145, 178, 0.18);
-        }
-        
-        /* Stats counter animation */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .animate-fadeInUp {
-            animation: fadeInUp 0.6s ease-out;
-        }
-    </style>
-</head>
-<body class="bg-slate-50">
-    
-    <!-- Navigation -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 soft-shadow">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <div class="flex-shrink-0 flex items-center">
-                        <div class="w-10 h-10 rounded-lg gradient-bg flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                            </svg>
-                        </div>
-                        <span class="ml-3 text-xl font-bold text-slate-900">ISSVSG</span>
-                    </div>
-                </div>
-                
-                <!-- Navigation Links -->
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="#services" class="text-slate-700 hover:text-cyan-600 font-medium transition-colors">Services</a>
-                    <a href="#features" class="text-slate-700 hover:text-cyan-600 font-medium transition-colors">Features</a>
-                    <a href="#testimonials" class="text-slate-700 hover:text-cyan-600 font-medium transition-colors">Testimonials</a>
-                    <a href="#contact" class="text-slate-700 hover:text-cyan-600 font-medium transition-colors">Contact</a>
-                    <a th:href="@{/login}" class="text-cyan-600 hover:text-cyan-700 font-medium transition-colors">Login</a>
-                    <a th:href="@{/register}" class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-all hover-lift">
-                        Get Started
-                    </a>
-                </div>
-                
-                <!-- Mobile menu button -->
-                <div class="md:hidden">
-                    <button type="button" class="text-slate-700 hover:text-cyan-600" id="mobile-menu-button">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Mobile menu -->
-        <div class="hidden md:hidden" id="mobile-menu">
-            <div class="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-slate-200">
-                <a href="#services" class="block px-3 py-2 text-slate-700 hover:bg-slate-50 rounded-md">Services</a>
-                <a href="#features" class="block px-3 py-2 text-slate-700 hover:bg-slate-50 rounded-md">Features</a>
-                <a href="#testimonials" class="block px-3 py-2 text-slate-700 hover:bg-slate-50 rounded-md">Testimonials</a>
-                <a href="#contact" class="block px-3 py-2 text-slate-700 hover:bg-slate-50 rounded-md">Contact</a>
-                <a th:href="@{/login}" class="block px-3 py-2 text-cyan-600 hover:bg-slate-50 rounded-md">Login</a>
-                <a th:href="@{/register}" class="block px-3 py-2 bg-cyan-600 text-white rounded-md text-center">Get Started</a>
-            </div>
-        </div>
-    </nav>
-    
-    <!-- Hero Section -->
-    <section class="relative gradient-bg text-white py-20 lg:py-28">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid lg:grid-cols-2 gap-12 items-center">
-                <!-- Hero Content -->
-                <div class="animate-fadeInUp">
-                    <h1 class="text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-6">
-                        Smart Healthcare Management for Better Patient Care
-                    </h1>
-                    <p class="text-lg lg:text-xl text-cyan-50 mb-8 leading-relaxed">
-                        Experience next-generation healthcare with AI-powered diagnostics, 24/7 voice assistance, and comprehensive patient management. Your health, simplified.
-                    </p>
-                    
-                    <!-- CTA Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <a th:href="@{/register}" class="px-8 py-4 bg-white text-cyan-600 rounded-lg font-semibold hover:bg-cyan-50 transition-all hover-lift text-center">
-                            Book Appointment
-                        </a>
-                        <a href="#services" class="px-8 py-4 bg-cyan-700 bg-opacity-50 border-2 border-white text-white rounded-lg font-semibold hover:bg-opacity-70 transition-all text-center">
-                            Learn More
-                        </a>
-                    </div>
-                    
-                    <!-- Trust Badges -->
-                    <div class="mt-12 flex flex-wrap items-center gap-6">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-5 h-5 text-emerald-300" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                            <span class="text-sm font-medium text-cyan-50">Ministry Certified</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <svg class="w-5 h-5 text-emerald-300" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                            <span class="text-sm font-medium text-cyan-50">ISO 27001 Certified</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <svg class="w-5 h-5 text-emerald-300" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                            </svg>
-                            <span class="text-sm font-medium text-cyan-50">HIPAA Compliant</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Hero Image/Illustration -->
-                <div class="relative hidden lg:block">
-                    <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8 border border-white border-opacity-20">
-                        <div class="grid grid-cols-2 gap-4">
-                            <!-- Feature Cards -->
-                            <div class="bg-white rounded-xl p-6 soft-shadow">
-                                <div class="w-12 h-12 rounded-lg bg-cyan-100 flex items-center justify-center mb-3">
-                                    <svg class="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                </div>
-                                <h4 class="font-semibold text-slate-900 mb-1">AI Diagnostics</h4>
-                                <p class="text-sm text-slate-600">Smart health predictions</p>
-                            </div>
-                            
-                            <div class="bg-white rounded-xl p-6 soft-shadow mt-8">
-                                <div class="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center mb-3">
-                                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                                    </svg>
-                                </div>
-                                <h4 class="font-semibold text-slate-900 mb-1">24/7 Voice AI</h4>
-                                <p class="text-sm text-slate-600">Always available support</p>
-                            </div>
-                            
-                            <div class="bg-white rounded-xl p-6 soft-shadow">
-                                <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center mb-3">
-                                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                                    </svg>
-                                </div>
-                                <h4 class="font-semibold text-slate-900 mb-1">Smart Records</h4>
-                                <p class="text-sm text-slate-600">Digital health history</p>
-                            </div>
-                            
-                            <div class="bg-white rounded-xl p-6 soft-shadow mt-8">
-                                <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center mb-3">
-                                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                </div>
-                                <h4 class="font-semibold text-slate-900 mb-1">Quick Booking</h4>
-                                <p class="text-sm text-slate-600">Instant appointments</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Stats Section -->
-    <section class="py-12 bg-white border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="text-center">
-                    <div class="text-3xl lg:text-4xl font-bold text-cyan-600 mb-2">50K+</div>
-                    <div class="text-slate-600 font-medium">Patients Served</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl lg:text-4xl font-bold text-cyan-600 mb-2">98%</div>
-                    <div class="text-slate-600 font-medium">Satisfaction Rate</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl lg:text-4xl font-bold text-cyan-600 mb-2">200+</div>
-                    <div class="text-slate-600 font-medium">Medical Experts</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl lg:text-4xl font-bold text-cyan-600 mb-2">24/7</div>
-                    <div class="text-slate-600 font-medium">AI Support</div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Services Section -->
-    <section id="services" class="py-20 bg-slate-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">Our Services</h2>
-                <p class="text-lg text-slate-600 max-w-2xl mx-auto">
-                    Comprehensive healthcare solutions powered by cutting-edge technology and compassionate care
-                </p>
-            </div>
-            
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Service Card 1 -->
-                <div class="bg-white rounded-xl p-8 soft-shadow hover-lift">
-                    <div class="w-14 h-14 rounded-xl bg-cyan-100 flex items-center justify-center mb-6">
-                        <svg class="w-7 h-7 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3">Medical Records Management</h3>
-                    <p class="text-slate-600 leading-relaxed">
-                        Secure digital storage and instant access to your complete medical history, prescriptions, and treatment plans.
-                    </p>
-                </div>
-                
-                <!-- Service Card 2 -->
-                <div class="bg-white rounded-xl p-8 soft-shadow hover-lift">
-                    <div class="w-14 h-14 rounded-xl bg-emerald-100 flex items-center justify-center mb-6">
-                        <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3">AI-Powered Diagnostics</h3>
-                    <p class="text-slate-600 leading-relaxed">
-                        Advanced machine learning algorithms to predict health risks and provide early disease detection.
-                    </p>
-                </div>
-                
-                <!-- Service Card 3 -->
-                <div class="bg-white rounded-xl p-8 soft-shadow hover-lift">
-                    <div class="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center mb-6">
-                        <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3">24/7 Voice AI Assistant</h3>
-                    <p class="text-slate-600 leading-relaxed">
-                        Round-the-clock voice-activated support for appointment booking, health queries, and emergency assistance.
-                    </p>
-                </div>
-                
-                <!-- Service Card 4 -->
-                <div class="bg-white rounded-xl p-8 soft-shadow hover-lift">
-                    <div class="w-14 h-14 rounded-xl bg-purple-100 flex items-center justify-center mb-6">
-                        <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3">Smart Appointment Scheduling</h3>
-                    <p class="text-slate-600 leading-relaxed">
-                        Intelligent scheduling system that matches you with the right specialist at your preferred time.
-                    </p>
-                </div>
-                
-                <!-- Service Card 5 -->
-                <div class="bg-white rounded-xl p-8 soft-shadow hover-lift">
-                    <div class="w-14 h-14 rounded-xl bg-orange-100 flex items-center justify-center mb-6">
-                        <svg class="w-7 h-7 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3">Patient Relationship Management</h3>
-                    <p class="text-slate-600 leading-relaxed">
-                        Personalized care tracking, follow-up reminders, and direct communication with your healthcare team.
-                    </p>
-                </div>
-                
-                <!-- Service Card 6 -->
-                <div class="bg-white rounded-xl p-8 soft-shadow hover-lift">
-                    <div class="w-14 h-14 rounded-xl bg-pink-100 flex items-center justify-center mb-6">
-                        <svg class="w-7 h-7 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3">Health Analytics & Reports</h3>
-                    <p class="text-slate-600 leading-relaxed">
-                        Comprehensive health insights with visual analytics to track your wellness journey over time.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Features Section -->
-    <section id="features" class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid lg:grid-cols-2 gap-16 items-center">
-                <!-- Features Content -->
-                <div>
-                    <h2 class="text-3xl lg:text-4xl font-bold text-slate-900 mb-6">
-                        Why Choose ISSVSG?
-                    </h2>
-                    <p class="text-lg text-slate-600 mb-8 leading-relaxed">
-                        We combine advanced technology with human-centered care to deliver exceptional healthcare experiences.
-                    </p>
-                    
-                    <!-- Feature List -->
-                    <div class="space-y-6">
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0">
-                                <div class="w-12 h-12 rounded-lg bg-cyan-100 flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-slate-900 mb-2">Military-Grade Security</h4>
-                                <p class="text-slate-600">Your medical data is protected with enterprise-level encryption and HIPAA-compliant storage.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0">
-                                <div class="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-slate-900 mb-2">Lightning Fast Access</h4>
-                                <p class="text-slate-600">Access your records instantly from any device, anywhere in the world.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0">
-                                <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-slate-900 mb-2">Expert Medical Team</h4>
-                                <p class="text-slate-600">Access to 200+ certified healthcare professionals across all specialties.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0">
-                                <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-slate-900 mb-2">Multilingual Support</h4>
-                                <p class="text-slate-600">AI assistant supports multiple languages for seamless communication.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Features Image/Visual -->
-                <div class="bg-gradient-to-br from-cyan-50 to-emerald-50 rounded-2xl p-8 lg:p-12">
-                    <div class="bg-white rounded-xl p-6 soft-shadow mb-6">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-10 h-10 rounded-full bg-cyan-600 flex items-center justify-center">
-                                <span class="text-white font-bold">AI</span>
-                            </div>
-                            <div>
-                                <div class="font-semibold text-slate-900">Health Assistant</div>
-                                <div class="text-sm text-slate-500">Online</div>
-                            </div>
-                        </div>
-                        <div class="bg-slate-50 rounded-lg p-4 text-sm text-slate-700">
-                            "Your appointment is confirmed for tomorrow at 10:00 AM with Dr. Smith. Would you like to add a reminder?"
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-white rounded-lg p-4 soft-shadow">
-                            <div class="text-2xl font-bold text-cyan-600 mb-1">99.9%</div>
-                            <div class="text-sm text-slate-600">Uptime</div>
-                        </div>
-                        <div class="bg-white rounded-lg p-4 soft-shadow">
-                            <div class="text-2xl font-bold text-emerald-600 mb-1">&lt;2s</div>
-                            <div class="text-sm text-slate-600">Response Time</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Testimonials Section (Social Proof) -->
-    <section id="testimonials" class="py-20 bg-slate-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">What Our Patients Say</h2>
-                <p class="text-lg text-slate-600 max-w-2xl mx-auto">
-                    Real experiences from real patients who trust ISSVSG with their healthcare
-                </p>
-            </div>
-            
-            <div class="grid md:grid-cols-3 gap-8">
-                <!-- Testimonial 1 -->
-                <div class="bg-white rounded-xl p-8 soft-shadow hover-lift">
-                    <div class="flex gap-1 mb-4">
-                        <!-- 5 Stars -->
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                    </div>
-                    <p class="text-slate-700 leading-relaxed mb-6">
-                        "The AI voice assistant is incredible! I can book appointments while driving and get instant answers to my health questions. This platform has made healthcare so much more accessible for me."
-                    </p>
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center">
-                            <span class="text-white font-bold text-lg">SM</span>
-                        </div>
-                        <div>
-                            <div class="font-semibold text-slate-900">Sarah Miller</div>
-                            <div class="text-sm text-slate-500">Patient since 2023</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Testimonial 2 -->
-                <div class="bg-white rounded-xl p-8 soft-shadow hover-lift">
-                    <div class="flex gap-1 mb-4">
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                    </div>
-                    <p class="text-slate-700 leading-relaxed mb-6">
-                        "As someone managing a chronic condition, having all my medical records in one place is a game-changer. The AI predictions have helped me stay ahead of potential issues. Highly recommend!"
-                    </p>
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
-                            <span class="text-white font-bold text-lg">JD</span>
-                        </div>
-                        <div>
-                            <div class="font-semibold text-slate-900">James Davis</div>
-                            <div class="text-sm text-slate-500">Patient since 2022</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Testimonial 3 -->
-                <div class="bg-white rounded-xl p-8 soft-shadow hover-lift">
-                    <div class="flex gap-1 mb-4">
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                        </svg>
-                    </div>
-                    <p class="text-slate-700 leading-relaxed mb-6">
-                        "The platform's user interface is so intuitive! My elderly parents can easily navigate it without any help. The 24/7 support and multilingual features are perfect for our family."
-                    </p>
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-                            <span class="text-white font-bold text-lg">MR</span>
-                        </div>
-                        <div>
-                            <div class="font-semibold text-slate-900">Maria Rodriguez</div>
-                            <div class="text-sm text-slate-500">Patient since 2023</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- CTA Section -->
-    <section class="py-20 gradient-bg text-white">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-3xl lg:text-4xl font-bold mb-6">
-                Ready to Transform Your Healthcare Experience?
-            </h2>
-            <p class="text-lg lg:text-xl text-cyan-50 mb-10 leading-relaxed">
-                Join 50,000+ patients who trust ISSVSG for their healthcare needs. Get started today with a free account.
-            </p>
-            
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a th:href="@{/register}" class="px-8 py-4 bg-white text-cyan-600 rounded-lg font-semibold hover:bg-cyan-50 transition-all hover-lift inline-block">
-                    Create Free Account
-                </a>
-                <a href="#contact" class="px-8 py-4 bg-cyan-700 bg-opacity-50 border-2 border-white text-white rounded-lg font-semibold hover:bg-opacity-70 transition-all inline-block">
-                    Contact Sales
-                </a>
-            </div>
-            
-            <p class="mt-8 text-sm text-cyan-100">
-                No credit card required • Free forever • Cancel anytime
-            </p>
-        </div>
-    </section>
-    
-    <!-- Contact Section -->
-    <section id="contact" class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid lg:grid-cols-2 gap-16">
-                <!-- Contact Info -->
-                <div>
-                    <h2 class="text-3xl lg:text-4xl font-bold text-slate-900 mb-6">Get in Touch</h2>
-                    <p class="text-lg text-slate-600 mb-8 leading-relaxed">
-                        Have questions? Our team is here to help. Reach out to us through any of these channels.
-                    </p>
-                    
-                    <div class="space-y-6">
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0">
-                                <div class="w-12 h-12 rounded-lg bg-cyan-100 flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="font-semibold text-slate-900 mb-1">Email</div>
-                                <a href="mailto:support@issvsg.com" class="text-cyan-600 hover:text-cyan-700">support@issvsg.com</a>
-                            </div>
-                        </div>
-                        
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0">
-                                <div class="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="font-semibold text-slate-900 mb-1">Phone</div>
-                                <a href="tel:+18001234567" class="text-cyan-600 hover:text-cyan-700">1-800-123-4567</a>
-                            </div>
-                        </div>
-                        
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0">
-                                <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="font-semibold text-slate-900 mb-1">Address</div>
-                                <p class="text-slate-600">123 Healthcare Ave, Medical District<br>San Francisco, CA 94103</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0">
-                                <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
-                                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="font-semibold text-slate-900 mb-1">Business Hours</div>
-                                <p class="text-slate-600">Monday - Friday: 8:00 AM - 6:00 PM<br>Saturday: 9:00 AM - 2:00 PM</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Contact Form -->
-                <div class="bg-slate-50 rounded-2xl p-8">
-                    <h3 class="text-2xl font-bold text-slate-900 mb-6">Send us a Message</h3>
-                    <form class="space-y-6">
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-slate-700 mb-2">Full Name</label>
-                            <input type="text" id="name" name="name" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent" placeholder="John Doe" required>
-                        </div>
-                        
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-slate-700 mb-2">Email Address</label>
-                            <input type="email" id="email" name="email" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent" placeholder="john@example.com" required>
-                        </div>
-                        
-                        <div>
-                            <label for="phone" class="block text-sm font-medium text-slate-700 mb-2">Phone Number</label>
-                            <input type="tel" id="phone" name="phone" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent" placeholder="+1 (555) 000-0000">
-                        </div>
-                        
-                        <div>
-                            <label for="message" class="block text-sm font-medium text-slate-700 mb-2">Message</label>
-                            <textarea id="message" name="message" rows="4" class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent" placeholder="Tell us how we can help..." required></textarea>
-                        </div>
-                        
-                        <button type="submit" class="w-full px-6 py-3 bg-cyan-600 text-white rounded-lg font-semibold hover:bg-cyan-700 transition-all hover-lift">
-                            Send Message
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <!-- Footer -->
-    <footer class="bg-slate-900 text-slate-300 py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid md:grid-cols-4 gap-8 mb-8">
-                <!-- Company Info -->
-                <div>
-                    <div class="flex items-center mb-4">
-                        <div class="w-10 h-10 rounded-lg gradient-bg flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                            </svg>
-                        </div>
-                        <span class="ml-3 text-xl font-bold text-white">ISSVSG</span>
-                    </div>
-                    <p class="text-sm text-slate-400 mb-4">
-                        Smart healthcare management for better patient care.
-                    </p>
-                </div>
-                
-                <!-- Quick Links -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Quick Links</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#services" class="hover:text-cyan-400 transition-colors">Services</a></li>
-                        <li><a href="#features" class="hover:text-cyan-400 transition-colors">Features</a></li>
-                        <li><a href="#testimonials" class="hover:text-cyan-400 transition-colors">Testimonials</a></li>
-                        <li><a th:href="@{/login}" class="hover:text-cyan-400 transition-colors">Login</a></li>
-                    </ul>
-                </div>
-                
-                <!-- Resources -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Resources</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="#" class="hover:text-cyan-400 transition-colors">Help Center</a></li>
-                        <li><a href="#" class="hover:text-cyan-400 transition-colors">Privacy Policy</a></li>
-                        <li><a href="#" class="hover:text-cyan-400 transition-colors">Terms of Service</a></li>
-                        <li><a href="#" class="hover:text-cyan-400 transition-colors">HIPAA Compliance</a></li>
-                    </ul>
-                </div>
-                
-                <!-- Contact -->
-                <div>
-                    <h4 class="font-semibold text-white mb-4">Contact</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li>
-                            <a href="mailto:support@issvsg.com" class="hover:text-cyan-400 transition-colors">support@issvsg.com</a>
-                        </li>
-                        <li>
-                            <a href="tel:+18001234567" class="hover:text-cyan-400 transition-colors">1-800-123-4567</a>
-                        </li>
-                        <li class="text-slate-400">
-                            123 Healthcare Ave<br>
-                            San Francisco, CA 94103
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            
-            <!-- Bottom Bar -->
-            <div class="pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
-                <p class="text-sm text-slate-400">
-                    © 2024 ISSVSG. All rights reserved.
-                </p>
-                <div class="flex gap-4">
-                    <a href="#" class="w-10 h-10 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                        </svg>
-                    </a>
-                    <a href="#" class="w-10 h-10 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                        </svg>
-                    </a>
-                    <a href="#" class="w-10 h-10 rounded-lg bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-colors">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                        </svg>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </footer>
-    
-    <!-- Mobile Menu Script -->
+﻿<!doctype html>
+<html class="scroll-smooth" lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>
+      Bác sĩ Nguyễn Trần Kiên - ABClinic | Chuyên gia Y học Gia đình
+    </title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=Material+Icons+Round"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
     <script>
-        // Mobile menu toggle
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            var menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
-        });
-        
-        // Close mobile menu when clicking a link
-        document.querySelectorAll('#mobile-menu a').forEach(function(link) {
-            link.addEventListener('click', function() {
-                document.getElementById('mobile-menu').classList.add('hidden');
-            });
-        });
-        
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0d7cf2",
+              "background-light": "#F8FAFC",
+              "background-dark": "#0F172A",
+            },
+            fontFamily: {
+              display: ["Be Vietnam Pro", "sans-serif"],
+              sans: ["Be Vietnam Pro", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.5rem",
+              xl: "1rem",
+              "2xl": "1.5rem",
+            },
+          },
+        },
+      };
     </script>
-</body>
+    <style>
+      .glass-nav {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .dark .glass-nav {
+        background: rgba(15, 23, 42, 0.8);
+      }
+      .hero-gradient {
+        background: linear-gradient(
+          135deg,
+          rgba(13, 124, 242, 0.05) 0%,
+          rgba(13, 124, 242, 0) 100%
+        );
+      }
+      .card-hover {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .card-hover:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(13, 124, 242, 0.15);
+      }
+      .social-sidebar {
+        position: fixed;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 40;
+      }
+      @media (max-width: 768px) {
+        .social-sidebar {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body
+    class="font-sans antialiased bg-background-light text-slate-800 dark:bg-background-dark dark:text-slate-200 transition-colors duration-300"
+  >
+    <!-- Fixed Glass Navigation -->
+    <nav
+      class="glass-nav fixed top-0 left-0 right-0 z-50 border-b border-slate-200 dark:border-slate-700 shadow-sm"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <!-- Logo/Brand -->
+          <a class="flex items-center space-x-3 group" href="#">
+            <div
+              class="w-10 h-10 bg-gradient-to-br from-primary to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all"
+            >
+              <span class="material-icons-round text-white text-2xl">
+                local_hospital
+              </span>
+            </div>
+            <div>
+              <div
+                class="text-lg font-bold text-primary dark:text-blue-400 tracking-tight"
+              >
+                BÁC SĨ KIÊN
+              </div>
+              <div class="text-xs text-slate-500 dark:text-slate-400">
+                ABClinic
+              </div>
+            </div>
+          </a>
+
+          <!-- Desktop Navigation Links -->
+          <div class="hidden md:flex space-x-8">
+            <a
+              class="text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-blue-400 font-medium transition-colors"
+              href="#"
+            >
+              Trang chủ
+            </a>
+            <a
+              class="text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-blue-400 font-medium transition-colors"
+              href="#about"
+            >
+              Thông tin chuyên gia
+            </a>
+            <a
+              class="text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-blue-400 font-medium transition-colors"
+              href="#testimonials"
+            >
+              Phản hồi
+            </a>
+            <a
+              class="text-slate-600 hover:text-primary dark:text-slate-300 dark:hover:text-blue-400 font-medium transition-colors"
+              href="#survey"
+            >
+              Khảo sát
+            </a>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center space-x-3">
+            <a
+              th:href="@{/auth/login}"
+              class="px-4 py-2 text-primary dark:text-blue-400 font-semibold hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg transition-all"
+            >
+              Đăng nhập
+            </a>
+            <a
+              th:href="@{/auth/register}"
+              class="px-5 py-2 bg-gradient-to-r from-primary to-blue-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+            >
+              Đăng ký
+            </a>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Social Sidebar -->
+    <div class="social-sidebar flex flex-col space-y-3">
+      <a
+        href="https://facebook.com/bsnguyentrankien"
+        target="_blank"
+        class="w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all group"
+      >
+        <span
+          class="material-icons-round text-white text-xl group-hover:scale-110 transition-transform"
+        >
+          facebook
+        </span>
+      </a>
+      <a
+        href="https://tiktok.com/@bsnguyentrankien"
+        target="_blank"
+        class="w-12 h-12 bg-slate-800 hover:bg-slate-900 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all group"
+      >
+        <span
+          class="material-icons-round text-white text-xl group-hover:scale-110 transition-transform"
+        >
+          music_note
+        </span>
+      </a>
+      <a
+        href="tel:0987654321"
+        class="w-12 h-12 bg-green-600 hover:bg-green-700 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all group"
+      >
+        <span
+          class="material-icons-round text-white text-xl group-hover:scale-110 transition-transform"
+        >
+          phone
+        </span>
+      </a>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="pt-24 pb-16 px-4 sm:px-6 lg:px-8 hero-gradient" id="hero">
+      <div class="max-w-7xl mx-auto">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+          <!-- Left Content -->
+          <div>
+            <div
+              class="inline-flex items-center space-x-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-full mb-6"
+            >
+              <span class="material-icons-round text-primary text-xl"
+                >verified</span
+              >
+              <span
+                class="text-sm font-semibold text-primary dark:text-blue-400"
+              >
+                Bác sĩ được chứng nhận
+              </span>
+            </div>
+
+            <h1
+              class="text-5xl md:text-6xl font-bold text-slate-900 dark:text-white mb-6 leading-tight"
+            >
+              BS. NGUYỄN TRẦN KIÊN
+            </h1>
+
+            <div class="space-y-3 mb-8">
+              <div class="flex items-center space-x-3">
+                <span class="material-icons-round text-primary text-2xl"
+                  >school</span
+                >
+                <p class="text-lg text-slate-600 dark:text-slate-300">
+                  Giảng viên Đại học Y Hà Nội
+                </p>
+              </div>
+              <div class="flex items-center space-x-3">
+                <span class="material-icons-round text-primary text-2xl"
+                  >local_hospital</span
+                >
+                <p class="text-lg text-slate-600 dark:text-slate-300">
+                  Bộ môn Y học Gia đình - Tổ chức Y tế Thế giới
+                </p>
+              </div>
+              <div class="flex items-center space-x-3">
+                <span class="material-icons-round text-primary text-2xl"
+                  >science</span
+                >
+                <p class="text-lg text-slate-600 dark:text-slate-300">
+                  Nghiên cứu sinh Y học Gia đình tại Bỉ
+                </p>
+              </div>
+              <div class="flex items-center space-x-3">
+                <span class="material-icons-round text-primary text-2xl"
+                  >workspace_premium</span
+                >
+                <p class="text-lg text-slate-600 dark:text-slate-300">
+                  Nguyên Trưởng khoa Nội tiết - Bệnh viện trung ương
+                </p>
+              </div>
+            </div>
+
+            <p
+              class="text-xl text-slate-600 dark:text-slate-400 mb-8 leading-relaxed"
+            >
+              Với hơn 25 năm kinh nghiệm trong lĩnh vực Y học Gia đình, tôi luôn
+              tâm niệm mang lại những kiến thức y khoa chính thống, dễ hiểu nhất
+              đến cộng đồng.
+            </p>
+
+            <div class="flex flex-wrap gap-4">
+              <a
+                th:href="@{/auth/register}"
+                class="px-8 py-4 bg-gradient-to-r from-primary to-blue-600 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all flex items-center space-x-2"
+              >
+                <span>Đặt lịch khám</span>
+                <span class="material-icons-round">arrow_forward</span>
+              </a>
+              <a
+                th:href="@{/auth/login}"
+                class="px-8 py-4 bg-white dark:bg-slate-800 text-primary dark:text-blue-400 font-bold rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all border-2 border-primary dark:border-blue-400"
+              >
+                Xem chi tiết hồ sơ
+              </a>
+            </div>
+          </div>
+
+          <!-- Right Image -->
+          <div class="relative">
+            <div class="relative z-10 rounded-2xl overflow-hidden shadow-2xl">
+              <img
+                alt="Bác sĩ Nguyễn Trần Kiên"
+                class="w-full h-auto object-cover"
+                src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=600&h=800&fit=crop"
+              />
+              <div
+                class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-900 to-transparent p-6"
+              >
+                <div class="flex items-center space-x-4">
+                  <div class="flex -space-x-2">
+                    <div
+                      class="w-10 h-10 rounded-full border-2 border-white bg-blue-500"
+                    ></div>
+                    <div
+                      class="w-10 h-10 rounded-full border-2 border-white bg-green-500"
+                    ></div>
+                    <div
+                      class="w-10 h-10 rounded-full border-2 border-white bg-purple-500"
+                    ></div>
+                  </div>
+                  <div class="text-white">
+                    <p class="font-bold">10,000+ bệnh nhân</p>
+                    <p class="text-sm opacity-90">đã tin tưởng</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="absolute -bottom-6 -right-6 w-72 h-72 bg-primary/20 rounded-full blur-3xl -z-10"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services Section -->
+    <section
+      class="py-16 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-900"
+      id="services"
+    >
+      <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl font-bold text-slate-900 dark:text-white mb-4">
+            Dịch vụ chuyên môn
+          </h2>
+          <p
+            class="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto"
+          >
+            Các lĩnh vực chuyên sâu của Bác sĩ Kiên
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Service Card 1 -->
+          <div
+            class="card-hover bg-gradient-to-br from-blue-50 to-white dark:from-slate-800 dark:to-slate-900 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700"
+          >
+            <div
+              class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg"
+            >
+              <span class="material-icons-round text-white text-3xl"
+                >fitness_center</span
+              >
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              Giảm cân khoa học
+            </h3>
+            <p class="text-slate-600 dark:text-slate-400">
+              Tư vấn giảm cân an toàn, bền vững dựa trên y học thực chứng
+            </p>
+          </div>
+
+          <!-- Service Card 2 -->
+          <div
+            class="card-hover bg-gradient-to-br from-purple-50 to-white dark:from-slate-800 dark:to-slate-900 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700"
+          >
+            <div
+              class="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 shadow-lg"
+            >
+              <span class="material-icons-round text-white text-3xl"
+                >psychology</span
+              >
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              Tâm lý sức khỏe
+            </h3>
+            <p class="text-slate-600 dark:text-slate-400">
+              Hỗ trợ sức khỏe tinh thần và tư vấn tâm lý cho gia đình
+            </p>
+          </div>
+
+          <!-- Service Card 3 -->
+          <div
+            class="card-hover bg-gradient-to-br from-pink-50 to-white dark:from-slate-800 dark:to-slate-900 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700"
+          >
+            <div
+              class="w-14 h-14 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center mb-4 shadow-lg"
+            >
+              <span class="material-icons-round text-white text-3xl"
+                >favorite</span
+              >
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              Sức khỏe giới tính
+            </h3>
+            <p class="text-slate-600 dark:text-slate-400">
+              Tư vấn chuyên sâu về sức khỏe sinh sản và giới tính
+            </p>
+          </div>
+
+          <!-- Service Card 4 -->
+          <div
+            class="card-hover bg-gradient-to-br from-green-50 to-white dark:from-slate-800 dark:to-slate-900 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700"
+          >
+            <div
+              class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4 shadow-lg"
+            >
+              <span class="material-icons-round text-white text-3xl"
+                >health_and_safety</span
+              >
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              Phòng bệnh gia đình
+            </h3>
+            <p class="text-slate-600 dark:text-slate-400">
+              Tư vấn phòng ngừa bệnh tật cho mọi lứa tuổi
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI Features Section -->
+    <section
+      class="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 to-white dark:from-slate-900 dark:to-slate-800"
+    >
+      <div class="max-w-7xl mx-auto">
+        <div
+          class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700"
+        >
+          <div class="grid md:grid-cols-2 gap-0">
+            <div class="p-12">
+              <div
+                class="inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-primary to-blue-600 rounded-full mb-6"
+              >
+                <span class="material-icons-round text-white text-xl"
+                  >auto_awesome</span
+                >
+                <span class="text-sm font-semibold text-white">
+                  Trợ lý AI của Bác sĩ Kiên
+                </span>
+              </div>
+
+              <h2
+                class="text-4xl font-bold text-slate-900 dark:text-white mb-4"
+              >
+                Nhắc nhở uống thuốc thông minh
+              </h2>
+              <p class="text-lg text-slate-600 dark:text-slate-400 mb-6">
+                Hệ thống AI tự động nhắc nhở lịch uống thuốc, theo dõi sức khỏe
+                và cảnh báo khi cần tái khám.
+              </p>
+              <ul class="space-y-3">
+                <li class="flex items-center space-x-3">
+                  <span class="material-icons-round text-green-500"
+                    >check_circle</span
+                  >
+                  <span class="text-slate-700 dark:text-slate-300"
+                    >Nhắc nhở đúng giờ qua SMS/Email</span
+                  >
+                </li>
+                <li class="flex items-center space-x-3">
+                  <span class="material-icons-round text-green-500"
+                    >check_circle</span
+                  >
+                  <span class="text-slate-700 dark:text-slate-300"
+                    >Theo dõi tình trạng sức khỏe</span
+                  >
+                </li>
+                <li class="flex items-center space-x-3">
+                  <span class="material-icons-round text-green-500"
+                    >check_circle</span
+                  >
+                  <span class="text-slate-700 dark:text-slate-300"
+                    >Tư vấn tự động 24/7</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <div class="relative h-full min-h-[400px]">
+              <img
+                alt="AI Health Assistant"
+                class="absolute inset-0 w-full h-full object-cover"
+                src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&h=600&fit=crop"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section
+      class="py-16 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-900"
+      id="testimonials"
+    >
+      <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-12">
+          <h2 class="text-4xl font-bold text-slate-900 dark:text-white mb-4">
+            Phản hồi từ bệnh nhân
+          </h2>
+          <p
+            class="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto"
+          >
+            Những câu chuyện thành công từ hàng nghìn bệnh nhân
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+          <!-- Testimonial Card 1 -->
+          <div
+            class="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700"
+          >
+            <div class="flex items-center mb-4">
+              <img
+                alt="Patient"
+                class="w-12 h-12 rounded-full object-cover mr-3"
+                src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop"
+              />
+              <div>
+                <h4 class="font-bold text-slate-900 dark:text-white">
+                  Chị Hương
+                </h4>
+                <div class="flex items-center">
+                  <span class="text-yellow-500 text-sm">★★★★★</span>
+                  <span class="material-icons-round text-blue-500 text-sm ml-1"
+                    >verified</span
+                  >
+                </div>
+              </div>
+            </div>
+            <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+              "Bác sĩ Kiên rất tận tâm và chuyên môn cao. Sau 3 tháng điều trị,
+              tôi đã giảm được 12kg một cách an toàn và khoa học."
+            </p>
+          </div>
+
+          <!-- Testimonial Card 2 -->
+          <div
+            class="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700"
+          >
+            <div class="flex items-center mb-4">
+              <img
+                alt="Patient"
+                class="w-12 h-12 rounded-full object-cover mr-3"
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
+              />
+              <div>
+                <h4 class="font-bold text-slate-900 dark:text-white">
+                  Anh Minh
+                </h4>
+                <div class="flex items-center">
+                  <span class="text-yellow-500 text-sm">★★★★★</span>
+                  <span class="material-icons-round text-blue-500 text-sm ml-1"
+                    >verified</span
+                  >
+                </div>
+              </div>
+            </div>
+            <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+              "Hệ thống AI nhắc nhở uống thuốc rất tiện lợi. Tôi không còn lo
+              lắng quên uống thuốc nữa. Cảm ơn bác sĩ Kiên!"
+            </p>
+          </div>
+
+          <!-- Testimonial Card 3 -->
+          <div
+            class="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700"
+          >
+            <div class="flex items-center mb-4">
+              <img
+                alt="Patient"
+                class="w-12 h-12 rounded-full object-cover mr-3"
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop"
+              />
+              <div>
+                <h4 class="font-bold text-slate-900 dark:text-white">
+                  Chị Lan
+                </h4>
+                <div class="flex items-center">
+                  <span class="text-yellow-500 text-sm">★★★★★</span>
+                  <span class="material-icons-round text-blue-500 text-sm ml-1"
+                    >verified</span
+                  >
+                </div>
+              </div>
+            </div>
+            <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+              "Bác sĩ tư vấn rất tận tình và dễ hiểu. Gia đình tôi đã cải thiện
+              nhiều về sức khỏe sau khi theo dõi với bác sĩ Kiên."
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Survey CTA Section -->
+    <section
+      class="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary to-blue-600"
+      id="survey"
+    >
+      <div class="max-w-4xl mx-auto text-center">
+        <div
+          class="inline-flex items-center space-x-2 px-4 py-2 bg-white/20 rounded-full mb-6"
+        >
+          <span class="material-icons-round text-white text-xl">poll</span>
+          <span class="text-sm font-semibold text-white">
+            Khảo sát sức khỏe miễn phí
+          </span>
+        </div>
+
+        <h2 class="text-4xl md:text-5xl font-bold text-white mb-6">
+          Đánh giá tình trạng sức khỏe của bạn
+        </h2>
+        <p class="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+          Hoàn thành bảng khảo sát nhanh để nhận tư vấn sức khỏe cá nhân hóa từ
+          Bác sĩ Kiên
+        </p>
+        <a
+          th:href="@{/auth/register}"
+          class="inline-flex items-center space-x-2 px-8 py-4 bg-white text-primary font-bold rounded-xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all"
+        >
+          <span>Bắt đầu khảo sát</span>
+          <span class="material-icons-round">arrow_forward</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white py-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto">
+        <div class="grid md:grid-cols-3 gap-8">
+          <!-- About -->
+          <div>
+            <div class="flex items-center space-x-3 mb-4">
+              <div
+                class="w-10 h-10 bg-gradient-to-br from-primary to-blue-600 rounded-xl flex items-center justify-center"
+              >
+                <span class="material-icons-round text-white text-2xl"
+                  >local_hospital</span
+                >
+              </div>
+              <div>
+                <div class="text-lg font-bold">BÁC SĨ KIÊN</div>
+                <div class="text-sm text-slate-400">ABClinic</div>
+              </div>
+            </div>
+            <p class="text-slate-400 mb-4">
+              Chuyên gia Y học Gia đình với hơn 25 năm kinh nghiệm. Cam kết mang
+              đến dịch vụ y tế chất lượng cao cho cộng đồng.
+            </p>
+          </div>
+
+          <!-- Location -->
+          <div>
+            <h3 class="font-bold text-lg mb-4">Địa chỉ phòng khám</h3>
+            <div class="space-y-3 text-slate-400">
+              <div class="flex items-start space-x-2">
+                <span class="material-icons-round text-primary text-xl mt-1"
+                  >location_on</span
+                >
+                <span>123 Đường ABC, Quận 1, TP.HCM</span>
+              </div>
+              <div class="flex items-start space-x-2">
+                <span class="material-icons-round text-primary text-xl mt-1"
+                  >phone</span
+                >
+                <span>0987 654 321</span>
+              </div>
+              <div class="flex items-start space-x-2">
+                <span class="material-icons-round text-primary text-xl mt-1"
+                  >email</span
+                >
+                <span>bskien@abclinic.vn</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Links -->
+          <div>
+            <h3 class="font-bold text-lg mb-4">Liên kết nhanh</h3>
+            <div class="space-y-2">
+              <a
+                th:href="@{/auth/login}"
+                class="block text-slate-400 hover:text-primary transition-colors"
+              >
+                Đăng nhập
+              </a>
+              <a
+                th:href="@{/auth/register}"
+                class="block text-slate-400 hover:text-primary transition-colors"
+              >
+                Đăng ký
+              </a>
+              <a
+                href="#about"
+                class="block text-slate-400 hover:text-primary transition-colors"
+              >
+                Về bác sĩ
+              </a>
+              <a
+                href="#services"
+                class="block text-slate-400 hover:text-primary transition-colors"
+              >
+                Dịch vụ
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="border-t border-slate-800 mt-8 pt-8 text-center text-slate-400"
+        >
+          <p>
+            &copy; 2024 ABClinic - Bác sĩ Nguyễn Trần Kiên. Bản quyền thuộc về
+            ABClinic.
+          </p>
+        </div>
+      </div>
+    </footer>
+  </body>
 </html>

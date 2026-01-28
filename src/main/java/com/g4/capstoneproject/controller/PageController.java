@@ -1,14 +1,22 @@
 package com.g4.capstoneproject.controller;
 
+import com.g4.capstoneproject.entity.User;
+import com.g4.capstoneproject.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
  * Controller đơn giản để render các trang template
- * Không có business logic, chỉ navigation giữa các trang
+ * Updated in Phase 2 with role-based dashboard redirects
  */
 @Controller
+@RequiredArgsConstructor
 public class PageController {
+
+    private final UserRepository userRepository;
 
     /**
      * Trang chủ
@@ -20,9 +28,28 @@ public class PageController {
 
     // ==================== DASHBOARD ====================
 
+    /**
+     * Role-based dashboard redirect - Phase 2
+     */
     @GetMapping("/dashboard")
-    public String dashboard() {
-        return "dashboard/index";
+    public String dashboard(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return "redirect:/auth/login";
+        }
+
+        User user = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+
+        if (user == null) {
+            return "redirect:/auth/login";
+        }
+
+        // Redirect based on role
+        return switch (user.getRole()) {
+            case DOCTOR -> "redirect:/doctor/dashboard";
+            case RECEPTIONIST -> "redirect:/receptionist/dashboard";
+            case PATIENT -> "redirect:/patient";
+            case ADMIN -> "redirect:/admin/users";
+        };
     }
 
     // ==================== AUTHENTICATION ====================

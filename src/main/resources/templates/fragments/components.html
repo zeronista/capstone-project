@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <!--
+  Reusable Thymeleaf Component Library
+  
+  This file contains reusable UI component fragments that can be included
+  in any template throughout the application. Use th:replace or th:insert
+  to include these components.
+  
+  Usage Example:
+    <div th:replace="~{fragments/components :: card('Card Title', 'Card content goes here')}"></div>
+    <div th:replace="~{fragments/components :: stats-card('Revenue', '45.2K', 'primary', 'up')}"></div>
+  
+  @version 1.0.0
+  @date January 28, 2026
+-->
+
+  <!-- ==================================================================================
+     CARD COMPONENTS
+     ================================================================================== -->
+
+  <!-- 
+  Basic Card Component
+  @param title - Card title (optional)
+  @param content - Card content
+  @param class - Additional CSS classes (optional)
+-->
+  <div
+    th:fragment="card(title, content, class)"
+    th:class="${'bg-white rounded-2xl border border-surface-200 p-6 ' + (class ?: '')}"
+  >
+    <h3
+      th:if="${title}"
+      class="text-lg font-heading font-semibold text-surface-900 mb-4"
+      th:text="${title}"
+    >
+      Card Title
+    </h3>
+    <div th:utext="${content}">Card content goes here</div>
+  </div>
+
+  <!-- 
+  Stats Card Component
+  Displays a statistic with icon, label, value, and trend
+  
+  @param label - Stat label (e.g., "Total Revenue")
+  @param value - Stat value (e.g., "45.2K")
+  @param secondaryText - Additional info text (optional)
+  @param iconColor - Icon background color: 'primary', 'secondary', 'success', 'warning', 'error' (default: 'primary')
+  @param iconSvg - SVG path for icon (optional, defaults to chart icon)
+  @param trend - Trend indicator: 'up', 'down', 'neutral' (optional)
+  @param trendValue - Trend percentage text (optional, e.g., "+12.5%")
+-->
+  <div
+    th:fragment="stats-card(label, value, secondaryText, iconColor, iconSvg, trend, trendValue)"
+    class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-all duration-200 card-hover"
+  >
+    <div class="flex items-center justify-between">
+      <div class="flex-1">
+        <p class="text-sm font-medium text-surface-500" th:text="${label}">
+          Label
+        </p>
+        <p class="text-3xl font-bold text-surface-900 mt-2" th:text="${value}">
+          0
+        </p>
+        <div th:if="${secondaryText}" class="flex items-center gap-2 mt-2">
+          <p class="text-sm text-surface-600" th:text="${secondaryText}">
+            Secondary info
+          </p>
+          <!-- Trend indicator -->
+          <span
+            th:if="${trend == 'up'}"
+            class="inline-flex items-center text-xs font-semibold text-success-600"
+          >
+            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span th:text="${trendValue}">+12%</span>
+          </span>
+          <span
+            th:if="${trend == 'down'}"
+            class="inline-flex items-center text-xs font-semibold text-error-600"
+          >
+            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            <span th:text="${trendValue}">-5%</span>
+          </span>
+        </div>
+      </div>
+      <!-- Icon -->
+      <div
+        th:class="${'w-14 h-14 rounded-2xl flex items-center justify-center ' + 
+                       (iconColor == 'secondary' ? 'bg-secondary-100' : 
+                        iconColor == 'success' ? 'bg-success-100' :
+                        iconColor == 'warning' ? 'bg-warning-100' :
+                        iconColor == 'error' ? 'bg-error-100' : 'bg-primary-100')}"
+      >
+        <svg
+          th:class="${'w-7 h-7 ' + 
+                           (iconColor == 'secondary' ? 'text-secondary-600' : 
+                            iconColor == 'success' ? 'text-success-600' :
+                            iconColor == 'warning' ? 'text-warning-600' :
+                            iconColor == 'error' ? 'text-error-600' : 'text-primary-600')}"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            th:if="${iconSvg}"
+            th:attr="d=${iconSvg}"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+          />
+          <path
+            th:unless="${iconSvg}"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================================================
+     BUTTON COMPONENTS
+     ================================================================================== -->
+
+  <!-- 
+  Primary Button Component
+  @param text - Button text
+  @param onclick - JavaScript onclick handler (optional)
+  @param type - Button type: 'button', 'submit', 'reset' (default: 'button')
+  @param disabled - Whether button is disabled (optional)
+  @param icon - SVG path for icon (optional)
+-->
+  <button
+    th:fragment="button-primary(text, onclick, type, disabled, icon)"
+    th:type="${type ?: 'button'}"
+    th:onclick="${onclick}"
+    th:disabled="${disabled}"
+    class="btn-primary inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 text-white font-medium rounded-xl hover:bg-primary-600 transition-colors duration-200 cursor-pointer shadow-lg shadow-primary-500/25 disabled:bg-surface-400 disabled:cursor-not-allowed disabled:shadow-none"
+  >
+    <svg
+      th:if="${icon}"
+      class="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        th:attr="d=${icon}"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+      />
+    </svg>
+    <span th:text="${text}">Button</span>
+  </button>
+
+  <!-- 
+  Secondary Button Component
+  @param text - Button text
+  @param onclick - JavaScript onclick handler (optional)
+  @param type - Button type: 'button', 'submit', 'reset' (default: 'button')
+  @param disabled - Whether button is disabled (optional)
+  @param icon - SVG path for icon (optional)
+-->
+  <button
+    th:fragment="button-secondary(text, onclick, type, disabled, icon)"
+    th:type="${type ?: 'button'}"
+    th:onclick="${onclick}"
+    th:disabled="${disabled}"
+    class="btn-secondary inline-flex items-center gap-2 px-4 py-2.5 border border-surface-200 rounded-xl text-surface-600 hover:bg-surface-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    <svg
+      th:if="${icon}"
+      class="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        th:attr="d=${icon}"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+      />
+    </svg>
+    <span th:text="${text}">Button</span>
+  </button>
+
+  <!-- 
+  Danger Button Component
+  @param text - Button text
+  @param onclick - JavaScript onclick handler (optional)
+  @param type - Button type: 'button', 'submit', 'reset' (default: 'button')
+  @param icon - SVG path for icon (optional)
+-->
+  <button
+    th:fragment="button-danger(text, onclick, type, icon)"
+    th:type="${type ?: 'button'}"
+    th:onclick="${onclick}"
+    class="inline-flex items-center gap-2 px-5 py-2.5 bg-error-500 text-white font-medium rounded-xl hover:bg-error-600 transition-colors duration-200 cursor-pointer shadow-lg shadow-error-500/25"
+  >
+    <svg
+      th:if="${icon}"
+      class="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        th:attr="d=${icon}"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+      />
+    </svg>
+    <span th:text="${text}">Delete</span>
+  </button>
+
+  <!-- ==================================================================================
+     FORM INPUT COMPONENTS
+     ================================================================================== -->
+
+  <!-- 
+  Text Input Field Component
+  @param id - Input ID
+  @param name - Input name attribute
+  @param label - Input label (optional)
+  @param placeholder - Placeholder text (optional)
+  @param value - Input value (optional)
+  @param required - Whether field is required (optional)
+  @param type - Input type (default: 'text')
+  @param icon - SVG path for left icon (optional)
+-->
+  <div
+    th:fragment="input-field(id, name, label, placeholder, value, required, type, icon)"
+  >
+    <label
+      th:if="${label}"
+      th:for="${id}"
+      class="block text-sm font-medium text-surface-700 mb-2"
+      th:text="${label}"
+    >
+      Label
+    </label>
+    <div class="relative">
+      <div th:if="${icon}" class="absolute left-3 top-1/2 -translate-y-1/2">
+        <svg
+          class="w-5 h-5 text-surface-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            th:attr="d=${icon}"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+          />
+        </svg>
+      </div>
+      <input
+        th:id="${id}"
+        th:name="${name}"
+        th:type="${type ?: 'text'}"
+        th:value="${value}"
+        th:placeholder="${placeholder}"
+        th:required="${required}"
+        th:class="${'input-field w-full py-2.5 px-4 bg-surface-50 border border-surface-200 rounded-xl text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 ' + (icon ? 'pl-10' : '')}"
+      />
+    </div>
+  </div>
+
+  <!-- 
+  Textarea Component
+  @param id - Textarea ID
+  @param name - Textarea name attribute
+  @param label - Textarea label (optional)
+  @param placeholder - Placeholder text (optional)
+  @param value - Textarea value (optional)
+  @param rows - Number of rows (default: 4)
+  @param required - Whether field is required (optional)
+-->
+  <div
+    th:fragment="textarea(id, name, label, placeholder, value, rows, required)"
+  >
+    <label
+      th:if="${label}"
+      th:for="${id}"
+      class="block text-sm font-medium text-surface-700 mb-2"
+      th:text="${label}"
+    >
+      Label
+    </label>
+    <textarea
+      th:id="${id}"
+      th:name="${name}"
+      th:rows="${rows ?: 4}"
+      th:placeholder="${placeholder}"
+      th:required="${required}"
+      th:text="${value}"
+      class="input-field w-full py-2.5 px-4 bg-surface-50 border border-surface-200 rounded-xl text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 resize-vertical"
+    ></textarea>
+  </div>
+
+  <!-- ==================================================================================
+     MODAL COMPONENT
+     ================================================================================== -->
+
+  <!-- 
+  Modal Component
+  @param id - Modal ID
+  @param title - Modal title
+  @param content - Modal body content
+  @param footer - Modal footer content (optional)
+  @param size - Modal size: 'sm', 'md', 'lg', 'xl' (default: 'md')
+-->
+  <div
+    th:fragment="modal(id, title, content, footer, size)"
+    th:id="${id}"
+    class="modal-backdrop fixed inset-0 bg-surface-900/50 flex items-center justify-center z-50 hidden"
+  >
+    <div
+      th:class="${'modal-container bg-white rounded-2xl shadow-2xl overflow-hidden ' +
+                    (size == 'sm' ? 'max-w-md' : 
+                     size == 'lg' ? 'max-w-3xl' :
+                     size == 'xl' ? 'max-w-5xl' : 'max-w-xl')}"
+    >
+      <!-- Modal Header -->
+      <div
+        class="flex items-center justify-between px-6 py-4 border-b border-surface-200"
+      >
+        <h3
+          class="text-xl font-heading font-semibold text-surface-900"
+          th:text="${title}"
+        >
+          Modal Title
+        </h3>
+        <button
+          th:onclick="|document.getElementById('${id}').classList.add('hidden')|"
+          class="text-surface-400 hover:text-surface-600 transition-colors"
+        >
+          <svg
+            class="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="px-6 py-4" th:utext="${content}">Modal content goes here</div>
+
+      <!-- Modal Footer -->
+      <div
+        th:if="${footer}"
+        class="flex items-center justify-end gap-3 px-6 py-4 bg-surface-50 border-t border-surface-200"
+      >
+        <div th:utext="${footer}">Footer buttons</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================================================================================
+     TABLE COMPONENT
+     ================================================================================== -->
+
+  <!-- 
+  Data Table Component
+  Note: This is a wrapper. Use with th:block for headers and rows
+  
+  Example:
+  <table th:replace="~{fragments/components :: table-start}">
+  <thead>
+    <tr th:replace="~{fragments/components :: table-header-row}">
+      <th>Header 1</th>
+      <th>Header 2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr th:each="item : ${items}">
+      <td th:text="${item.field1}">Data</td>
+      <td th:text="${item.field2}">Data</td>
+    </tr>
+  </tbody>
+  </table>
+-->
+  <div
+    th:fragment="table-wrapper"
+    class="overflow-x-auto rounded-xl border border-surface-200"
+  >
+    <table class="data-table w-full">
+      <!-- Content will be inserted here -->
+    </table>
+  </div>
+
+  <!-- ==================================================================================
+     BADGE COMPONENTS
+     ================================================================================== -->
+
+  <!-- 
+  Badge Component
+  @param text - Badge text
+  @param variant - Badge color: 'primary', 'secondary', 'success', 'warning', 'error' (default: 'primary')
+-->
+  <span
+    th:fragment="badge(text, variant)"
+    th:class="${'badge inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ' +
+                 (variant == 'secondary' ? 'bg-secondary-100 text-secondary-700' :
+                  variant == 'success' ? 'bg-success-100 text-success-700' :
+                  variant == 'warning' ? 'bg-warning-100 text-warning-700' :
+                  variant == 'error' ? 'bg-error-100 text-error-700' : 'bg-primary-100 text-primary-700')}"
+    th:text="${text}"
+  >
+    Badge
+  </span>
+
+  <!-- ==================================================================================
+     ALERT COMPONENTS
+     ================================================================================== -->
+
+  <!-- 
+  Alert Component
+  @param message - Alert message
+  @param type - Alert type: 'info', 'success', 'warning', 'error' (default: 'info')
+  @param dismissible - Whether alert can be dismissed (optional)
+-->
+  <div
+    th:fragment="alert(message, type, dismissible)"
+    th:class="${'flex items-center gap-3 px-4 py-3 rounded-xl ' +
+                (type == 'success' ? 'bg-success-50 border border-success-200 text-success-700' :
+                 type == 'warning' ? 'bg-warning-50 border border-warning-200 text-warning-700' :
+                 type == 'error' ? 'bg-error-50 border border-error-200 text-error-700' : 'bg-info-50 border border-info-200 text-info-700')}"
+  >
+    <!-- Icon -->
+    <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <path
+        th:if="${type == 'success'}"
+        fill-rule="evenodd"
+        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+        clip-rule="evenodd"
+      />
+      <path
+        th:if="${type == 'warning' or type == 'error'}"
+        fill-rule="evenodd"
+        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+        clip-rule="evenodd"
+      />
+      <path
+        th:if="${type == 'info'}"
+        fill-rule="evenodd"
+        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+        clip-rule="evenodd"
+      />
+    </svg>
+
+    <!-- Message -->
+    <p class="flex-1 text-sm font-medium" th:text="${message}">Alert message</p>
+
+    <!-- Dismiss button -->
+    <button
+      th:if="${dismissible}"
+      onclick="this.parentElement.remove()"
+      class="flex-shrink-0 hover:opacity-70 transition-opacity"
+    >
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <path
+          fill-rule="evenodd"
+          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+          clip-rule="evenodd"
+        />
+      </svg>
+    </button>
+  </div>
+
+  <!-- ==================================================================================
+     LOADING SPINNER
+     ================================================================================== -->
+
+  <!-- 
+  Loading Spinner Component
+  @param size - Spinner size: 'sm', 'md', 'lg' (default: 'md')
+  @param text - Loading text (optional)
+-->
+  <div
+    th:fragment="spinner(size, text)"
+    class="flex items-center justify-center gap-3"
+  >
+    <div
+      th:class="${'spinner border-2 border-surface-200 border-t-primary-500 rounded-full animate-spin ' +
+                    (size == 'sm' ? 'w-4 h-4' : size == 'lg' ? 'w-12 h-12' : 'w-6 h-6')}"
+    ></div>
+    <span th:if="${text}" class="text-sm text-surface-600" th:text="${text}"
+      >Loading...</span
+    >
+  </div>
+</html>

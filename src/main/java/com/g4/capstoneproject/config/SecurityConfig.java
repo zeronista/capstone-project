@@ -2,6 +2,7 @@ package com.g4.capstoneproject.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -9,57 +10,66 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * Cấu hình Security với Google OAuth2
+ * Cấu hình Security với Role-based Authorization
+ * OAuth2 disabled for Phase 1 demo
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(auth -> auth
-                // Cho phép truy cập public các trang auth và static resources
-                .requestMatchers(
-                    "/", 
-                    "/auth/**",
-                    "/css/**", 
-                    "/js/**", 
-                    "/image/**",
-                    "/static/**",
-                    "/error",
-                    // Swagger UI endpoints
-                    "/v3/api-docs/**",
-                    "/swagger-ui/**",
-                    "/swagger-ui.html",
-                    "/swagger-resources/**",
-                    "/webjars/**"
-                ).permitAll()
-                // Các trang khác cần authentication
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/auth/login")
-                .permitAll()
-                .disable() // Tắt form login mặc định, dùng custom
-            )
-            .oauth2Login(oauth2 -> oauth2
-                .loginPage("/auth/login")
-                .defaultSuccessUrl("/auth/oauth2/success", true)
-                .failureUrl("/auth/login?error=oauth_failed")
-            )
-            .logout(logout -> logout
-                .logoutUrl("/auth/logout")
-                .logoutSuccessUrl("/auth/login?logout")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
-                .permitAll()
-            )
-            .csrf(csrf -> csrf.disable()); // Tắt CSRF cho demo, nên bật trong production
+                .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
+                        .requestMatchers(
+                                "/",
+                                "/auth/**",
+                                "/api/auth/**",
+                                "/css/**",
+                                "/js/**",
+                                "/static/**",
+                                "/stitch_frontend_n/**",
+                                "/image/**",
+                                "/error",
+                                // WebSocket endpoints
+                                "/ws/**",
+                                "/app/**",
+                                "/topic/**",
+                                // Swagger UI
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                // Stringee API (public for demo)
+                                "/api/stringee/**")
+                        .permitAll()
+                        // Role-based access control
+                        .requestMatchers("/doctor/**").hasRole("DOCTOR")
+                        .requestMatchers("/receptionist/**").hasRole("RECEPTIONIST")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/patient/**").hasAnyRole("PATIENT", "DOCTOR", "RECEPTIONIST", "ADMIN")
+                        // Authenticated access
+                        .anyRequest().authenticated())
+                .formLogin(form -> form
+                        .loginPage("/auth/login")
+                        .loginProcessingUrl("/api/auth/login")
+                        .defaultSuccessUrl("/dashboard", true)
+                        .failureUrl("/auth/login?error=true")
+                        .permitAll())
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout")
+                        .logoutSuccessUrl("/auth/login?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll())
+                .csrf(csrf -> csrf.disable()); // Disabled for demo
 
         return http.build();
     }
-    
+
     /**
      * Bean cho password encoder
      */

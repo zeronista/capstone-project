@@ -1,145 +1,154 @@
 package com.g4.capstoneproject.service;
 
-import com.g4.capstoneproject.model.TreatmentPlan;
+import com.g4.capstoneproject.entity.TreatmentPlan;
+import com.g4.capstoneproject.entity.TreatmentPlanItem;
+import com.g4.capstoneproject.repository.TreatmentPlanRepository;
+import com.g4.capstoneproject.repository.TreatmentPlanItemRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 /**
  * Service quản lý lộ trình điều trị
- * Chức năng: Cung cấp dữ liệu mock cho treatment plan management
+ * Refactored to use database in Phase 2
  */
 @Service
+@RequiredArgsConstructor
+@Transactional
 public class TreatmentPlanService {
-    
-    private List<TreatmentPlan> treatmentPlans;
 
-    public TreatmentPlanService() {
-        // Khởi tạo dữ liệu mock
-        treatmentPlans = new ArrayList<>();
-        
-        treatmentPlans.add(new TreatmentPlan(
-            "TP-2026-001",
-            "BN-2026-0142",
-            "Trần Văn Hùng",
-            45,
-            "Nam",
-            "Tăng huyết áp độ II, Đái tháo đường type 2",
-            "Kiểm soát huyết áp <140/90 mmHg, Đưa HbA1c về <7%",
-            65,
-            "Đang thực hiện",
-            LocalDateTime.now().plusDays(7),
-            "Mỗi 3 tháng",
-            "BS. Nguyễn Văn A",
-            LocalDateTime.now(),
-            "Bình thường"
-        ));
-        
-        treatmentPlans.add(new TreatmentPlan(
-            "TP-2026-002",
-            "BN-2026-0138",
-            "Võ Thị Thanh",
-            65,
-            "Nữ",
-            "Suy tim độ II, Rung nhĩ mạn tính",
-            "Kiểm soát nhịp tim 60-80 bpm, Duy trì INR 2-3",
-            50,
-            "Đang thực hiện",
-            LocalDateTime.now().plusDays(2),
-            "Mỗi 2 tuần",
-            "BS. Lê Minh Tuấn",
-            LocalDateTime.now().minusDays(3),
-            "Ưu tiên cao"
-        ));
-        
-        treatmentPlans.add(new TreatmentPlan(
-            "TP-2026-003",
-            "BN-2026-0141",
-            "Lê Thị Mai",
-            32,
-            "Nữ",
-            "Rối loạn chức năng tuyến giáp, Thiếu máu",
-            "Ổn định TSH trong giới hạn bình thường, Nâng Hemoglobin >12 g/dL",
-            40,
-            "Cần theo dõi",
-            LocalDateTime.now().plusDays(4),
-            "Mỗi 6 tuần",
-            "BS. Trần Thị Hoa",
-            LocalDateTime.now(),
-            "Bình thường"
-        ));
-    }
+    private final TreatmentPlanRepository treatmentPlanRepository;
+    private final TreatmentPlanItemRepository treatmentPlanItemRepository;
 
     /**
-     * Lấy tất cả lộ trình điều trị
+     * Lấy tất cả treatment plan
      */
+    @Transactional(readOnly = true)
     public List<TreatmentPlan> getAllTreatmentPlans() {
-        return treatmentPlans;
+        return treatmentPlanRepository.findAll();
     }
 
     /**
-     * Lấy lộ trình theo ID
+     * Lấy treatment plan theo ID
      */
-    public TreatmentPlan getTreatmentPlanById(String id) {
-        return treatmentPlans.stream()
-            .filter(tp -> tp.getId().equals(id))
-            .findFirst()
-            .orElse(null);
+    @Transactional(readOnly = true)
+    public Optional<TreatmentPlan> getTreatmentPlanById(Long id) {
+        return treatmentPlanRepository.findById(id);
     }
 
     /**
-     * Lọc theo trạng thái
+     * Lấy treatment plan theo bệnh nhân
      */
-    public List<TreatmentPlan> getTreatmentPlansByStatus(String status) {
-        return treatmentPlans.stream()
-            .filter(tp -> tp.getStatus().equals(status))
-            .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public List<TreatmentPlan> getTreatmentPlansByPatientId(Long patientId) {
+        return treatmentPlanRepository.findByPatientId(patientId);
     }
 
     /**
-     * Tạo lộ trình mới
+     * Lấy treatment plan theo bác sĩ
+     */
+    @Transactional(readOnly = true)
+    public List<TreatmentPlan> getTreatmentPlansByDoctorId(Long doctorId) {
+        return treatmentPlanRepository.findByDoctorId(doctorId);
+    }
+
+    /**
+     * Lọc treatment plan theo trạng thái
+     */
+    @Transactional(readOnly = true)
+    public List<TreatmentPlan> getTreatmentPlansByStatus(TreatmentPlan.PlanStatus status) {
+        return treatmentPlanRepository.findByStatus(status);
+    }
+
+    /**
+     * Lấy treatment plan active
+     */
+    @Transactional(readOnly = true)
+    public List<TreatmentPlan> getActiveTreatmentPlans() {
+        return treatmentPlanRepository.findByStatus(TreatmentPlan.PlanStatus.ACTIVE);
+    }
+
+    /**
+     * Tạo treatment plan mới
      */
     public TreatmentPlan createTreatmentPlan(TreatmentPlan plan) {
-        treatmentPlans.add(plan);
-        return plan;
+        return treatmentPlanRepository.save(plan);
     }
 
     /**
-     * Cập nhật lộ trình
+     * Cập nhật treatment plan
      */
-    public TreatmentPlan updateTreatmentPlan(String id, TreatmentPlan updatedPlan) {
-        for (int i = 0; i < treatmentPlans.size(); i++) {
-            if (treatmentPlans.get(i).getId().equals(id)) {
-                treatmentPlans.set(i, updatedPlan);
-                return updatedPlan;
-            }
+    public TreatmentPlan updateTreatmentPlan(Long id, TreatmentPlan updatedPlan) {
+        return treatmentPlanRepository.findById(id)
+                .map(existing -> {
+                    existing.setDiagnosis(updatedPlan.getDiagnosis());
+                    existing.setStatus(updatedPlan.getStatus());
+                    return treatmentPlanRepository.save(existing);
+                })
+                .orElse(null);
+    }
+
+    /**
+     * Xóa treatment plan
+     */
+    public boolean deleteTreatmentPlan(Long id) {
+        if (treatmentPlanRepository.existsById(id)) {
+            treatmentPlanRepository.deleteById(id);
+            return true;
         }
-        return null;
+        return false;
     }
 
     /**
-     * Xóa lộ trình
+     * Thống kê treatment plan
      */
-    public boolean deleteTreatmentPlan(String id) {
-        return treatmentPlans.removeIf(tp -> tp.getId().equals(id));
+    @Transactional(readOnly = true)
+    public long getTotalCount() {
+        return treatmentPlanRepository.count();
     }
 
-    /**
-     * Thống kê
-     */
+    @Transactional(readOnly = true)
     public long getActiveCount() {
-        return treatmentPlans.stream()
-            .filter(tp -> tp.getStatus().equals("Đang thực hiện"))
-            .count();
+        return treatmentPlanRepository.findByStatus(TreatmentPlan.PlanStatus.ACTIVE).size();
     }
 
-    public long getUpcomingFollowUpCount() {
-        LocalDateTime weekFromNow = LocalDateTime.now().plusWeeks(1);
-        return treatmentPlans.stream()
-            .filter(tp -> tp.getNextFollowUp().isBefore(weekFromNow))
-            .count();
+    @Transactional(readOnly = true)
+    public long getCompletedCount() {
+        return treatmentPlanRepository.findByStatus(TreatmentPlan.PlanStatus.COMPLETED).size();
+    }
+
+    /**
+     * Thêm item vào treatment plan
+     */
+    public TreatmentPlanItem addItem(Long planId, TreatmentPlanItem item) {
+        return treatmentPlanRepository.findById(planId)
+                .map(plan -> {
+                    item.setTreatmentPlan(plan);
+                    return treatmentPlanItemRepository.save(item);
+                })
+                .orElse(null);
+    }
+
+    /**
+     * Lấy items của treatment plan
+     */
+    @Transactional(readOnly = true)
+    public List<TreatmentPlanItem> getTreatmentPlanItems(Long planId) {
+        return treatmentPlanItemRepository.findByTreatmentPlanId(planId);
+    }
+
+    /**
+     * Cập nhật trạng thái item
+     */
+    public TreatmentPlanItem updateItemStatus(Long itemId, TreatmentPlanItem.ItemStatus status) {
+        return treatmentPlanItemRepository.findById(itemId)
+                .map(item -> {
+                    item.setStatus(status);
+                    return treatmentPlanItemRepository.save(item);
+                })
+                .orElse(null);
     }
 }

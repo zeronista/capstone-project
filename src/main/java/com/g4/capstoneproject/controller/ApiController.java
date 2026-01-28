@@ -1,14 +1,20 @@
 package com.g4.capstoneproject.controller;
 
-import com.g4.capstoneproject.model.Prescription;
-import com.g4.capstoneproject.model.TreatmentPlan;
-import com.g4.capstoneproject.model.Ticket;
+import com.g4.capstoneproject.dto.PrescriptionRequest;
+import com.g4.capstoneproject.dto.ValidationErrorResponse;
+import com.g4.capstoneproject.entity.Prescription;
+import com.g4.capstoneproject.entity.TreatmentPlan;
+import com.g4.capstoneproject.entity.Ticket;
 import com.g4.capstoneproject.service.PrescriptionService;
 import com.g4.capstoneproject.service.S3Service;
 import com.g4.capstoneproject.service.TreatmentPlanService;
 import com.g4.capstoneproject.service.TicketService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +22,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * REST API Controller cho các thao tác AJAX
@@ -51,8 +58,8 @@ public class ApiController {
      * GET /api/prescriptions/{id} - Lấy đơn thuốc theo ID
      */
     @GetMapping("/prescriptions/{id}")
-    public ResponseEntity<Prescription> getPrescriptionById(@PathVariable String id) {
-        Prescription prescription = prescriptionService.getPrescriptionById(id);
+    public ResponseEntity<Prescription> getPrescriptionById(@PathVariable Long id) {
+        Prescription prescription = prescriptionService.getPrescriptionById(id).orElse(null);
         if (prescription != null) {
             return ResponseEntity.ok(prescription);
         }
@@ -69,10 +76,40 @@ public class ApiController {
     }
 
     /**
+     * POST /api/prescriptions/create - Tạo đơn thuốc mới với validation
+     */
+    @PostMapping("/prescriptions/create")
+    public ResponseEntity<?> createPrescriptionValidated(@Valid @RequestBody PrescriptionRequest request,
+            BindingResult bindingResult) {
+        // Check for validation errors
+        if (bindingResult.hasErrors()) {
+            Map<String, List<String>> errors = bindingResult.getFieldErrors().stream()
+                    .collect(Collectors.groupingBy(
+                            FieldError::getField,
+                            Collectors.mapping(FieldError::getDefaultMessage, Collectors.toList())));
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ValidationErrorResponse.of("Dữ liệu không hợp lệ", errors));
+        }
+
+        try {
+            Prescription created = prescriptionService.createPrescriptionFromRequest(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ValidationErrorResponse.of(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ValidationErrorResponse.of("Có lỗi xảy ra khi tạo đơn thuốc"));
+        }
+    }
+
+    /**
      * PUT /api/prescriptions/{id} - Cập nhật đơn thuốc
      */
     @PutMapping("/prescriptions/{id}")
-    public ResponseEntity<Prescription> updatePrescription(@PathVariable String id, @RequestBody Prescription prescription) {
+    public ResponseEntity<Prescription> updatePrescription(@PathVariable Long id,
+            @RequestBody Prescription prescription) {
         Prescription updated = prescriptionService.updatePrescription(id, prescription);
         if (updated != null) {
             return ResponseEntity.ok(updated);
@@ -84,7 +121,7 @@ public class ApiController {
      * DELETE /api/prescriptions/{id} - Xóa đơn thuốc
      */
     @DeleteMapping("/prescriptions/{id}")
-    public ResponseEntity<Map<String, String>> deletePrescription(@PathVariable String id) {
+    public ResponseEntity<Map<String, String>> deletePrescription(@PathVariable Long id) {
         boolean deleted = prescriptionService.deletePrescription(id);
         Map<String, String> response = new HashMap<>();
         if (deleted) {
@@ -102,8 +139,8 @@ public class ApiController {
     public ResponseEntity<Map<String, Object>> getPrescriptionStats() {
         Map<String, Object> stats = new HashMap<>();
         stats.put("total", prescriptionService.getTotalCount());
-        stats.put("pending", prescriptionService.getPendingCount());
-        stats.put("warnings", prescriptionService.getWarningCount());
+        stats.put("active", prescriptionService.getActiveCount());
+        stats.put("completed", prescriptionService.getCompletedCount());
         return ResponseEntity.ok(stats);
     }
 
@@ -121,8 +158,8 @@ public class ApiController {
      * GET /api/treatment-plans/{id} - Lấy lộ trình theo ID
      */
     @GetMapping("/treatment-plans/{id}")
-    public ResponseEntity<TreatmentPlan> getTreatmentPlanById(@PathVariable String id) {
-        TreatmentPlan plan = treatmentPlanService.getTreatmentPlanById(id);
+    public ResponseEntity<TreatmentPlan> getTreatmentPlanById(@PathVariable Long id) {
+        TreatmentPlan plan = treatmentPlanService.getTreatmentPlanById(id).orElse(null);
         if (plan != null) {
             return ResponseEntity.ok(plan);
         }
@@ -142,7 +179,7 @@ public class ApiController {
      * PUT /api/treatment-plans/{id} - Cập nhật lộ trình
      */
     @PutMapping("/treatment-plans/{id}")
-    public ResponseEntity<TreatmentPlan> updateTreatmentPlan(@PathVariable String id, @RequestBody TreatmentPlan plan) {
+    public ResponseEntity<TreatmentPlan> updateTreatmentPlan(@PathVariable Long id, @RequestBody TreatmentPlan plan) {
         TreatmentPlan updated = treatmentPlanService.updateTreatmentPlan(id, plan);
         if (updated != null) {
             return ResponseEntity.ok(updated);
@@ -154,7 +191,7 @@ public class ApiController {
      * DELETE /api/treatment-plans/{id} - Xóa lộ trình
      */
     @DeleteMapping("/treatment-plans/{id}")
-    public ResponseEntity<Map<String, String>> deleteTreatmentPlan(@PathVariable String id) {
+    public ResponseEntity<Map<String, String>> deleteTreatmentPlan(@PathVariable Long id) {
         boolean deleted = treatmentPlanService.deleteTreatmentPlan(id);
         Map<String, String> response = new HashMap<>();
         if (deleted) {
@@ -172,8 +209,8 @@ public class ApiController {
     public ResponseEntity<Map<String, Object>> getTreatmentPlanStats() {
         Map<String, Object> stats = new HashMap<>();
         stats.put("active", treatmentPlanService.getActiveCount());
-        stats.put("upcomingFollowUps", treatmentPlanService.getUpcomingFollowUpCount());
-        stats.put("total", treatmentPlanService.getAllTreatmentPlans().size());
+        stats.put("completed", treatmentPlanService.getCompletedCount());
+        stats.put("total", treatmentPlanService.getTotalCount());
         return ResponseEntity.ok(stats);
     }
 
@@ -224,10 +261,13 @@ public class ApiController {
      * PUT /api/tickets/{id}/status - Thay đổi trạng thái ticket
      */
     @PutMapping("/tickets/{id}/status")
-    public ResponseEntity<Ticket> updateTicketStatus(@PathVariable String id, @RequestBody Map<String, String> statusUpdate) {
+    public ResponseEntity<Ticket> updateTicketStatus(@PathVariable String id,
+            @RequestBody Map<String, String> statusUpdate) {
         Ticket ticket = ticketService.getTicketById(id);
         if (ticket != null) {
-            ticket.setStatus(statusUpdate.get("status"));
+            String statusStr = statusUpdate.get("status");
+            ticket.setStatus(Ticket.Status.valueOf(statusStr));
+            ticketService.updateTicket(id, ticket);
             return ResponseEntity.ok(ticket);
         }
         return ResponseEntity.notFound().build();
@@ -255,9 +295,8 @@ public class ApiController {
     public ResponseEntity<Map<String, Object>> suggestMedication(@RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
         response.put("suggestions", List.of(
-            Map.of("name", "Losartan 50mg", "reason", "Hiệu quả tương đương, ít tác dụng phụ hơn"),
-            Map.of("name", "Telmisartan 40mg", "reason", "Thời gian tác dụng dài hơn, 1 lần/ngày")
-        ));
+                Map.of("name", "Losartan 50mg", "reason", "Hiệu quả tương đương, ít tác dụng phụ hơn"),
+                Map.of("name", "Telmisartan 40mg", "reason", "Thời gian tác dụng dài hơn, 1 lần/ngày")));
         response.put("needsConfirmation", true);
         return ResponseEntity.ok(response);
     }
@@ -285,10 +324,9 @@ public class ApiController {
         response.put("cvdRisk10Year", 15.2);
         response.put("riskLevel", "HIGH");
         response.put("mainFactors", List.of(
-            Map.of("factor", "Huyết áp cao", "contribution", 6.8),
-            Map.of("factor", "Đái tháo đường", "contribution", 4.5),
-            Map.of("factor", "Hút thuốc", "contribution", 2.9)
-        ));
+                Map.of("factor", "Huyết áp cao", "contribution", 6.8),
+                Map.of("factor", "Đái tháo đường", "contribution", 4.5),
+                Map.of("factor", "Hút thuốc", "contribution", 2.9)));
         response.put("needsConfirmation", true);
         return ResponseEntity.ok(response);
     }
@@ -310,6 +348,7 @@ public class ApiController {
 
     /**
      * POST /api/upload - Upload file lên AWS S3
+     * 
      * @param file
      * @return
      */
