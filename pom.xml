@@ -59,6 +59,7 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -141,10 +142,19 @@
             <artifactId>google-auth-library-oauth2-http</artifactId>
             <version>1.23.0</version>
         </dependency>
+        <!-- Removed duplicate spring-boot-starter-security -->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
+            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Removed conflicting spring-boot 2.1.7 dependency -->
     </dependencies>
 
     <build>

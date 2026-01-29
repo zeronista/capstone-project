@@ -65,6 +65,20 @@ public class User {
     @Column(name = "email_verified", nullable = false)
     private Boolean emailVerified = false;
     
+    // ========== Email Verification ==========
+    @Column(name = "email_verification_token")
+    private String emailVerificationToken;
+    
+    @Column(name = "email_verification_token_expiry")
+    private LocalDateTime emailVerificationTokenExpiry;
+    
+    // ========== Password Reset ==========
+    @Column(name = "password_reset_token")
+    private String passwordResetToken;
+    
+    @Column(name = "password_reset_token_expiry")
+    private LocalDateTime passwordResetTokenExpiry;
+    
     // ========== Quan hệ với UserInfo ==========
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private UserInfo userInfo;

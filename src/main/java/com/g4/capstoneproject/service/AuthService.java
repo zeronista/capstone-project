@@ -8,12 +8,14 @@ import com.g4.capstoneproject.entity.UserInfo;
 import com.g4.capstoneproject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Service xử lý authentication và authorization
@@ -25,6 +27,10 @@ public class AuthService {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AsyncEmailService asyncEmailService;
+    
+    @Value("${email.verification.base-url:http://localhost:8080}")
+    private String baseUrl;
     
     /**
      * Đăng ký người dùng mới
@@ -80,6 +86,13 @@ public class AuthService {
                     .emailVerified(false)
                     .build();
             
+            // Tạo email verification token nếu có email
+            if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+                String verificationToken = UUID.randomUUID().toString();
+                user.setEmailVerificationToken(verificationToken);
+                user.setEmailVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
+            }
+            
             // Tạo UserInfo (thông tin cá nhân)
             UserInfo userInfo = UserInfo.builder()
                     .user(user)
@@ -89,7 +102,16 @@ public class AuthService {
             user.setUserInfo(userInfo);
             user = userRepository.save(user);
             
+            // Gửi email xác thực nếu có email
+            if (user.getEmail() != null && !user.getEmail().isEmpty()) {
+                sendVerificationEmail(user);
+            }
+            
             log.info("User registered successfully: {}", user.getEmail() != null ? user.getEmail() : user.getPhoneNumber());
+            
+            String message = user.getEmail() != null 
+                ? "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản."
+                : "Đăng ký thành công! Vui lòng đăng nhập.";
             
             return AuthResponse.builder()
                     .success(true)
@@ -98,7 +120,7 @@ public class AuthService {
                     .email(user.getEmail())
                     .phone(user.getPhoneNumber())
                     .role(user.getRole())
-                    .message("Đăng ký thành công! Vui lòng đăng nhập.")
+                    .message(message)
                     .build();
                     
         } catch (Exception e) {
@@ -244,6 +266,106 @@ public class AuthService {
                     .success(false)
                     .message("Đã xảy ra lỗi trong quá trình đăng nhập qua Google")
                     .build();
+        }
+    }
+    
+    /**
+     * Gửi email xác thực cho user
+     */
+    private void sendVerificationEmail(User user) {
+        try {
+            String verificationUrl = String.format("%s/auth/verify-email?token=%s", 
+                    baseUrl, user.getEmailVerificationToken());
+            log.info("Sending verification email asynchronously to: {}", user.getEmail());
+            asyncEmailService.sendVerificationEmailAsync(
+                    user.getEmail(),
+                    user.getFullName() != null ? user.getFullName() : "User",
+                    user.getEmailVerificationToken(),
+                    verificationUrl);
+        } catch (Exception ex) {
+            log.error("Failed to send verification email to: {}", user.getEmail(), ex);
+        }
+    }
+    
+    /**
+     * Xác thực email với token
+     */
+    @Transactional
+    public boolean verifyEmail(String token) {
+        try {
+            Optional<User> userOpt = userRepository.findByEmailVerificationToken(token);
+            
+            if (userOpt.isEmpty()) {
+                log.warn("Email verification failed: Invalid token");
+                return false;
+            }
+            
+            User user = userOpt.get();
+            
+            // Kiểm tra token đã hết hạn chưa
+            if (user.getEmailVerificationTokenExpiry() != null && 
+                user.getEmailVerificationTokenExpiry().isBefore(LocalDateTime.now())) {
+                log.warn("Email verification failed: Token expired for user {}", user.getEmail());
+                return false;
+            }
+            
+            // Xác thực email và xóa token
+            user.setEmailVerified(true);
+            user.setEmailVerificationToken(null);
+            user.setEmailVerificationTokenExpiry(null);
+            
+            userRepository.save(user);
+            
+            // Gửi welcome email
+            log.info("Sending welcome email asynchronously to: {}", user.getEmail());
+            asyncEmailService.sendWelcomeEmailAsync(
+                    user.getEmail(), 
+                    user.getFullName() != null ? user.getFullName() : "User",
+                    user.getFullName());
+            
+            log.info("Email verified successfully for user: {}", user.getEmail());
+            return true;
+        } catch (Exception e) {
+            log.error("Error during email verification", e);
+            return false;
+        }
+    }
+    
+    /**
+     * Gửi lại email xác thực
+     */
+    @Transactional
+    public boolean resendVerificationEmail(String email) {
+        try {
+            Optional<User> userOpt = userRepository.findByEmail(email);
+            
+            if (userOpt.isEmpty()) {
+                log.warn("Resend verification failed: User not found with email {}", email);
+                return false;
+            }
+            
+            User user = userOpt.get();
+            
+            if (user.getEmailVerified()) {
+                log.warn("Resend verification failed: Email already verified for {}", email);
+                return false;
+            }
+            
+            // Tạo token mới
+            String verificationToken = UUID.randomUUID().toString();
+            user.setEmailVerificationToken(verificationToken);
+            user.setEmailVerificationTokenExpiry(LocalDateTime.now().plusHours(24));
+            
+            userRepository.save(user);
+            
+            // Gửi email
+            sendVerificationEmail(user);
+            
+            log.info("Verification email resent to: {}", email);
+            return true;
+        } catch (Exception e) {
+            log.error("Error resending verification email", e);
+            return false;
         }
     }
 }

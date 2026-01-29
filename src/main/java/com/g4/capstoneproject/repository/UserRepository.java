@@ -49,6 +49,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * Kiểm tra Google ID đã tồn tại
      */
     boolean existsByGoogleId(String googleId);
+    
+    /**
+     * Tìm user theo email verification token
+     */
+    Optional<User> findByEmailVerificationToken(String token);
+    
+    /**
+     * Tìm user theo password reset token
+     */
+    Optional<User> findByPasswordResetToken(String token);
 
     /**
      * Tìm users theo role
