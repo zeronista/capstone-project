@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import java.util.Map;
 public class ProfileController {
     
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     
     /**
      * GET /profile - Hiển thị trang profile (phân quyền theo role)
@@ -68,9 +70,19 @@ public class ProfileController {
                 return ResponseEntity.status(404).body(Map.of("success", false, "message", "Không tìm thấy người dùng"));
             }
             
-            // Cập nhật thông tin trong bảng users
+            // Validate phone number format if provided
             if (updates.containsKey("phoneNumber")) {
-                user.setPhoneNumber(updates.get("phoneNumber"));
+                String phoneNumber = updates.get("phoneNumber");
+                if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {
+                    // Basic phone validation (Vietnam format)
+                    if (!phoneNumber.matches("^0\\d{9}$")) {
+                        return ResponseEntity.badRequest().body(Map.of(
+                            "success", false, 
+                            "message", "Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số bắt đầu bằng 0"
+                        ));
+                    }
+                    user.setPhoneNumber(phoneNumber);
+                }
             }
             
             // Tạo hoặc cập nhật UserInfo
@@ -81,39 +93,78 @@ public class ProfileController {
                 user.setUserInfo(userInfo);
             }
             
-            // Cập nhật thông tin trong bảng user_info
+            // Validate and update fullName
             if (updates.containsKey("fullName")) {
-                userInfo.setFullName(updates.get("fullName"));
+                String fullName = updates.get("fullName");
+                if (fullName == null || fullName.trim().isEmpty()) {
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "success", false, 
+                        "message", "Họ tên không được để trống"
+                    ));
+                }
+                userInfo.setFullName(fullName.trim());
             }
             
+            // Validate and update dateOfBirth
             if (updates.containsKey("dateOfBirth")) {
                 try {
-                    LocalDate dob = LocalDate.parse(updates.get("dateOfBirth"));
-                    userInfo.setDateOfBirth(dob);
+                    String dobStr = updates.get("dateOfBirth");
+                    if (dobStr != null && !dobStr.trim().isEmpty()) {
+                        LocalDate dob = LocalDate.parse(dobStr);
+                        // Validate age (must be at least 1 year old and not in future)
+                        LocalDate now = LocalDate.now();
+                        if (dob.isAfter(now)) {
+                            return ResponseEntity.badRequest().body(Map.of(
+                                "success", false, 
+                                "message", "Ngày sinh không được ở tương lai"
+                            ));
+                        }
+                        if (dob.isAfter(now.minusYears(1))) {
+                            return ResponseEntity.badRequest().body(Map.of(
+                                "success", false, 
+                                "message", "Tuổi phải từ 1 tuổi trở lên"
+                            ));
+                        }
+                        userInfo.setDateOfBirth(dob);
+                    }
                 } catch (Exception e) {
                     log.warn("Invalid date format: {}", updates.get("dateOfBirth"));
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "success", false, 
+                        "message", "Định dạng ngày sinh không hợp lệ (YYYY-MM-DD)"
+                    ));
                 }
             }
             
+            // Validate and update gender
             if (updates.containsKey("gender")) {
                 try {
-                    userInfo.setGender(com.g4.capstoneproject.entity.Gender.valueOf(updates.get("gender")));
-                } catch (Exception e) {
+                    String genderStr = updates.get("gender");
+                    if (genderStr != null && !genderStr.trim().isEmpty()) {
+                        userInfo.setGender(com.g4.capstoneproject.entity.Gender.valueOf(genderStr));
+                    }
+                } catch (IllegalArgumentException e) {
                     log.warn("Invalid gender value: {}", updates.get("gender"));
+                    return ResponseEntity.badRequest().body(Map.of(
+                        "success", false, 
+                        "message", "Giới tính không hợp lệ. Chọn MALE, FEMALE hoặc OTHER"
+                    ));
                 }
             }
             
+            // Update address
             if (updates.containsKey("address")) {
-                userInfo.setAddress(updates.get("address"));
+                String address = updates.get("address");
+                userInfo.setAddress(address != null ? address.trim() : null);
             }
             
-            // Lưu vào database
+            // Lưu vào database (cascade will save userInfo)
             userRepository.save(user);
+            log.info("Profile updated successfully for user ID: {}", userId);
             
-            // Cập nhật session
-            if (userInfo.getFullName() != null) {
-                session.setAttribute("userFullName", userInfo.getFullName());
-            }
+            // Cập nhật session attributes
+            session.setAttribute("userFullName", userInfo.getFullName());
+            session.setAttribute("userRole", user.getRole().toString());
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -121,8 +172,11 @@ public class ProfileController {
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("Error updating profile", e);
-            return ResponseEntity.status(500).body(Map.of("success", false, "message", "Lỗi hệ thống"));
+            log.error("Error updating profile for user", e);
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false, 
+                "message", "Lỗi hệ thống. Vui lòng thử lại sau"
+            ));
         }
     }
     
@@ -144,26 +198,61 @@ public class ProfileController {
             String newPassword = request.get("newPassword");
             String confirmPassword = request.get("confirmPassword");
             
-            if (currentPassword == null || newPassword == null || confirmPassword == null) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Thiếu thông tin"));
+            // Validate input
+            if (currentPassword == null || currentPassword.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng nhập mật khẩu hiện tại"));
             }
             
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng nhập mật khẩu mới"));
+            }
+            
+            if (confirmPassword == null || confirmPassword.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng xác nhận mật khẩu mới"));
+            }
+            
+            // Validate password length
+            if (newPassword.length() < 6) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mật khẩu mới phải có ít nhất 6 ký tự"));
+            }
+            
+            // Validate password confirmation
             if (!newPassword.equals(confirmPassword)) {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mật khẩu xác nhận không khớp"));
             }
             
+            // Get user
             User user = userRepository.findById(userId).orElse(null);
             if (user == null) {
                 return ResponseEntity.status(404).body(Map.of("success", false, "message", "Không tìm thấy người dùng"));
             }
             
-            // Kiểm tra mật khẩu hiện tại (cần BCryptPasswordEncoder)
-            // TODO: Implement password verification
+            // Check if user has a password (Google OAuth users might not have one)
+            if (user.getPassword() == null || user.getPassword().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, 
+                    "message", "Tài khoản đăng nhập bằng Google không thể đổi mật khẩu"
+                ));
+            }
             
-            // Cập nhật mật khẩu mới
-            // TODO: Implement password hashing
-            // user.setPassword(passwordEncoder.encode(newPassword));
-            // userRepository.save(user);
+            // Verify current password
+            if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Mật khẩu hiện tại không đúng"));
+            }
+            
+            // Check if new password is same as current
+            if (passwordEncoder.matches(newPassword, user.getPassword())) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, 
+                    "message", "Mật khẩu mới phải khác mật khẩu hiện tại"
+                ));
+            }
+            
+            // Update password
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            
+            log.info("Password changed successfully for user ID: {}", userId);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -171,8 +260,11 @@ public class ProfileController {
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("Error changing password", e);
-            return ResponseEntity.status(500).body(Map.of("success", false, "message", "Lỗi hệ thống"));
+            log.error("Error changing password for user", e);
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false, 
+                "message", "Lỗi hệ thống. Vui lòng thử lại sau"
+            ));
         }
     }
 }

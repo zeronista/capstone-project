@@ -172,21 +172,20 @@ public class PatientController {
                 return ResponseEntity.status(404).body(Map.of("success", false, "message", "Không tìm thấy người dùng"));
             }
             
-            Map<String, Object> profile = new HashMap<>();
-            profile.put("id", user.getId());
-            profile.put("email", user.getEmail());
-            profile.put("phoneNumber", user.getPhoneNumber());
-            profile.put("fullName", user.getFullName());
-            profile.put("dateOfBirth", user.getDateOfBirth());
-            profile.put("gender", user.getGender());
-            profile.put("address", user.getAddress());
-            profile.put("avatarUrl", user.getAvatarUrl());
-            profile.put("emailVerified", user.getEmailVerified());
-            profile.put("createdAt", user.getCreatedAt());
-            
+            // Build response with flattened structure for frontend compatibility
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("profile", profile);
+            response.put("id", user.getId());
+            response.put("email", user.getEmail());
+            response.put("phoneNumber", user.getPhoneNumber());
+            response.put("fullName", user.getFullName());
+            response.put("dateOfBirth", user.getDateOfBirth());
+            response.put("gender", user.getGender() != null ? user.getGender().toString() : null);
+            response.put("address", user.getAddress());
+            response.put("avatarUrl", user.getAvatarUrl());
+            response.put("emailVerified", user.getEmailVerified());
+            response.put("createdAt", user.getCreatedAt());
+            response.put("role", user.getRole().toString());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
