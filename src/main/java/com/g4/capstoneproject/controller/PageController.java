@@ -126,6 +126,22 @@ public class PageController {
         return "ai/web-call";
     }
 
+    /**
+     * Web Call mới - gọi điện giữa 2 user đã đăng nhập
+     */
+    @GetMapping("/call")
+    public String webCallPage() {
+        return "call/index";
+    }
+
+    /**
+     * Lịch sử cuộc gọi
+     */
+    @GetMapping("/call/history")
+    public String callHistory() {
+        return "call/history";
+    }
+
     // ==================== CRM ====================
 
     @GetMapping("/crm/tickets")

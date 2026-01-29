@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gọi điện | ABClinic</title>
+    
+    <!-- Google Fonts & Material Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    
+    <!-- Tailwind CSS Configuration -->
+    <script th:src="@{/js/tailwind-config.js}"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Stringee SDK -->
+    <script th:src="@{/js/latest.sdk.bundle.min.js}"></script>
+    
+    <!-- App Styles -->
+    <link th:href="@{/css/app.css}" rel="stylesheet">
+    
+    <style>
+        /* Recording pulse animation */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 1; }
+            75%, 100% { transform: scale(1.3); opacity: 0; }
+        }
+        
+        .recording-pulse {
+            animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        /* Calling animation */
+        @keyframes ring {
+            0%, 100% { transform: rotate(-15deg); }
+            50% { transform: rotate(15deg); }
+        }
+        
+        .calling-animation {
+            animation: ring 0.5s ease-in-out infinite;
+        }
+        
+        /* Avatar pulse when calling */
+        @keyframes avatar-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(34, 197, 94, 0); }
+        }
+        
+        .avatar-calling {
+            animation: avatar-pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-sans">
+    
+    <!-- Sidebar -->
+    <nav th:replace="~{fragments/layout :: sidebar}"></nav>
+    
+    <!-- Top Navbar -->
+    <header th:replace="~{fragments/layout :: navbar}"></header>
+    
+    <!-- Main Content -->
+    <main class="ml-64 pt-24 pb-8 px-4 md:px-6 lg:px-8 min-h-screen">
+        <div class="max-w-7xl mx-auto">
+            
+            <!-- Page Header -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+                <div>
+                    <h1 class="text-2xl font-bold text-surface-900 dark:text-white">Gọi điện</h1>
+                    <p class="text-surface-500 mt-1">Gọi điện trực tiếp với người dùng khác trong hệ thống</p>
+                </div>
+                
+                <!-- Connection Status -->
+                <div class="flex items-center gap-3 mt-4 md:mt-0">
+                    <div id="connectionStatus" class="flex items-center px-4 py-2 rounded-lg bg-surface-100">
+                        <div class="w-2 h-2 rounded-full bg-surface-400 mr-2"></div>
+                        <span class="text-sm font-medium text-surface-600">Đang kết nối...</span>
+                    </div>
+                    <a href="/call/history" class="inline-flex items-center gap-2 px-4 py-2 border border-surface-200 text-surface-700 font-medium rounded-xl hover:bg-surface-50 transition-colors">
+                        <span class="material-symbols-outlined text-xl">history</span>
+                        Lịch sử
+                    </a>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Left: Online Users List -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white dark:bg-card-dark rounded-xl shadow-card p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center">
+                                <span class="material-symbols-outlined text-success-500 mr-2">person</span>
+                                <h2 class="text-lg font-semibold text-surface-900">Đang online</h2>
+                            </div>
+                            <button onclick="refreshOnlineUsers()" class="p-2 hover:bg-surface-50 rounded-lg transition-colors">
+                                <span class="material-symbols-outlined text-surface-500">refresh</span>
+                            </button>
+                        </div>
+                        
+                        <div id="onlineUsersList" class="space-y-2 max-h-[500px] overflow-y-auto">
+                            <div class="text-center py-8 text-surface-400">
+                                <span class="material-symbols-outlined text-4xl mb-2">hourglass_empty</span>
+                                <p>Đang tải...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Center: Call Interface -->
+                <div class="lg:col-span-2">
+                    
+                    <!-- Idle State -->
+                    <div id="idleState" class="bg-white dark:bg-card-dark rounded-xl shadow-card p-8">
+                        <div class="text-center">
+                            <div class="w-32 h-32 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <span class="material-symbols-outlined text-primary-500 text-6xl">phone_in_talk</span>
+                            </div>
+                            <h2 class="text-2xl font-bold text-surface-900 mb-2">Sẵn sàng gọi điện</h2>
+                            <p class="text-surface-500 mb-6">Chọn một người dùng từ danh sách bên trái để bắt đầu cuộc gọi</p>
+                            
+                            <div class="flex items-center justify-center gap-4 p-4 bg-surface-50 rounded-lg">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" id="enableRecording" checked class="w-4 h-4 text-primary-500 rounded focus:ring-primary-500 mr-2">
+                                    <span class="material-symbols-outlined text-error-500 mr-1">fiber_manual_record</span>
+                                    <span class="text-sm font-medium text-surface-700">Ghi âm cuộc gọi</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Calling State -->
+                    <div id="callingState" class="bg-white dark:bg-card-dark rounded-xl shadow-card p-8 hidden">
+                        <div class="text-center">
+                            <div id="callingAvatar" class="w-32 h-32 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center mx-auto mb-6 avatar-calling">
+                                <span class="text-white text-4xl font-bold">?</span>
+                            </div>
+                            <h2 id="callingName" class="text-2xl font-bold text-surface-900 mb-2">Đang gọi...</h2>
+                            <p id="callingStatus" class="text-surface-500 mb-6">
+                                <span class="material-symbols-outlined text-xl align-middle calling-animation">phone_forwarded</span>
+                                Đang đổ chuông...
+                            </p>
+                            
+                            <button onclick="cancelCall()" class="bg-error-500 hover:bg-error-600 text-white font-semibold py-3 px-8 rounded-full flex items-center justify-center mx-auto transition-colors">
+                                <span class="material-symbols-outlined mr-2">call_end</span>
+                                Hủy
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Incoming Call State -->
+                    <div id="incomingState" class="bg-white dark:bg-card-dark rounded-xl shadow-card p-8 hidden">
+                        <div class="text-center">
+                            <div id="incomingAvatar" class="w-32 h-32 bg-gradient-to-br from-success-400 to-success-600 rounded-full flex items-center justify-center mx-auto mb-6 avatar-calling">
+                                <span class="text-white text-4xl font-bold">?</span>
+                            </div>
+                            <h2 id="incomingName" class="text-2xl font-bold text-surface-900 mb-2">Cuộc gọi đến</h2>
+                            <p class="text-surface-500 mb-6">
+                                <span class="material-symbols-outlined text-xl align-middle calling-animation">ring_volume</span>
+                                Đang gọi đến...
+                            </p>
+                            
+                            <div class="flex items-center justify-center gap-4">
+                                <button onclick="rejectCall()" class="bg-error-500 hover:bg-error-600 text-white font-semibold py-3 px-8 rounded-full flex items-center transition-colors">
+                                    <span class="material-symbols-outlined mr-2">call_end</span>
+                                    Từ chối
+                                </button>
+                                <button onclick="answerCall()" class="bg-success-500 hover:bg-success-600 text-white font-semibold py-3 px-8 rounded-full flex items-center transition-colors">
+                                    <span class="material-symbols-outlined mr-2">call</span>
+                                    Nghe máy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- In Call State -->
+                    <div id="inCallState" class="bg-white dark:bg-card-dark rounded-xl shadow-card p-8 hidden">
+                        <div class="text-center">
+                            <div id="inCallAvatar" class="w-32 h-32 bg-gradient-to-br from-success-400 to-success-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="text-white text-4xl font-bold">?</span>
+                            </div>
+                            <h2 id="inCallName" class="text-2xl font-bold text-surface-900 mb-1">Đang gọi với...</h2>
+                            <p id="callDuration" class="text-3xl font-mono text-primary-500 mb-6">0:00</p>
+                            
+                            <!-- Recording indicator -->
+                            <div id="recordingIndicator" class="hidden mb-4">
+                                <div class="inline-flex items-center px-4 py-2 bg-error-50 text-error-700 rounded-full">
+                                    <div class="relative mr-2">
+                                        <div class="w-3 h-3 bg-error-500 rounded-full"></div>
+                                        <div class="absolute inset-0 w-3 h-3 bg-error-500 rounded-full recording-pulse"></div>
+                                    </div>
+                                    <span class="text-sm font-semibold">ĐANG GHI ÂM</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-center gap-4">
+                                <button onclick="toggleMute()" id="btnMute" class="w-14 h-14 bg-surface-100 hover:bg-surface-200 rounded-full flex items-center justify-center transition-colors">
+                                    <span class="material-symbols-outlined text-surface-700">mic</span>
+                                </button>
+                                <button onclick="hangupCall()" class="w-16 h-16 bg-error-500 hover:bg-error-600 rounded-full flex items-center justify-center transition-colors">
+                                    <span class="material-symbols-outlined text-white text-2xl">call_end</span>
+                                </button>
+                                <button onclick="toggleSpeaker()" id="btnSpeaker" class="w-14 h-14 bg-surface-100 hover:bg-surface-200 rounded-full flex items-center justify-center transition-colors">
+                                    <span class="material-symbols-outlined text-surface-700">volume_up</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Call Ended State (with Recording Playback) -->
+                    <div id="callEndedState" class="bg-white dark:bg-card-dark rounded-xl shadow-card p-8 hidden">
+                        <div class="text-center">
+                            <div class="w-20 h-20 bg-success-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span class="material-symbols-outlined text-success-500 text-4xl">check_circle</span>
+                            </div>
+                            <h2 class="text-2xl font-bold text-surface-900 mb-1">Cuộc gọi đã kết thúc</h2>
+                            <p id="endedCallInfo" class="text-surface-500 mb-6">Thời lượng: 0:00</p>
+                            
+                            <!-- Recording Playback -->
+                            <div id="recordingPlayback" class="hidden mb-6 p-4 bg-surface-50 rounded-xl">
+                                <div class="flex items-center mb-3">
+                                    <span class="material-symbols-outlined text-primary-500 mr-2">audio_file</span>
+                                    <span class="font-semibold text-surface-900">Nghe lại ghi âm</span>
+                                </div>
+                                <audio id="recordingAudio" controls class="w-full"></audio>
+                            </div>
+                            
+                            <!-- Call Rating -->
+                            <div class="mb-6">
+                                <p class="text-sm text-surface-500 mb-2">Đánh giá cuộc gọi:</p>
+                                <div id="ratingStars" class="flex items-center justify-center gap-1">
+                                    <button onclick="rateCall(1)" class="rating-star p-1 hover:scale-110 transition-transform">
+                                        <span class="material-symbols-outlined text-3xl text-surface-300">star</span>
+                                    </button>
+                                    <button onclick="rateCall(2)" class="rating-star p-1 hover:scale-110 transition-transform">
+                                        <span class="material-symbols-outlined text-3xl text-surface-300">star</span>
+                                    </button>
+                                    <button onclick="rateCall(3)" class="rating-star p-1 hover:scale-110 transition-transform">
+                                        <span class="material-symbols-outlined text-3xl text-surface-300">star</span>
+                                    </button>
+                                    <button onclick="rateCall(4)" class="rating-star p-1 hover:scale-110 transition-transform">
+                                        <span class="material-symbols-outlined text-3xl text-surface-300">star</span>
+                                    </button>
+                                    <button onclick="rateCall(5)" class="rating-star p-1 hover:scale-110 transition-transform">
+                                        <span class="material-symbols-outlined text-3xl text-surface-300">star</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-center gap-4">
+                                <button onclick="resetToIdle()" class="bg-surface-100 hover:bg-surface-200 text-surface-700 font-semibold py-3 px-6 rounded-lg flex items-center transition-colors">
+                                    <span class="material-symbols-outlined mr-2">arrow_back</span>
+                                    Quay lại
+                                </button>
+                                <a href="/call/history" class="bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-6 rounded-lg flex items-center transition-colors">
+                                    <span class="material-symbols-outlined mr-2">history</span>
+                                    Xem lịch sử
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+                
+            </div>
+            
+        </div>
+    </main>
+    
+    <!-- Hidden elements -->
+    <div id="remote_videos" style="display: none;"></div>
+    
+    <script>
+        // Global state
+        const STRINGEE_SERVER_ADDRS = ["wss://v1.stringee.com:6899/", "wss://v2.stringee.com:6899/"];
+        let stringeeClient = null;
+        let currentCall = null;
+        let currentCallLogId = null;
+        let currentUser = null;
+        let targetUser = null;
+        let callStartTime = null;
+        let callDurationInterval = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let isMuted = false;
+        
+        // On page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeStringee();
+        });
+        
+        // Before page unload, register offline
+        window.addEventListener('beforeunload', () => {
+            if (currentUser) {
+                navigator.sendBeacon('/api/web-call/offline', '');
+            }
+        });
+        
+        // Initialize Stringee connection
+        async function initializeStringee() {
+            try {
+                updateConnectionStatus('Đang kết nối...', 'yellow');
+                
+                // Get token from server (uses authenticated user)
+                const res = await fetch('/api/web-call/token');
+                const data = await res.json();
+                
+                if (!data.token) throw new Error('Không nhận được token');
+                
+                currentUser = {
+                    id: data.userId,
+                    stringeeUserId: data.stringeeUserId,
+                    fullName: data.fullName,
+                    role: data.role
+                };
+                
+                console.log('Current user:', currentUser);
+                
+                // Initialize Stringee Client
+                stringeeClient = new StringeeClient(STRINGEE_SERVER_ADDRS);
+                
+                stringeeClient.on('connect', function() {
+                    console.log('Connected to Stringee');
+                });
+                
+                stringeeClient.on('authen', async function(res) {
+                    if (res.r === 0) {
+                        updateConnectionStatus('Đã kết nối', 'green');
+                        
+                        // Register as online
+                        await fetch('/api/web-call/online', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ stringeeUserId: currentUser.stringeeUserId })
+                        });
+                        
+                        // Load online users
+                        await refreshOnlineUsers();
+                    } else {
+                        updateConnectionStatus('Lỗi xác thực', 'red');
+                        console.error('Auth failed:', res.message);
+                    }
+                });
+                
+                stringeeClient.on('disconnect', function() {
+                    updateConnectionStatus('Ngắt kết nối', 'red');
+                });
+                
+                // Handle incoming calls
+                stringeeClient.on('incomingcall', function(incomingCall) {
+                    console.log('Incoming call from:', incomingCall.fromNumber);
+                    currentCall = incomingCall;
+                    
+                    // Extract caller info from stringee userId
+                    const callerId = incomingCall.fromNumber.replace('user_', '');
+                    showIncomingCall(callerId, incomingCall.fromNumber);
+                    
+                    setupCallEvents(currentCall);
+                });
+                
+                stringeeClient.connect(data.token);
+                
+            } catch (err) {
+                console.error('Init error:', err);
+                updateConnectionStatus('Lỗi kết nối', 'red');
+            }
+        }
+        
+        // Refresh online users list
+        async function refreshOnlineUsers() {
+            try {
+                const res = await fetch('/api/web-call/online-users');
+                const data = await res.json();
+                
+                const container = document.getElementById('onlineUsersList');
+                
+                if (data.users && data.users.length > 0) {
+                    container.innerHTML = data.users.map(user => `
+                        <div class="flex items-center justify-between p-3 hover:bg-surface-50 rounded-lg cursor-pointer transition-colors"
+                             onclick="initiateCall(${user.userId}, '${user.stringeeUserId}', '${escapeHtml(user.fullName)}')">
+                            <div class="flex items-center">
+                                <div class="relative">
+                                    <div class="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
+                                        ${getInitials(user.fullName)}
+                                    </div>
+                                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success-500 border-2 border-white rounded-full"></div>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="font-medium text-surface-900">${escapeHtml(user.fullName)}</p>
+                                    <p class="text-xs text-surface-500">${getRoleLabel(user.role)}</p>
+                                </div>
+                            </div>
+                            <button class="p-2 bg-success-50 hover:bg-success-100 rounded-full transition-colors">
+                                <span class="material-symbols-outlined text-success-600">call</span>
+                            </button>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="text-center py-8 text-surface-400">
+                            <span class="material-symbols-outlined text-4xl mb-2">person_off</span>
+                            <p>Không có ai online</p>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error('Error refreshing online users:', err);
+            }
+        }
+        
+        // Initiate call to user
+        async function initiateCall(receiverId, stringeeUserId, fullName) {
+            if (!stringeeClient) {
+                alert('Chưa kết nối Stringee!');
+                return;
+            }
+            
+            targetUser = { id: receiverId, stringeeUserId, fullName };
+            
+            // Show calling UI
+            showCallingState(fullName);
+            
+            // Create Stringee call
+            currentCall = new StringeeCall(stringeeClient, currentUser.stringeeUserId, stringeeUserId, false);
+            setupCallEvents(currentCall);
+            
+            currentCall.makeCall(async function(res) {
+                if (res.r === 0) {
+                    console.log('Call initiated successfully');
+                    
+                    // Save to database
+                    try {
+                        const initRes = await fetch('/api/web-call/initiate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                receiverId: receiverId,
+                                stringeeCallId: currentCall.callId || 'call_' + Date.now()
+                            })
+                        });
+                        const initData = await initRes.json();
+                        currentCallLogId = initData.callLogId;
+                        console.log('Call log created:', currentCallLogId);
+                    } catch (err) {
+                        console.error('Error saving call log:', err);
+                    }
+                } else {
+                    console.error('Call failed:', res.message);
+                    showIdleState();
+                    alert('Không thể thực hiện cuộc gọi: ' + res.message);
+                }
+            });
+        }
+        
+        // Setup call events
+        function setupCallEvents(call) {
+            call.on('addremotestream', function(stream) {
+                console.log('Remote stream received');
+                
+                const videoElement = document.createElement('video');
+                videoElement.setAttribute('autoplay', '');
+                videoElement.setAttribute('playsinline', '');
+                document.getElementById('remote_videos').appendChild(videoElement);
+                stream.play(videoElement);
+                
+                // Start recording if enabled
+                if (document.getElementById('enableRecording').checked) {
+                    setTimeout(() => startRecording(), 500);
+                }
+            });
+            
+            call.on('signalingstate', async function(state) {
+                console.log('Signaling state:', state.code, state.reason);
+                
+                switch (state.code) {
+                    case 3: // Ringing
+                        updateCallingStatus('Đang đổ chuông...');
+                        break;
+                    case 4: // Answered
+                        showInCallState();
+                        await updateCallStatus('ANSWERED');
+                        break;
+                    case 5: // Busy
+                        await updateCallStatus('REJECTED');
+                        showCallEnded('Người nhận đang bận');
+                        break;
+                    case 6: // Ended
+                        await updateCallStatus('COMPLETED');
+                        endCall();
+                        break;
+                }
+            });
+            
+            call.on('mediastate', function(state) {
+                console.log('Media state:', state);
+            });
+            
+            call.on('info', function(info) {
+                console.log('Call info:', info);
+            });
+        }
+        
+        // Answer incoming call
+        function answerCall() {
+            if (!currentCall) return;
+            
+            currentCall.answer(function(res) {
+                if (res.r === 0) {
+                    showInCallState();
+                    
+                    // Start recording if enabled
+                    if (document.getElementById('enableRecording').checked) {
+                        document.getElementById('recordingIndicator').classList.remove('hidden');
+                    }
+                } else {
+                    console.error('Answer failed:', res.message);
+                }
+            });
+        }
+        
+        // Reject incoming call
+        function rejectCall() {
+            if (!currentCall) return;
+            currentCall.reject(function(res) {});
+            showIdleState();
+        }
+        
+        // Cancel outgoing call
+        function cancelCall() {
+            if (currentCall) {
+                currentCall.hangup(function(res) {});
+            }
+            updateCallStatus('CANCELLED');
+            showIdleState();
+        }
+        
+        // Hangup active call
+        async function hangupCall() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                stopRecording();
+            }
+            
+            if (currentCall) {
+                currentCall.hangup(function(res) {});
+            }
+            
+            await updateCallStatus('COMPLETED');
+            endCall();
+        }
+        
+        // Toggle mute
+        function toggleMute() {
+            if (!currentCall) return;
+            isMuted = !isMuted;
+            currentCall.mute(isMuted);
+            
+            const btn = document.getElementById('btnMute');
+            if (isMuted) {
+                btn.innerHTML = '<span class="material-symbols-outlined text-error-500">mic_off</span>';
+                btn.classList.add('bg-error-50');
+            } else {
+                btn.innerHTML = '<span class="material-symbols-outlined text-surface-700">mic</span>';
+                btn.classList.remove('bg-error-50');
+            }
+        }
+        
+        // Toggle speaker (visual only, audio control is limited in browser)
+        function toggleSpeaker() {
+            const btn = document.getElementById('btnSpeaker');
+            btn.classList.toggle('bg-primary-50');
+        }
+        
+        // Recording functions
+        async function startRecording() {
+            try {
+                const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                recordedChunks = [];
+                mediaRecorder = new MediaRecorder(audioStream, { mimeType: 'audio/webm' });
+                
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
+                };
+                
+                mediaRecorder.onstop = async () => {
+                    audioStream.getTracks().forEach(track => track.stop());
+                    const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+                    await uploadRecording(blob);
+                };
+                
+                mediaRecorder.start();
+                document.getElementById('recordingIndicator').classList.remove('hidden');
+                console.log('Recording started');
+            } catch (err) {
+                console.error('Recording error:', err);
+            }
+        }
+        
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                console.log('Recording stopped');
+            }
+        }
+        
+        async function uploadRecording(blob) {
+            if (!currentCallLogId) {
+                console.warn('No call log ID, skipping upload');
+                return;
+            }
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', blob, `recording_${currentCallLogId}.webm`);
+                
+                const res = await fetch(`/api/web-call/${currentCallLogId}/recording`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await res.json();
+                
+                if (result.success) {
+                    console.log('Recording uploaded:', result.recordingUrl);
+                    
+                    // Show playback
+                    document.getElementById('recordingPlayback').classList.remove('hidden');
+                    document.getElementById('recordingAudio').src = result.recordingUrl;
+                }
+            } catch (err) {
+                console.error('Upload error:', err);
+            }
+        }
+        
+        // Update call status in database
+        async function updateCallStatus(status) {
+            if (!currentCallLogId) return;
+            
+            try {
+                await fetch(`/api/web-call/${currentCallLogId}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+            } catch (err) {
+                console.error('Error updating status:', err);
+            }
+        }
+        
+        // Rate call
+        async function rateCall(rating) {
+            if (!currentCallLogId) return;
+            
+            // Update UI
+            const stars = document.querySelectorAll('.rating-star span');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.remove('text-surface-300');
+                    star.classList.add('text-warning-500');
+                } else {
+                    star.classList.add('text-surface-300');
+                    star.classList.remove('text-warning-500');
+                }
+            });
+            
+            // Save to database
+            try {
+                await fetch(`/api/web-call/${currentCallLogId}/rate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rating })
+                });
+            } catch (err) {
+                console.error('Error rating call:', err);
+            }
+        }
+        
+        // UI State functions
+        function showIdleState() {
+            hideAllStates();
+            document.getElementById('idleState').classList.remove('hidden');
+        }
+        
+        function showCallingState(name) {
+            hideAllStates();
+            document.getElementById('callingState').classList.remove('hidden');
+            document.getElementById('callingAvatar').innerHTML = `<span class="text-white text-4xl font-bold">${getInitials(name)}</span>`;
+            document.getElementById('callingName').textContent = name;
+        }
+        
+        function updateCallingStatus(status) {
+            document.getElementById('callingStatus').innerHTML = `
+                <span class="material-symbols-outlined text-xl align-middle calling-animation">phone_forwarded</span>
+                ${status}
+            `;
+        }
+        
+        function showIncomingCall(callerId, callerName) {
+            hideAllStates();
+            document.getElementById('incomingState').classList.remove('hidden');
+            document.getElementById('incomingName').textContent = 'Cuộc gọi từ ' + callerName;
+            document.getElementById('incomingAvatar').innerHTML = `<span class="text-white text-4xl font-bold">${getInitials(callerName)}</span>`;
+        }
+        
+        function showInCallState() {
+            hideAllStates();
+            document.getElementById('inCallState').classList.remove('hidden');
+            
+            const name = targetUser ? targetUser.fullName : 'Người dùng';
+            document.getElementById('inCallAvatar').innerHTML = `<span class="text-white text-4xl font-bold">${getInitials(name)}</span>`;
+            document.getElementById('inCallName').textContent = name;
+            
+            // Start duration timer
+            callStartTime = Date.now();
+            callDurationInterval = setInterval(updateDuration, 1000);
+            
+            // Show recording indicator if enabled
+            if (document.getElementById('enableRecording').checked) {
+                document.getElementById('recordingIndicator').classList.remove('hidden');
+            }
+        }
+        
+        function updateDuration() {
+            const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            document.getElementById('callDuration').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function endCall() {
+            if (callDurationInterval) {
+                clearInterval(callDurationInterval);
+            }
+            
+            const elapsed = callStartTime ? Math.floor((Date.now() - callStartTime) / 1000) : 0;
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            
+            showCallEnded(`Thời lượng: ${mins}:${secs.toString().padStart(2, '0')}`);
+        }
+        
+        function showCallEnded(info) {
+            hideAllStates();
+            document.getElementById('callEndedState').classList.remove('hidden');
+            document.getElementById('endedCallInfo').textContent = info;
+            
+            // Reset state
+            currentCall = null;
+            callStartTime = null;
+            document.getElementById('remote_videos').innerHTML = '';
+        }
+        
+        function resetToIdle() {
+            currentCallLogId = null;
+            targetUser = null;
+            document.getElementById('recordingPlayback').classList.add('hidden');
+            document.getElementById('recordingAudio').src = '';
+            
+            // Reset rating stars
+            const stars = document.querySelectorAll('.rating-star span');
+            stars.forEach(star => {
+                star.classList.add('text-surface-300');
+                star.classList.remove('text-warning-500');
+            });
+            
+            showIdleState();
+        }
+        
+        function hideAllStates() {
+            document.getElementById('idleState').classList.add('hidden');
+            document.getElementById('callingState').classList.add('hidden');
+            document.getElementById('incomingState').classList.add('hidden');
+            document.getElementById('inCallState').classList.add('hidden');
+            document.getElementById('callEndedState').classList.add('hidden');
+            document.getElementById('recordingIndicator').classList.add('hidden');
+        }
+        
+        function updateConnectionStatus(status, color) {
+            const statusDiv = document.getElementById('connectionStatus');
+            const colors = {
+                gray: 'bg-surface-400',
+                yellow: 'bg-warning-500',
+                green: 'bg-success-500',
+                red: 'bg-error-500'
+            };
+            
+            statusDiv.innerHTML = `
+                <div class="w-2 h-2 rounded-full ${colors[color]} mr-2 ${color === 'green' ? 'animate-pulse' : ''}"></div>
+                <span class="text-sm font-medium text-surface-600">${status}</span>
+            `;
+        }
+        
+        // Helpers
+        function getInitials(name) {
+            if (!name) return '?';
+            return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+        
+        function getRoleLabel(role) {
+            const labels = {
+                'PATIENT': 'Bệnh nhân',
+                'DOCTOR': 'Bác sĩ',
+                'RECEPTIONIST': 'Lễ tân',
+                'ADMIN': 'Quản trị'
+            };
+            return labels[role] || role;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Refresh online users every 30 seconds
+        setInterval(refreshOnlineUsers, 30000);
+    </script>
+    
+</body>
+</html>

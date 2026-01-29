@@ -51,6 +51,8 @@ public class SecurityConfig {
                         .requestMatchers("/receptionist/**").hasRole("RECEPTIONIST")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/patient/**").hasAnyRole("PATIENT", "DOCTOR", "RECEPTIONIST", "ADMIN")
+                        // Web Call - authenticated users only (all roles)
+                        .requestMatchers("/call/**", "/api/web-call/**").authenticated()
                         // Authenticated access
                         .anyRequest().authenticated())
                 .formLogin(form -> form

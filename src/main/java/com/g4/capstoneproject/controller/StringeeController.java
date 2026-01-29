@@ -122,26 +122,29 @@ public class StringeeController {
 
     /**
      * Webhook nhận các events từ Stringee
-     * Ví dụ: call.started, call.answered, call.ended, recording.available, etc.
+     * Format: { "type": "stringee_call", "call_status": "started|answered|ended|created", ... }
      */
     @PostMapping("/event")
     public ResponseEntity<?> handleEventWebhook(@RequestBody Map<String, Object> event) {
         try {
             logger.info("Received Stringee event: {}", event);
             
-            String eventType = (String) event.get("event");
+            // Stringee sends "type" for event category and "call_status" for call state
+            String eventType = (String) event.get("type");
+            String callStatus = (String) event.get("call_status");
             
+            // Handle null eventType gracefully
+            if (eventType == null) {
+                logger.warn("Received event without type field: {}", event);
+                return ResponseEntity.ok(Map.of("received", true, "warning", "No event type"));
+            }
+            
+            // Process based on event type
             switch (eventType) {
-                case "call.started":
-                    handleCallStarted(event);
+                case "stringee_call":
+                    handleStringeeCallEvent(event, callStatus);
                     break;
-                case "call.answered":
-                    handleCallAnswered(event);
-                    break;
-                case "call.ended":
-                    handleCallEnded(event);
-                    break;
-                case "recording.available":
+                case "recording":
                     handleRecordingAvailable(event);
                     break;
                 default:
@@ -156,42 +159,106 @@ public class StringeeController {
                 .body(Map.of("error", e.getMessage()));
         }
     }
+    
+    /**
+     * Xử lý các events liên quan đến cuộc gọi Stringee
+     */
+    private void handleStringeeCallEvent(Map<String, Object> event, String callStatus) {
+        if (callStatus == null) {
+            logger.warn("Call event without call_status: {}", event);
+            return;
+        }
+        
+        switch (callStatus) {
+            case "created":
+                handleCallCreated(event);
+                break;
+            case "started":
+                handleCallStarted(event);
+                break;
+            case "answered":
+                handleCallAnswered(event);
+                break;
+            case "ended":
+                handleCallEnded(event);
+                break;
+            case "ringing":
+                handleCallRinging(event);
+                break;
+            default:
+                logger.debug("Unhandled call status: {}", callStatus);
+        }
+    }
+    
+    /**
+     * Xử lý khi cuộc gọi được tạo
+     */
+    private void handleCallCreated(Map<String, Object> event) {
+        String callId = (String) event.get("call_id");
+        logger.info("Call created: {}", callId);
+        // Cuộc gọi vừa được khởi tạo
+    }
+    
+    /**
+     * Xử lý khi cuộc gọi đang đổ chuông
+     */
+    private void handleCallRinging(Map<String, Object> event) {
+        String callId = (String) event.get("call_id");
+        logger.info("Call ringing: {}", callId);
+        // Đang đổ chuông cho người nhận
+    }
 
     /**
      * Xử lý khi cuộc gọi bắt đầu
      */
     private void handleCallStarted(Map<String, Object> event) {
-        String callId = (String) event.get("callId");
+        String callId = (String) event.get("call_id");
         logger.info("Call started: {}", callId);
-        // TODO: Lưu thông tin cuộc gọi vào database
+        // Cuộc gọi đã được bắt đầu
     }
 
     /**
      * Xử lý khi khách hàng bắt máy
      */
     private void handleCallAnswered(Map<String, Object> event) {
-        String callId = (String) event.get("callId");
+        String callId = (String) event.get("call_id");
         logger.info("Call answered: {}", callId);
-        // TODO: Cập nhật trạng thái cuộc gọi
+        // Người nhận đã trả lời cuộc gọi
     }
 
     /**
      * Xử lý khi cuộc gọi kết thúc
      */
     private void handleCallEnded(Map<String, Object> event) {
-        String callId = (String) event.get("callId");
-        Integer duration = (Integer) event.get("duration");
-        logger.info("Call ended: {} (duration: {}s)", callId, duration);
-        // TODO: Lưu thông tin cuộc gọi đã kết thúc
+        String callId = (String) event.get("call_id");
+        Object durationObj = event.get("duration");
+        Integer duration = durationObj != null ? ((Number) durationObj).intValue() : 0;
+        String endCallCause = (String) event.get("endCallCause");
+        logger.info("Call ended: {} (duration: {}s, cause: {})", callId, duration, endCallCause);
+        // Cuộc gọi đã kết thúc
     }
 
     /**
      * Xử lý khi file ghi âm sẵn sàng
      */
     private void handleRecordingAvailable(Map<String, Object> event) {
-        String callId = (String) event.get("callId");
-        String recordingUrl = (String) event.get("recordingUrl");
+        String callId = (String) event.get("call_id");
+        String recordingUrl = (String) event.get("recording_url");
+        
+        // Fallback to alternative field names
+        if (callId == null) {
+            callId = (String) event.get("callId");
+        }
+        if (recordingUrl == null) {
+            recordingUrl = (String) event.get("recordingUrl");
+        }
+        
         logger.info("Recording available for call {}: {}", callId, recordingUrl);
+        
+        if (recordingUrl == null || callId == null) {
+            logger.warn("Missing callId or recordingUrl in recording event");
+            return;
+        }
         
         try {
             // Tự động download và upload file ghi âm lên S3 vào folder voice/
