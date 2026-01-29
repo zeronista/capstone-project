@@ -43,6 +43,35 @@ public class WebCallApiController {
     private S3Service s3Service;
     
     /**
+     * Lấy thông tin user hiện đang đăng nhập
+     */
+    @GetMapping("/current-user")
+    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            if (userDetails == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("authenticated", false));
+            }
+            
+            User user = getUserFromPrincipal(userDetails);
+            String stringeeUserId = "user_" + user.getId();
+            
+            return ResponseEntity.ok(Map.of(
+                "authenticated", true,
+                "userId", user.getId(),
+                "stringeeUserId", stringeeUserId,
+                "email", user.getEmail(),
+                "fullName", user.getFullName() != null ? user.getFullName() : "User " + user.getId(),
+                "role", user.getRole().name()
+            ));
+        } catch (Exception e) {
+            logger.error("Error getting current user", e);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("authenticated", false, "error", e.getMessage()));
+        }
+    }
+    
+    /**
      * Lấy access token cho Stringee
      * User ID sẽ là "user_{userId}" để dễ tracking
      */

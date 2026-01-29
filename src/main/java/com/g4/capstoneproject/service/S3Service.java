@@ -7,7 +7,10 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
@@ -18,6 +21,10 @@ import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -180,5 +187,50 @@ public class S3Service {
 
         // Mặc định là .mp3
         return ".mp3";
+    }
+
+    /**
+     * Lấy danh sách tất cả các file recordings trong folder voice/
+     * @return Danh sách các recordings với thông tin chi tiết
+     */
+    public List<Map<String, Object>> listRecordings() {
+        List<Map<String, Object>> recordings = new ArrayList<>();
+        
+        try {
+            ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
+                    .bucket(bucketName)
+                    .prefix("voice/")
+                    .build();
+            
+            ListObjectsV2Response listResponse = s3Client.listObjectsV2(listRequest);
+            
+            for (S3Object s3Object : listResponse.contents()) {
+                // Bỏ qua folder
+                if (s3Object.key().endsWith("/")) {
+                    continue;
+                }
+                
+                Map<String, Object> recordingInfo = new HashMap<>();
+                recordingInfo.put("key", s3Object.key());
+                recordingInfo.put("filename", s3Object.key().substring(s3Object.key().lastIndexOf("/") + 1));
+                recordingInfo.put("size", s3Object.size());
+                recordingInfo.put("lastModified", s3Object.lastModified().toString());
+                recordingInfo.put("url", generatePresignedUrl(s3Object.key(), 7 * 24 * 3600)); // URL có hiệu lực 7 ngày
+                
+                recordings.add(recordingInfo);
+            }
+            
+            // Sắp xếp theo thời gian mới nhất
+            recordings.sort((a, b) -> {
+                String dateA = (String) a.get("lastModified");
+                String dateB = (String) b.get("lastModified");
+                return dateB.compareTo(dateA);
+            });
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi lấy danh sách recordings: " + e.getMessage(), e);
+        }
+        
+        return recordings;
     }
 }

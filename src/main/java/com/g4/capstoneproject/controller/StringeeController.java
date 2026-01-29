@@ -406,4 +406,33 @@ public class StringeeController {
                 ));
         }
     }
+
+    /**
+     * API lấy danh sách các file ghi âm đã lưu trong S3
+     * GET /api/stringee/recordings
+     */
+    @GetMapping("/recordings")
+    public ResponseEntity<?> getRecordings() {
+        try {
+            logger.info("Đang lấy danh sách recordings từ S3...");
+            
+            List<Map<String, Object>> recordings = s3Service.listRecordings();
+            
+            logger.info("✅ Lấy được {} recordings", recordings.size());
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "recordings", recordings,
+                "count", recordings.size()
+            ));
+            
+        } catch (Exception e) {
+            logger.error("❌ Lỗi lấy danh sách recordings: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "success", false,
+                    "error", e.getMessage()
+                ));
+        }
+    }
 }

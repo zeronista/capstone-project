@@ -1,511 +1,862 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Call - Web to Web Demo | ABClinic</title>
-    
-    <!-- Google Fonts & Material Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-    
-    <!-- Tailwind CSS Configuration -->
-    <script th:src="@{/js/tailwind-config.js}"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Stringee SDK -->
-    <script th:src="@{/js/latest.sdk.bundle.min.js}"></script>
-    
-    <!-- App Styles -->
-    <link th:href="@{/css/app.css}" rel="stylesheet">
-    
+    <title>Stringee Web Call Demo</title>
+    <script src="/js/latest.sdk.bundle.min.js"></script>
     <style>
-        /* Recording pulse animation */
-        @keyframes pulse-ring {
-            0% { transform: scale(0.95); opacity: 1; }
-            75%, 100% { transform: scale(1.3); opacity: 0; }
+        body { font-family: sans-serif; padding: 20px; }
+        .box { border: 1px solid #ccc; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+        .status { font-weight: bold; color: blue; }
+        .status-connecting { color: orange; }
+        .status-connected { color: green; }
+        .status-disconnected { color: red; }
+        button { padding: 10px 20px; cursor: pointer; margin-right: 10px; }
+        .hidden { display: none; }
+        .log-box { 
+            background: #f5f5f5; 
+            border: 1px solid #ddd; 
+            padding: 10px; 
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
         }
-        
-        .recording-pulse {
-            animation: pulse-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        .log-entry { 
+            margin: 3px 0; 
+            padding: 3px;
+        }
+        .log-info { color: blue; }
+        .log-success { color: green; }
+        .log-error { color: red; }
+        .recording-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: red;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+            margin-left: 5px;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        .recording-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+        }
+        .recordings-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        .recording-item {
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .recording-item:hover {
+            background: #f0f0f0;
+        }
+        .recording-info-text {
+            flex: 1;
+        }
+        .recording-controls {
+            display: flex;
+            gap: 5px;
+        }
+        audio {
+            max-width: 300px;
+        }
+        .no-recordings {
+            text-align: center;
+            color: #6c757d;
+            padding: 20px;
+            font-style: italic;
         }
     </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-sans">
-    
-    <!-- Main Container -->
-    <div class="flex h-screen overflow-hidden">
-        
-        <!-- Sidebar -->
-        <aside class="w-72 bg-white dark:bg-card-dark border-r border-surface-200 dark:border-surface-700 flex flex-col">
-            <!-- Logo -->
-            <div class="h-16 flex items-center px-6 border-b border-surface-200 dark:border-surface-700">
-                <span class="material-symbols-outlined text-primary-500 text-3xl">phone_in_talk</span>
-                <span class="ml-3 text-xl font-bold text-surface-900 dark:text-white">ABClinic</span>
-                <span class="ml-2 text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded-full font-medium">AI Call</span>
-            </div>
-            
-            <!-- Navigation -->
-            <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-                <a href="#" class="flex items-center px-4 py-3 text-sm font-medium rounded-lg bg-primary-50 text-primary-700 border-l-4 border-primary-500">
-                    <span class="material-symbols-outlined text-xl mr-3">campaign</span>
-                    Web to Web Demo
-                </a>
-                <a href="/ai/calls" class="flex items-center px-4 py-3 text-sm font-medium text-surface-700 hover:bg-surface-50 rounded-lg transition-colors">
-                    <span class="material-symbols-outlined text-xl mr-3">history</span>
-                    Lịch sử cuộc gọi
-                </a>
-                <a href="/dashboard" class="flex items-center px-4 py-3 text-sm font-medium text-surface-700 hover:bg-surface-50 rounded-lg transition-colors">
-                    <span class="material-symbols-outlined text-xl mr-3">dashboard</span>
-                    Dashboard
-                </a>
-            </nav>
-            
-            <!-- User Profile -->
-            <div class="p-4 border-t border-surface-200 dark:border-surface-700">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center text-white font-semibold">
-                        TP
-                    </div>
-                    <div class="ml-3 flex-1">
-                        <p class="text-sm font-medium text-surface-900 dark:text-white">Test User</p>
-                        <p class="text-xs text-surface-500">Receptionist</p>
-                    </div>
-                </div>
-            </div>
-        </aside>
-        
-        <!-- Main Content -->
-        <main class="flex-1 flex flex-col overflow-hidden">
-            
-            <!-- Header -->
-            <header class="h-16 bg-white dark:bg-card-dark border-b border-surface-200 dark:border-surface-700 flex items-center justify-between px-6">
-                <div>
-                    <h1 class="text-2xl font-bold text-surface-900 dark:text-white">Web to Web Call Demo</h1>
-                    <p class="text-sm text-surface-500">Stringee SDK Integration với Recording</p>
-                </div>
-                
-                <!-- Connection Status -->
-                <div class="flex items-center space-x-3">
-                    <div id="connectionStatus" class="flex items-center px-4 py-2 rounded-lg bg-surface-100">
-                        <div class="w-2 h-2 rounded-full bg-surface-400 mr-2"></div>
-                        <span class="text-sm font-medium text-surface-600">Chưa kết nối</span>
-                    </div>
-                </div>
-            </header>
-            
-            <!-- Content Area -->
-            <div class="flex-1 overflow-y-auto p-6">
-                <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    <!-- Left Column: Login & Controls -->
-                    <div class="lg:col-span-2 space-y-6">
-                        
-                        <!-- Login Card -->
-                        <div id="loginCard" class="bg-white dark:bg-card-dark rounded-xl shadow-card p-6">
-                            <div class="flex items-center mb-6">
-                                <span class="material-symbols-outlined text-primary-500 text-2xl mr-3">login</span>
-                                <h2 class="text-xl font-semibold text-surface-900 dark:text-white">Stringee Authentication</h2>
-                            </div>
-                            
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-surface-700 mb-2">User ID</label>
-                                    <input type="text" id="userId" value="user_001" 
-                                           class="w-full px-4 py-2.5 border border-surface-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                                </div>
-                                
-                                <button onclick="connectStringee()" id="btnConnect"
-                                        class="w-full bg-primary-500 hover:bg-primary-600 text-white font-semibold py-3 px-4 rounded-lg shadow-primary transition-all flex items-center justify-center">
-                                    <span class="material-symbols-outlined mr-2">link</span>
-                                    Kết nối Stringee
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Call Controls Card -->
-                        <div id="callCard" class="bg-white dark:bg-card-dark rounded-xl shadow-card p-6 hidden">
-                            <div class="flex items-center justify-between mb-6">
-                                <div class="flex items-center">
-                                    <span class="material-symbols-outlined text-primary-500 text-2xl mr-3">call</span>
-                                    <h2 class="text-xl font-semibold text-surface-900 dark:text-white">Quản lý Cuộc gọi</h2>
-                                </div>
-                                
-                                <!-- Recording Status -->
-                                <div id="recordingStatus" class="hidden">
-                                    <div class="flex items-center px-3 py-1.5 bg-error-50 text-error-700 rounded-full">
-                                        <div class="relative flex items-center">
-                                            <div class="w-2 h-2 bg-error-500 rounded-full"></div>
-                                            <div class="absolute w-2 h-2 bg-error-500 rounded-full recording-pulse"></div>
-                                        </div>
-                                        <span class="ml-2 text-xs font-semibold">RECORDING</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Make Call -->
-                            <div class="space-y-4 mb-6">
-                                <div>
-                                    <label class="block text-sm font-medium text-surface-700 mb-2">Target User ID</label>
-                                    <div class="flex gap-2">
-                                        <input type="text" id="targetUserId" value="user_002" placeholder="VD: user_002" 
-                                               class="flex-1 px-4 py-2.5 border border-surface-300 rounded-lg focus:ring-2 focus:ring-primary-500">
-                                        <button onclick="makeCall()" id="btnCall"
-                                                class="bg-success-500 hover:bg-success-600 text-white font-semibold px-6 py-2.5 rounded-lg flex items-center">
-                                            <span class="material-symbols-outlined mr-2">phone_in_talk</span>
-                                            Gọi
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Enable Recording -->
-                                <div class="flex items-center p-4 bg-surface-50 rounded-lg">
-                                    <input type="checkbox" id="enableRecording" checked class="w-4 h-4 text-primary-500 rounded focus:ring-primary-500">
-                                    <label for="enableRecording" class="ml-3 text-sm font-medium text-surface-700">
-                                        <span class="material-symbols-outlined text-base align-middle mr-1">fiber_manual_record</span>
-                                        Bật ghi âm (Upload to S3)
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <!-- Call Actions -->
-                            <div id="callActions" class="hidden space-y-3">
-                                <div class="flex gap-3">
-                                    <button onclick="answerCall()" id="btnAnswer"
-                                            class="flex-1 bg-success-500 hover:bg-success-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center">
-                                        <span class="material-symbols-outlined mr-2">call</span>
-                                        Nghe máy
-                                    </button>
-                                    <button onclick="rejectCall()" id="btnReject"
-                                            class="flex-1 bg-error-500 hover:bg-error-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center">
-                                        <span class="material-symbols-outlined mr-2">call_end</span>
-                                        Từ chối
-                                    </button>
-                                </div>
-                                <button onclick="hangupCall()" id="btnHangup"
-                                        class="w-full bg-error-500 hover:bg-error-600 text-white font-semibold py-3 rounded-lg flex items-center justify-center">
-                                    <span class="material-symbols-outlined mr-2">phone_disabled</span>
-                                    Kết thúc
-                                </button>
-                            </div>
-                            
-                            <!-- Call Info -->
-                            <div id="callInfo" class="hidden mt-6 p-4 bg-primary-50 rounded-lg">
-                                <p class="text-sm text-surface-600">
-                                    <span class="font-semibold text-primary-700">Trạng thái:</span>
-                                    <span id="callState" class="ml-2">-</span>
-                                </p>
-                            </div>
-                        </div>
-                        
-                    </div>
-                    
-                    <!-- Right Column: Activity Log -->
-                    <div class="lg:col-span-1">
-                        <div class="bg-white dark:bg-card-dark rounded-xl shadow-card p-6 sticky top-6">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="flex items-center">
-                                    <span class="material-symbols-outlined text-primary-500 text-2xl mr-3">terminal</span>
-                                    <h2 class="text-lg font-semibold text-surface-900 dark:text-white">Activity Log</h2>
-                                </div>
-                                <button onclick="clearLog()" class="text-surface-500 hover:text-surface-700">
-                                    <span class="material-symbols-outlined text-xl">delete</span>
-                                </button>
-                            </div>
-                            
-                            <div id="activityLog" class="bg-surface-50 rounded-lg p-3 h-96 overflow-y-auto font-mono text-xs space-y-1">
-                                <div class="text-surface-500">Sẵn sàng kết nối...</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                </div>
-            </div>
-            
-        </main>
-        
+<body>
+    <h1>Demo Web-to-Web Call</h1>
+
+    <div id="login-screen" class="box">
+        <h3>Đang kiểm tra đăng nhập...</h3>
+        <p id="loginMessage">Vui lòng đợi...</p>
     </div>
-    
+
+    <div id="call-screen" class="box hidden">
+        <h3>Xin chào: <span id="displayUserName"></span> (<span id="displayUserId"></span>)</h3>
+        <p>
+            Trạng thái kết nối: 
+            <span id="connectionStatus" class="status status-connecting">Đang kết nối...</span>
+        </p>
+        
+        <div class="log-box" id="logConsole">
+            <div class="log-entry log-info">Nhật ký hoạt động sẽ hiển thị ở đây...</div>
+        </div>
+        
+        <hr>
+        
+        <div style="margin-bottom: 10px;">
+            <label>
+                <input type="checkbox" id="autoRecordCheckbox" checked>
+                <strong>🎙️ Tự động ghi âm khi cuộc gọi kết nối</strong>
+            </label>
+            <p style="font-size: 12px; color: #666; margin: 5px 0 0 24px;">
+                (File sẽ được lưu tự động vào S3 khi cuộc gọi kết thúc)
+            </p>
+        </div>
+        
+        <hr>
+        
+        <h4>Thực hiện cuộc gọi</h4>
+        <input type="text" id="remoteUserId" placeholder="Nhập ID người nhận (ví dụ: user2)">
+        
+        <div style="margin-top: 10px;">
+            <button id="btnCall" onclick="makeCall()">📞 Gọi Voice</button>
+            <button id="btnReject" onclick="rejectCall()" class="hidden" style="background: #dc3545; color: white;">⛔ Từ chối</button>
+            <button id="btnAnswer" onclick="answerCall()" class="hidden" style="background: green; color: white;">✅ Trả lời</button>
+            <button id="btnHangup" onclick="hangupCall()" class="hidden" style="background: red; color: white;">❌ Kết thúc</button>
+        </div>
+
+        <div id="manualRecordButtons" style="margin-top: 10px;">
+            <button id="btnStartRecord" onclick="startRecording()" class="hidden" style="background: #007bff; color: white;">🎙️ Bắt đầu ghi âm</button>
+            <button id="btnStopRecord" onclick="stopRecording()" class="hidden" style="background: #6c757d; color: white;">⏹️ Dừng ghi âm</button>
+        </div>
+
+        <p id="callStatus" style="font-weight: bold; margin-top: 10px;">Sẵn sàng</p>
+        
+        <div id="recordingInfo" class="recording-info hidden">
+            <p style="margin: 0;">
+                <strong>🎙️ Đang ghi âm</strong>
+                <span class="recording-indicator"></span>
+                <span id="recordingDuration">00:00</span>
+            </p>
+        </div>
+        
+        <!-- Danh sách recordings -->
+        <div id="recordingsSection" class="recordings-section hidden">
+            <h4>
+                📼 Danh sách file ghi âm đã lưu
+                <button onclick="loadRecordings()" style="float: right; padding: 5px 10px; font-size: 12px;">🔄 Làm mới</button>
+            </h4>
+            <div id="recordingsList"></div>
+        </div>
+    </div>
+
     <div id="remote_videos" style="display: none;"></div>
-    
+
     <script>
-        // Global variables
-        const STRINGEE_SERVER_ADDRS = ["wss://v1.stringee.com:6899/", "wss://v2.stringee.com:6899/"];
-        let stringeeClient = null;
-        let currentCall = null;
-        let mediaRecorder = null;
-        let recordedChunks = [];
+        // Cấu hình Stringee Server Addresses (Best Practice)
+        const STRINGEE_SERVER_ADDRS = [
+            "wss://v1.stringee.com:6899/", 
+            "wss://v2.stringee.com:6899/"
+        ];
         
-        // Update connection status
-        function updateConnectionStatus(status, color) {
-            const statusDiv = document.getElementById('connectionStatus');
-            const colors = {
-                gray: 'bg-surface-400',
-                yellow: 'bg-warning-500',
-                green: 'bg-success-500',
-                red: 'bg-error-500'
-            };
+        var stringeeClient;
+        var currentCall;
+        var myToken;
+        var currentUser = null; // Lưu thông tin user hiện tại
+        var mediaRecorder;
+        var recordedChunks = [];
+        var recordingStartTime;
+        var recordingInterval;
+        var localStream = null; // Stream từ microphone
+        var audioContext = null;
+        var mixedStream = null;
+
+        // Event listener cho checkbox auto-record
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tự động load thông tin user khi trang load
+            loadCurrentUser();
             
-            statusDiv.innerHTML = `
-                <div class="w-2 h-2 rounded-full ${colors[color]} mr-2 ${color === 'green' ? 'animate-pulse' : ''}"></div>
-                <span class="text-sm font-medium text-surface-600">${status}</span>
-            `;
-        }
-        
-        // Activity log
-        function log(message, type = 'info') {
-            const logDiv = document.getElementById('activityLog');
-            const timestamp = new Date().toLocaleTimeString('vi-VN');
-            const colors = {
-                info: 'text-primary-600',
-                success: 'text-success-600',
-                error: 'text-error-600',
-                warning: 'text-warning-600'
-            };
+            const autoRecordCheckbox = document.getElementById('autoRecordCheckbox');
+            autoRecordCheckbox.addEventListener('change', function() {
+                const manualButtons = document.getElementById('manualRecordButtons');
+                if (this.checked) {
+                    addLog('✅ Đã bật tự động ghi âm', 'success');
+                } else {
+                    addLog('ℹ️ Đã tắt tự động ghi âm - Bạn cần bấm nút để ghi âm', 'info');
+                }
+            });
+        });
+
+        function addLog(message, type) {
+            type = type || 'info';
+            const logBox = document.getElementById('logConsole');
+            const timestamp = new Date().toLocaleTimeString();
+            const logClass = type === 'success' ? 'log-success' : (type === 'error' ? 'log-error' : 'log-info');
             
-            const entry = document.createElement('div');
-            entry.className = `${colors[type]} flex items-start`;
-            entry.innerHTML = `
-                <span class="text-surface-400 mr-2">${timestamp}</span>
-                <span class="flex-1">${message}</span>
-            `;
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry ' + logClass;
+            logEntry.textContent = '[' + timestamp + '] ' + message;
             
-            logDiv.appendChild(entry);
-            logDiv.scrollTop = logDiv.scrollHeight;
+            logBox.appendChild(logEntry);
+            logBox.scrollTop = logBox.scrollHeight;
         }
-        
-        function clearLog() {
-            document.getElementById('activityLog').innerHTML = '<div class="text-surface-500">Log cleared.</div>';
+
+        /**
+         * Load thông tin user hiện đang đăng nhập
+         */
+        async function loadCurrentUser() {
+            try {
+                const response = await fetch('/api/web-call/current-user');
+                
+                if (!response.ok) {
+                    throw new Error('Không thể lấy thông tin user');
+                }
+                
+                const data = await response.json();
+                
+                if (data.authenticated) {
+                    currentUser = data;
+                    console.log('Current user:', currentUser);
+                    
+                    // Tự động kết nối Stringee
+                    document.getElementById('loginMessage').textContent = 
+                        'Chào ' + currentUser.fullName + '! Đang kết nối...';
+                    
+                    await connectStringee();
+                } else {
+                    // Chưa đăng nhập
+                    document.getElementById('login-screen').innerHTML = `
+                        <h3>⚠️ Chưa đăng nhập</h3>
+                        <p>Bạn cần đăng nhập vào hệ thống trước khi sử dụng chức năng này.</p>
+                        <button onclick="window.location.href='/login'" 
+                                style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Đăng nhập ngay
+                        </button>
+                    `;
+                }
+            } catch (err) {
+                console.error('Lỗi load current user:', err);
+                document.getElementById('loginMessage').textContent = 
+                    'Lỗi: ' + err.message + '. Vui lòng thử lại.';
+                document.getElementById('login-screen').innerHTML = `
+                    <h3>❌ Lỗi kết nối</h3>
+                    <p>${err.message}</p>
+                    <button onclick="loadCurrentUser()" 
+                            style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        🔄 Thử lại
+                    </button>
+                `;
+            }
         }
-        
-        // Connect to Stringee
+
         async function connectStringee() {
-            const userId = document.getElementById('userId').value.trim();
-            if (!userId) {
-                log('Vui lòng nhập User ID', 'error');
+            if (!currentUser) {
+                alert('Vui lòng đăng nhập trước');
                 return;
             }
-            
+
+            const userId = currentUser.stringeeUserId;
+            const userName = currentUser.fullName;
+
+            console.log('Bắt đầu kết nối với userId:', userId);
+            addLog('Đang kết nối với user: ' + userName, 'info');
+
             try {
-                updateConnectionStatus('Đang kết nối...', 'yellow');
-                log(`Lấy access token cho ${userId}...`, 'info');
+                console.log('Đang lấy access token từ server...');
+                addLog('Đang lấy access token từ server...', 'info');
                 
-                const res = await fetch('/api/stringee/access-token?userId=' + userId);
+                const res = await fetch('/api/web-call/token');
+                
+                if (!res.ok) {
+                    throw new Error('HTTP error! status: ' + res.status + ' - ' + res.statusText);
+                }
+                
                 const data = await res.json();
                 
-                if (!data.token) throw new Error('Không nhận được token');
+                if (!data.token) {
+                    throw new Error('Token không có trong response từ server');
+                }
                 
-                log('✓ Đã nhận token', 'success');
-                
-                stringeeClient = new StringeeClient(STRINGEE_SERVER_ADDRS);
-                
-                stringeeClient.on('connect', function() {
-                    updateConnectionStatus('Đã kết nối', 'green');
-                    log('✓ Kết nối Stringee thành công!', 'success');
-                });
-                
-                stringeeClient.on('authen', function(res) {
-                    if (res.r === 0) {
-                        log('✓ Xác thực thành công', 'success');
-                        document.getElementById('loginCard').classList.add('hidden');
-                        document.getElementById('callCard').classList.remove('hidden');
-                    } else {
-                        log('✗ Xác thực thất bại: ' + res.message, 'error');
-                    }
-                });
-                
-                stringeeClient.on('disconnect', function() {
-                    updateConnectionStatus('Ngắt kết nối', 'red');
-                    log('Ngắt kết nối', 'warning');
-                });
-                
-                stringeeClient.on('incomingcall', function(incomingCall) {
-                    currentCall = incomingCall;
-                    log(`📞 Cuộc gọi đến từ: ${incomingCall.fromNumber}`, 'info');
-                    
-                    document.getElementById('callInfo').classList.remove('hidden');
-                    document.getElementById('callActions').classList.remove('hidden');
-                    setupCallEvents(currentCall);
-                });
-                
-                stringeeClient.connect(data.token);
-                
+                myToken = data.token;
+                console.log('Đã nhận được token:', myToken.substring(0, 50) + '...');
+                addLog('✅ Đã nhận được access token từ server', 'success');
             } catch (err) {
-                log('✗ Lỗi: ' + err.message, 'error');
-                updateConnectionStatus('Lỗi kết nối', 'red');
-            }
-        }
-        
-        // Make call
-        function makeCall() {
-            if (!stringeeClient) {
-                log('Chưa kết nối Stringee!', 'error');
+                console.error('Lỗi lấy token:', err);
+                addLog('❌ Lỗi lấy token: ' + err.message, 'error');
+                alert('Lỗi lấy token từ server: ' + err.message + '\n\nVui lòng kiểm tra:\n1. Server đang chạy\n2. API endpoint hoạt động\n3. Bạn đã đăng nhập');
                 return;
             }
-            
-            const targetUserId = document.getElementById('targetUserId').value.trim();
-            if (!targetUserId) {
-                log('Vui lòng nhập Target User ID', 'error');
-                return;
-            }
-            
-            const callerId = document.getElementById('userId').value;
-            currentCall = new StringeeCall(stringeeClient, callerId, targetUserId, false);
-            
-            setupCallEvents(currentCall);
-            
-            log(`🔊 Đang gọi ${targetUserId}...`, 'info');
-            currentCall.makeCall(function(res) {
+
+            stringeeClient = new StringeeClient(STRINGEE_SERVER_ADDRS);
+            console.log('Đã khởi tạo Stringee Client với server addresses');
+            addLog('Đã khởi tạo Stringee Client', 'info');
+
+            stringeeClient.on('connect', function () {
+                console.log('Đã kết nối tới Stringee Server');
+                document.getElementById('connectionStatus').innerText = '🟢 Đã kết nối';
+                document.getElementById('connectionStatus').className = 'status status-connected';
+                addLog('Đã kết nối tới Stringee Server', 'success');
+            });
+
+            stringeeClient.on('authen', function (res) {
+                console.log('Xác thực:', res);
                 if (res.r === 0) {
-                    log('✓ Đang thực hiện cuộc gọi', 'success');
-                    document.getElementById('callInfo').classList.remove('hidden');
-                    document.getElementById('callActions').classList.remove('hidden');
+                    console.log('Đăng nhập thành công');
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('call-screen').classList.remove('hidden');
+                    document.getElementById('displayUserId').innerText = currentUser.stringeeUserId;
+                    document.getElementById('displayUserName').innerText = currentUser.fullName;
+                    addLog('✅ Xác thực thành công! User: ' + currentUser.fullName, 'success');
+                    addLog('Bạn có thể thực hiện cuộc gọi ngay bây giờ', 'success');
                     
-                    if (document.getElementById('enableRecording').checked) {
-                        document.getElementById('recordingStatus').classList.remove('hidden');
-                    }
+                    // Hiển thị và load danh sách recordings
+                    document.getElementById('recordingsSection').classList.remove('hidden');
+                    loadRecordings();
                 } else {
-                    log('✗ Gọi thất bại: ' + res.message, 'error');
+                    console.error('Xác thực thất bại:', res);
+                    addLog('❌ Xác thực thất bại: ' + res.message, 'error');
+                    alert('Xác thực thất bại: ' + res.message);
                 }
             });
+
+            stringeeClient.on('disconnect', function () {
+                console.log('Đã ngắt kết nối khỏi Stringee');
+                document.getElementById('connectionStatus').innerText = '🔴 Đã ngắt kết nối';
+                document.getElementById('connectionStatus').className = 'status status-disconnected';
+                addLog('Đã ngắt kết nối', 'error');
+            });
+
+            stringeeClient.on('requestnewtoken', function () {
+                console.log('Token hết hạn');
+                addLog('Token hết hạn!', 'error');
+                alert('Token đã hết hạn. Vui lòng làm mới trang.');
+            });
+
+            stringeeClient.on('incomingcall', function (incomingCall) {
+                console.log('Cuộc gọi đến:', incomingCall);
+                addLog('📞 Cuộc gọi đến từ: ' + incomingCall.fromNumber, 'info');
+                currentCall = incomingCall;
+                
+                document.getElementById('callStatus').innerText = '📞 Đang có cuộc gọi đến từ: ' + incomingCall.fromNumber;
+                document.getElementById('btnAnswer').classList.remove('hidden');
+                document.getElementById('btnReject').classList.remove('hidden');
+                document.getElementById('btnCall').classList.add('hidden');
+
+                settingCallEvents(currentCall);
+            });
+
+            console.log('Đang kết nối tới Stringee...');
+            stringeeClient.connect(myToken);
         }
-        
-        // Setup call events
-        function setupCallEvents(call) {
-            call.on('addremotestream', function(stream) {
-                log('Đã nhận luồng âm thanh', 'success');
-                const videoElement = document.createElement('video');
+
+        function makeCall() {
+            if (!currentUser) {
+                alert('Vui lòng đăng nhập trước');
+                return;
+            }
+            
+            const callerId = currentUser.stringeeUserId;
+            const calleeId = document.getElementById('remoteUserId').value;
+
+            if (!calleeId) return alert('Nhập ID người nhận');
+
+            console.log('Đang gọi...');
+            addLog('Đang gọi tới: ' + calleeId, 'info');
+
+            currentCall = new StringeeCall(stringeeClient, callerId, calleeId, false);
+
+            settingCallEvents(currentCall);
+
+            currentCall.makeCall(function (res) {
+                console.log('makeCall response:', res);
+                if (res.r !== 0) {
+                    console.error('Gọi thất bại:', res.message);
+                    addLog('Gọi thất bại: ' + res.message, 'error');
+                    alert(res.message);
+                } else {
+                    addLog('Đang thực hiện cuộc gọi...', 'success');
+                }
+            });
+            
+            showInCallUI();
+        }
+
+        function settingCallEvents(call) {
+            call.on('addremotestream', function (stream) {
+                console.log('Adding remote stream');
+                addLog('Đã nhận luồng âm thanh từ người gọi', 'success');
+                
+                // Tạo video element để play remote stream
+                var videoElement = document.createElement('video');
                 videoElement.setAttribute('autoplay', '');
                 videoElement.setAttribute('playsinline', '');
+                videoElement.setAttribute('id', 'remoteAudio');
+                
                 document.getElementById('remote_videos').appendChild(videoElement);
                 stream.play(videoElement);
-                
-                // Start recording if enabled
-                if (document.getElementById('enableRecording').checked) {
-                    setTimeout(() => startRecording(stream), 500);
-                }
             });
-            
-            call.on('signalingstate', function(state) {
-                log(`Trạng thái: ${state.reason}`, 'info');
-                document.getElementById('callState').textContent = state.reason;
+
+            call.on('signalingstate', function (state) {
+                console.log('Signaling state:', state);
+                document.getElementById('callStatus').innerText = state.reason;
+                addLog('Trạng thái: ' + state.reason, 'info');
+                
+                // Code 3 = Answered - cuộc gọi đã được trả lời
+                if (state.code === 3) {
+                    addLog('✅ Cuộc gọi đã được kết nối', 'success');
+                    
+                    // Tự động bắt đầu ghi âm nếu bật auto-record
+                    const autoRecord = document.getElementById('autoRecordCheckbox').checked;
+                    if (autoRecord) {
+                        addLog('🎙️ Bắt đầu tự động ghi âm...', 'info');
+                        // Delay nhỏ để đảm bảo UI đã sẵn sàng
+                        setTimeout(() => startRecording(), 500);
+                    }
+                }
                 
                 if (state.code === 6) {
-                    log('Cuộc gọi kết thúc', 'success');
+                    addLog('Cuộc gọi đã kết thúc', 'success');
                     resetUI();
                 }
             });
-        }
-        
-        // Answer call
-        function answerCall() {
-            if (!currentCall) return;
-            log('✓ Nghe máy', 'success');
-            currentCall.answer(function(res) {
-                if (res.r !== 0) log('Lỗi: ' + res.message, 'error');
+
+            call.on('mediastate', function (state) {
+                console.log('Media state:', state);
+            });
+            
+            call.on('info', function (info) {
+                console.log('Call info:', info);
             });
         }
-        
-        // Reject call
+
+        function answerCall() {
+            if (currentCall) {
+                currentCall.answer(function (res) {
+                    console.log('answer res', res);
+                    if (res.r === 0) {
+                        showInCallUI();
+                        
+                        // Tự động bắt đầu ghi âm nếu bật auto-record (cho người nhận cuộc gọi)
+                        const autoRecord = document.getElementById('autoRecordCheckbox').checked;
+                        if (autoRecord) {
+                            addLog('🎙️ Bắt đầu tự động ghi âm...', 'info');
+                            // Delay để đảm bảo cuộc gọi đã kết nối hoàn toàn
+                            setTimeout(() => startRecording(), 1000);
+                        }
+                    }
+                });
+            }
+        }
+
         function rejectCall() {
-            if (!currentCall) return;
-            log('✗ Từ chối cuộc gọi', 'warning');
-            currentCall.reject(function(res) {});
+            if (currentCall) {
+                // Gọi hàm reject của SDK
+                currentCall.reject(function (res) {
+                    console.log('reject res', res);
+                    if (res.r === 0) {
+                        addLog('Đã từ chối cuộc gọi', 'info');
+                    } else {
+                        addLog('Lỗi từ chối: ' + res.message, 'error');
+                    }
+                });
+                // Reset giao diện ngay lập tức sau khi bấm từ chối
+                resetUI();
+            }
+        }
+
+        function hangupCall() {
+            if (currentCall) {
+                currentCall.hangup(function (res) {
+                    console.log('hangup res', res);
+                });
+            }
             resetUI();
         }
-        
-        // Hangup
-        function hangupCall() {
-            if (!currentCall) return;
-            log('📵 Kết thúc cuộc gọi', 'warning');
-            currentCall.hangup(function(res) {});
+
+        function showInCallUI() {
+            document.getElementById('btnCall').classList.add('hidden');
+            document.getElementById('btnAnswer').classList.add('hidden');
+            document.getElementById('btnReject').classList.add('hidden');
+            document.getElementById('btnHangup').classList.remove('hidden');
             
+            // Chỉ hiển nút ghi âm thủ công nếu tắt auto-record
+            const autoRecord = document.getElementById('autoRecordCheckbox').checked;
+            if (!autoRecord) {
+                document.getElementById('btnStartRecord').classList.remove('hidden');
+            }
+        }
+
+        function resetUI() {
+            // Tự động dừng và upload recording nếu đang ghi
             if (mediaRecorder && mediaRecorder.state === 'recording') {
+                addLog('Đang kết thúc ghi âm và upload...', 'info');
                 stopRecording();
             }
             
-            resetUI();
+            // Cleanup streams
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+            
+            mixedStream = null;
+            
+            document.getElementById('callStatus').innerText = 'Sẵn sàng';
+            document.getElementById('btnCall').classList.remove('hidden');
+            document.getElementById('btnAnswer').classList.add('hidden');
+            document.getElementById('btnHangup').classList.add('hidden');
+            document.getElementById('btnReject').classList.add('hidden');
+            document.getElementById('btnStartRecord').classList.add('hidden');
+            document.getElementById('btnStopRecord').classList.add('hidden');
+            document.getElementById('recordingInfo').classList.add('hidden');
+            document.getElementById('remote_videos').innerHTML = '';
+            currentCall = null;
         }
-        
-        // Recording functions
-        async function startRecording(stream) {
+
+        /**
+         * Bắt đầu ghi âm
+         * - Tự động: được gọi khi cuộc gọi kết nối, ghi từ đầu đến cuối
+         * - Thủ công: user bấm nút, ghi khi nào muốn
+         */
+        async function startRecording() {
             try {
-                const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // Nếu đang recording rồi thì bỏ qua
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    addLog('ℹ️ Đang ghi âm rồi', 'info');
+                    return;
+                }
+                
+                addLog('🎙️ Đang khởi tạo ghi âm...', 'info');
+                
+                // Lấy local stream từ microphone
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                addLog('✅ Đã lấy local stream (microphone)', 'success');
+                
+                // Tạo AudioContext để mix streams
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const destination = audioContext.createMediaStreamDestination();
+                
+                // Thêm local stream (microphone)
+                const localSource = audioContext.createMediaStreamSource(localStream);
+                localSource.connect(destination);
+                addLog('✅ Đã kết nối local stream', 'success');
+                
+                // Thử thêm remote stream nếu có
+                const remoteAudioElement = document.getElementById('remoteAudio');
+                if (remoteAudioElement && remoteAudioElement.srcObject) {
+                    try {
+                        const remoteSource = audioContext.createMediaStreamSource(remoteAudioElement.srcObject);
+                        remoteSource.connect(destination);
+                        addLog('✅ Đã kết nối remote stream', 'success');
+                    } catch (err) {
+                        console.error('Lỗi kết nối remote stream:', err);
+                        addLog('⚠️ Không thể ghi remote stream: ' + err.message, 'error');
+                    }
+                } else {
+                    addLog('⚠️ Chỉ ghi âm local (chưa có remote stream)', 'info');
+                }
+                
+                // Sử dụng mixed stream để ghi âm
+                mixedStream = destination.stream;
+                
                 recordedChunks = [];
-                mediaRecorder = new MediaRecorder(audioStream);
-                
-                mediaRecorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) recordedChunks.push(e.data);
+                mediaRecorder = new MediaRecorder(mixedStream, {
+                    mimeType: 'audio/webm;codecs=opus'
+                });
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                        console.log('Chunk received:', event.data.size, 'bytes');
+                    }
                 };
-                
+
                 mediaRecorder.onstop = async () => {
-                    audioStream.getTracks().forEach(track => track.stop());
-                    const blob = new Blob(recordedChunks, { type: 'audio/webm' });
-                    await uploadRecording(blob);
+                    addLog('Đã dừng MediaRecorder, đang xử lý...', 'info');
+                    
+                    // Dừng tất cả tracks
+                    if (localStream) {
+                        localStream.getTracks().forEach(track => {
+                            track.stop();
+                            console.log('Stopped local track:', track.kind);
+                        });
+                    }
+                    
+                    // Đóng AudioContext
+                    if (audioContext) {
+                        audioContext.close();
+                    }
+                    
+                    // Tạo blob từ chunks
+                    if (recordedChunks.length > 0) {
+                        const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+                        console.log('Created blob:', blob.size, 'bytes');
+                        addLog('Đã tạo file ghi âm: ' + (blob.size / 1024).toFixed(2) + ' KB', 'success');
+                        
+                        // Upload lên server
+                        await uploadRecording(blob);
+                    } else {
+                        addLog('❌ Không có dữ liệu ghi âm', 'error');
+                    }
+                    
+                    // Clear interval
+                    if (recordingInterval) {
+                        clearInterval(recordingInterval);
+                    }
+                    
+                    // Reset variables
+                    localStream = null;
+                    audioContext = null;
+                    mixedStream = null;
                 };
+
+                mediaRecorder.start(100); // Thu thập data mỗi 100ms
+                recordingStartTime = Date.now();
                 
-                mediaRecorder.start();
-                log('🎙️ Bắt đầu ghi âm', 'info');
+                addLog('✅ Đã bắt đầu ghi âm cả 2 chiều', 'success');
+                
+                // Hiển thị UI
+                document.getElementById('btnStartRecord').classList.add('hidden');
+                document.getElementById('btnStopRecord').classList.remove('hidden');
+                document.getElementById('recordingInfo').classList.remove('hidden');
+                
+                // Cập nhật duration
+                recordingInterval = setInterval(() => {
+                    const duration = Math.floor((Date.now() - recordingStartTime) / 1000);
+                    const minutes = Math.floor(duration / 60).toString().padStart(2, '0');
+                    const seconds = (duration % 60).toString().padStart(2, '0');
+                    document.getElementById('recordingDuration').textContent = minutes + ':' + seconds;
+                }, 1000);
+                
             } catch (err) {
-                log('Lỗi ghi âm: ' + err.message, 'error');
+                console.error('Lỗi khi bắt đầu ghi âm:', err);
+                addLog('❌ Lỗi: ' + err.message, 'error');
+                alert('Không thể truy cập microphone. Vui lòng cho phép truy cập.');
             }
         }
-        
+
         function stopRecording() {
             if (mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
-                log('⏹️ Dừng ghi âm, đang upload...', 'info');
+                
+                document.getElementById('btnStartRecord').classList.remove('hidden');
+                document.getElementById('btnStopRecord').classList.add('hidden');
+                document.getElementById('recordingInfo').classList.add('hidden');
+                
+                addLog('Đã dừng ghi âm. Đang upload lên S3...', 'info');
             }
         }
-        
+
         async function uploadRecording(blob) {
             try {
-                const userId = document.getElementById('userId').value;
-                const targetUserId = document.getElementById('targetUserId').value;
+                if (!blob || blob.size === 0) {
+                    addLog('❌ File ghi âm trống, không thể upload', 'error');
+                    return;
+                }
+                
+                if (!currentUser) {
+                    addLog('❌ Không tìm thấy thông tin user', 'error');
+                    return;
+                }
+                
+                const userId = currentUser.stringeeUserId;
+                const remoteUserId = document.getElementById('remoteUserId').value || 'unknown';
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                const filename = `call_${userId}_to_${targetUserId}_${timestamp}.webm`;
+                const filename = `call_${userId}_to_${remoteUserId}_${timestamp}.webm`;
+                
+                addLog(`📦 Chuẩn bị upload file: ${filename} (${(blob.size / 1024).toFixed(2)} KB)`, 'info');
                 
                 const formData = new FormData();
                 formData.append('file', blob, filename);
                 formData.append('callId', 'web_' + Date.now());
                 formData.append('userId', userId);
                 
-                const res = await fetch('/api/stringee/upload-recording', {
+                addLog('☁️ Đang upload file ghi âm lên S3...', 'info');
+                
+                const response = await fetch('/api/stringee/upload-recording', {
                     method: 'POST',
                     body: formData
                 });
                 
-                const result = await res.json();
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
                 
                 if (result.success) {
-                    log('✓ Upload S3 thành công!', 'success');
+                    addLog('✅ Upload thành công! File: ' + result.s3Key, 'success');
+                    addLog('🔗 URL: ' + result.presignedUrl, 'success');
+                    console.log('S3 Key:', result.s3Key);
+                    console.log('Pre-signed URL:', result.presignedUrl);
+                    
+                    // Làm mới danh sách recordings
+                    setTimeout(() => loadRecordings(), 1000);
                 } else {
-                    log('✗ Upload thất bại: ' + result.error, 'error');
-                }
-            } catch (err) {
-                log('✗ Lỗi upload: ' + err.message, 'error');
-            }
-        }
-        
-        // Reset UI
-        function resetUI() {
-            currentCall = null;
-            document.getElementById('callActions').classList.add('hidden');
-            document.getElementById('callInfo').classList.add('hidden');
-            document.getElementById('recordingStatus').classList.add('hidden');
-            document.getElementById('callState').textContent = '-';
-            document.getElementById('remote_videos').innerHTML = '';
-        }
-    </script>
-    
-</body>
-</html>
+                    addLog('❌ Upload thất bại: ' + (result.error || 'Unknown error'), 'error');
                 }
                 
             } catch (err) {
                 console.error('Lỗi upload:', err);
                 addLog('❌ Lỗi upload: ' + err.message, 'error');
             }
+        }
+
+        /**
+         * Load danh sách recordings từ S3
+         */
+        async function loadRecordings() {
+            try {
+                addLog('🔄 Đang tải danh sách file ghi âm...', 'info');
+                
+                const response = await fetch('/api/stringee/recordings');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayRecordings(result.recordings);
+                    addLog(`✅ Tải được ${result.count} file ghi âm`, 'success');
+                } else {
+                    addLog('❌ Lỗi: ' + result.error, 'error');
+                }
+                
+            } catch (err) {
+                console.error('Lỗi load recordings:', err);
+                addLog('❌ Lỗi tải danh sách: ' + err.message, 'error');
+            }
+        }
+
+        /**
+         * Hiển thị danh sách recordings
+         */
+        function displayRecordings(recordings) {
+            const container = document.getElementById('recordingsList');
+            
+            if (!recordings || recordings.length === 0) {
+                container.innerHTML = '<div class="no-recordings">Chưa có file ghi âm nào</div>';
+                return;
+            }
+            
+            let html = '';
+            
+            recordings.forEach((rec, index) => {
+                const filename = rec.filename;
+                const size = (rec.size / 1024).toFixed(2);
+                const date = new Date(rec.lastModified).toLocaleString('vi-VN');
+                
+                html += `
+                    <div class="recording-item">
+                        <div class="recording-info-text">
+                            <strong>📁 ${filename}</strong><br>
+                            <small style="color: #6c757d;">
+                                📅 ${date} | 💾 ${size} KB
+                            </small>
+                        </div>
+                        <div class="recording-controls">
+                            <button onclick="playRecording('${rec.url}', '${filename}')" 
+                                    style="background: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">
+                                ▶️ Nghe
+                            </button>
+                            <button onclick="downloadRecording('${rec.url}', '${filename}')" 
+                                    style="background: #17a2b8; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">
+                                ⬇️ Tải
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        /**
+         * Phát file ghi âm
+         */
+        function playRecording(url, filename) {
+            addLog('▶️ Đang phát: ' + filename, 'info');
+            
+            // Tạo audio player modal
+            const existingModal = document.getElementById('audioPlayerModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            const modal = document.createElement('div');
+            modal.id = 'audioPlayerModal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                z-index: 10000;
+                min-width: 400px;
+            `;
+            
+            modal.innerHTML = `
+                <h4 style="margin-top: 0;">🎵 ${filename}</h4>
+                <audio controls autoplay style="width: 100%; margin: 15px 0;">
+                    <source src="${url}" type="audio/webm">
+                    Trình duyệt không hỗ trợ audio.
+                </audio>
+                <button onclick="document.getElementById('audioPlayerModal').remove()" 
+                        style="width: 100%; padding: 10px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Đóng
+                </button>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Thêm backdrop
+            const backdrop = document.createElement('div');
+            backdrop.onclick = () => {
+                modal.remove();
+                backdrop.remove();
+            };
+            backdrop.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 9999;
+            `;
+            document.body.insertBefore(backdrop, modal);
+        }
+
+        /**
+         * Tải xuống file ghi âm
+         */
+        function downloadRecording(url, filename) {
+            addLog('⬇️ Đang tải: ' + filename, 'info');
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            addLog('✅ Đã bắt đầu tải file', 'success');
         }
     </script>
 </body>

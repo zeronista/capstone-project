@@ -283,6 +283,7 @@
         let mediaRecorder = null;
         let recordedChunks = [];
         let isMuted = false;
+        let onlineUsersCache = [];
         
         // On page load
         document.addEventListener('DOMContentLoaded', async () => {
@@ -352,8 +353,27 @@
                     currentCall = incomingCall;
                     
                     // Extract caller info from stringee userId
-                    const callerId = incomingCall.fromNumber.replace('user_', '');
-                    showIncomingCall(callerId, incomingCall.fromNumber);
+                    const callerStringeeId = incomingCall.fromNumber;
+                    
+                    // Find caller in online users cache
+                    const caller = onlineUsersCache.find(u => u.stringeeUserId === callerStringeeId);
+                    
+                    if (caller) {
+                        targetUser = {
+                            id: caller.userId,
+                            stringeeUserId: caller.stringeeUserId,
+                            fullName: caller.fullName
+                        };
+                        showIncomingCall(caller.fullName);
+                    } else {
+                        // Fallback if caller not found in cache
+                        targetUser = {
+                            id: null,
+                            stringeeUserId: callerStringeeId,
+                            fullName: callerStringeeId
+                        };
+                        showIncomingCall(callerStringeeId);
+                    }
                     
                     setupCallEvents(currentCall);
                 });
@@ -371,6 +391,9 @@
             try {
                 const res = await fetch('/api/web-call/online-users');
                 const data = await res.json();
+                
+                // Cache online users for incoming call lookup
+                onlineUsersCache = data.users || [];
                 
                 const container = document.getElementById('onlineUsersList');
                 
@@ -501,27 +524,58 @@
         }
         
         // Answer incoming call
-        function answerCall() {
+        async function answerCall() {
             if (!currentCall) return;
             
             currentCall.answer(function(res) {
                 if (res.r === 0) {
+                    console.log('Call answered successfully');
                     showInCallState();
                     
-                    // Start recording if enabled
-                    if (document.getElementById('enableRecording').checked) {
-                        document.getElementById('recordingIndicator').classList.remove('hidden');
+                    // Save call log if not exists
+                    if (!currentCallLogId && targetUser) {
+                        saveIncomingCallLog();
                     }
                 } else {
                     console.error('Answer failed:', res.message);
+                    alert('Không thể trả lời cuộc gọi: ' + res.message);
+                    showIdleState();
                 }
             });
         }
         
+        // Save incoming call log
+        async function saveIncomingCallLog() {
+            try {
+                const initRes = await fetch('/api/web-call/initiate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        receiverId: currentUser.id,
+                        stringeeCallId: currentCall.callId || 'call_' + Date.now()
+                    })
+                });
+                const initData = await initRes.json();
+                currentCallLogId = initData.callLogId;
+                console.log('Call log created for incoming call:', currentCallLogId);
+            } catch (err) {
+                console.error('Error saving incoming call log:', err);
+            }
+        }
+        
         // Reject incoming call
-        function rejectCall() {
+        async function rejectCall() {
             if (!currentCall) return;
-            currentCall.reject(function(res) {});
+            
+            currentCall.reject(function(res) {
+                console.log('Call rejected');
+            });
+            
+            // Update status if we have call log
+            if (currentCallLogId) {
+                await updateCallStatus('REJECTED');
+            }
+            
             showIdleState();
         }
         
@@ -694,7 +748,7 @@
             `;
         }
         
-        function showIncomingCall(callerId, callerName) {
+        function showIncomingCall(callerName) {
             hideAllStates();
             document.getElementById('incomingState').classList.remove('hidden');
             document.getElementById('incomingName').textContent = 'Cuộc gọi từ ' + callerName;
