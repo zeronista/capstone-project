@@ -9,6 +9,7 @@ let isEditing = false;
 // Load profile khi trang vừa tải
 document.addEventListener('DOMContentLoaded', () => {
     loadProfile();
+    checkEmailVerificationStatus();
     setupEventListeners();
 });
 
@@ -269,4 +270,78 @@ function formatDate(date) {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
+}
+
+/**
+ * Kiểm tra trạng thái xác thực email
+ */
+async function checkEmailVerificationStatus() {
+    try {
+        const response = await fetch('/api/profile/email-status');
+        if (!response.ok) {
+            return;
+        }
+        
+        const data = await response.json();
+        if (data.success) {
+            const badge = document.getElementById('emailVerifiedBadge');
+            const resendSection = document.getElementById('resendEmailSection');
+            
+            if (data.emailVerified) {
+                badge.className = 'px-3 py-2 text-sm font-medium bg-green-100 text-green-700 rounded-lg whitespace-nowrap';
+                badge.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Đã xác thực';
+                resendSection.classList.add('hidden');
+            } else {
+                badge.className = 'px-3 py-2 text-sm font-medium bg-amber-100 text-amber-700 rounded-lg whitespace-nowrap';
+                badge.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>Chưa xác thực';
+                resendSection.classList.remove('hidden');
+                
+                // Setup resend button
+                document.getElementById('resendVerificationBtn')?.addEventListener('click', resendVerificationEmail);
+            }
+        }
+    } catch (error) {
+        console.error('Error checking email status:', error);
+    }
+}
+
+/**
+ * Gửi lại email xác thực
+ */
+async function resendVerificationEmail() {
+    const btn = document.getElementById('resendVerificationBtn');
+    const originalText = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Đang gửi...';
+    
+    try {
+        const response = await fetch('/api/profile/resend-verification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showMessage(data.message, 'success');
+            btn.innerHTML = '<i class="fas fa-check mr-1"></i>Đã gửi';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 5000);
+        } else {
+            showMessage(data.message, 'error');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error resending verification email:', error);
+        showMessage('Lỗi khi gửi email. Vui lòng thử lại sau.', 'error');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
 }

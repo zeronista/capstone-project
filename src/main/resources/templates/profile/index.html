@@ -143,6 +143,24 @@
                 <div class="bg-white rounded-2xl border border-surface-200 p-6">
                     <h3 class="text-lg font-semibold text-surface-900 font-heading mb-6">Bảo mật</h3>
                     
+                    <!-- Email Verification Status -->
+                    <div class="mb-6" id="emailVerificationSection">
+                        <div class="flex items-center justify-between p-4 bg-surface-50 rounded-xl">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center" id="emailIcon">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-surface-900">Email xác thực</p>
+                                    <p class="text-sm" id="emailStatusText">Đang tải...</p>
+                                </div>
+                            </div>
+                            <button id="resendEmailBtn" class="px-4 py-2 text-primary-600 font-medium rounded-lg hover:bg-primary-50 transition-colors duration-200 cursor-pointer hidden">Gửi lại email</button>
+                        </div>
+                    </div>
+                    
                     <!-- Change Password -->
                     <div class="mb-6">
                         <div class="flex items-center justify-between p-4 bg-surface-50 rounded-xl">
@@ -200,5 +218,86 @@
             </div>
         </div>
     </main>
+    
+    <script>
+        // Kiểm tra trạng thái email khi trang load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkEmailVerificationStatus();
+        });
+        
+        function checkEmailVerificationStatus() {
+            fetch('/api/profile/email-status')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const statusText = document.getElementById('emailStatusText');
+                        const resendBtn = document.getElementById('resendEmailBtn');
+                        const emailIcon = document.getElementById('emailIcon');
+                        
+                        if (data.emailVerified) {
+                            statusText.textContent = 'Email đã được xác thực';
+                            statusText.className = 'text-sm text-secondary-600';
+                            emailIcon.className = 'w-10 h-10 bg-secondary-100 rounded-lg flex items-center justify-center';
+                            emailIcon.innerHTML = `
+                                <svg class="w-5 h-5 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            `;
+                            resendBtn.classList.add('hidden');
+                        } else {
+                            statusText.textContent = 'Email chưa xác thực';
+                            statusText.className = 'text-sm text-amber-600';
+                            emailIcon.className = 'w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center';
+                            emailIcon.innerHTML = `
+                                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                            `;
+                            resendBtn.classList.remove('hidden');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking email status:', error);
+                });
+        }
+        
+        // Gửi lại email xác thực
+        document.getElementById('resendEmailBtn')?.addEventListener('click', function() {
+            const btn = this;
+            const originalText = btn.textContent;
+            
+            btn.disabled = true;
+            btn.textContent = 'Đang gửi...';
+            
+            fetch('/api/profile/resend-verification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    btn.textContent = 'Đã gửi';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.disabled = false;
+                    }, 5000);
+                } else {
+                    alert(data.message);
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error resending verification email:', error);
+                alert('Lỗi khi gửi email. Vui lòng thử lại sau.');
+                btn.textContent = originalText;
+                btn.disabled = false;
+            });
+        });
+    </script>
 </body>
 </html>

@@ -3,6 +3,7 @@ package com.g4.capstoneproject.controller;
 import com.g4.capstoneproject.entity.User;
 import com.g4.capstoneproject.entity.UserInfo;
 import com.g4.capstoneproject.repository.UserRepository;
+import com.g4.capstoneproject.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ public class ProfileController {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
     
     /**
      * GET /profile - Hiển thị trang profile (phân quyền theo role)
@@ -263,6 +265,85 @@ public class ProfileController {
             log.error("Error changing password for user", e);
             return ResponseEntity.status(500).body(Map.of(
                 "success", false, 
+                "message", "Lỗi hệ thống. Vui lòng thử lại sau"
+            ));
+        }
+    }
+    
+    /**
+     * GET /api/profile/email-status - Lấy trạng thái xác thực email
+     */
+    @GetMapping("/api/profile/email-status")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getEmailStatus(HttpSession session) {
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            if (userId == null) {
+                return ResponseEntity.status(401).body(Map.of("success", false, "message", "Chưa đăng nhập"));
+            }
+            
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(404).body(Map.of("success", false, "message", "Không tìm thấy người dùng"));
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("email", user.getEmail());
+            response.put("emailVerified", user.getEmailVerified());
+            response.put("hasPassword", user.getPassword() != null && !user.getPassword().isEmpty());
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting email status", e);
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "Lỗi hệ thống. Vui lòng thử lại sau"
+            ));
+        }
+    }
+    
+    /**
+     * POST /api/profile/resend-verification - Gửi lại email xác thực
+     */
+    @PostMapping("/api/profile/resend-verification")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> resendVerificationEmail(HttpSession session) {
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            if (userId == null) {
+                return ResponseEntity.status(401).body(Map.of("success", false, "message", "Chưa đăng nhập"));
+            }
+            
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(404).body(Map.of("success", false, "message", "Không tìm thấy người dùng"));
+            }
+            
+            if (user.getEmailVerified()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Email đã được xác thực"
+                ));
+            }
+            
+            boolean sent = authService.resendVerificationEmail(user.getEmail());
+            
+            if (sent) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Email xác thực đã được gửi. Vui lòng kiểm tra hộp thư của bạn."
+                ));
+            } else {
+                return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "message", "Không thể gửi email xác thực. Vui lòng thử lại sau."
+                ));
+            }
+        } catch (Exception e) {
+            log.error("Error resending verification email", e);
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
                 "message", "Lỗi hệ thống. Vui lòng thử lại sau"
             ));
         }
