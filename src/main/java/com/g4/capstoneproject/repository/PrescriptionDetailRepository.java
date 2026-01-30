@@ -13,23 +13,28 @@ import java.util.List;
  */
 @Repository
 public interface PrescriptionDetailRepository extends JpaRepository<PrescriptionDetail, Long> {
-    
+
     /**
      * Tìm chi tiết theo đơn thuốc
      */
     List<PrescriptionDetail> findByPrescriptionId(Long prescriptionId);
-    
+
+    /**
+     * Xóa tất cả chi tiết của một đơn thuốc
+     */
+    void deleteByPrescriptionId(Long prescriptionId);
+
     /**
      * Tìm theo tên thuốc
      */
     @Query("SELECT pd FROM PrescriptionDetail pd WHERE pd.medicineName LIKE %:medicineName%")
     List<PrescriptionDetail> findByMedicineNameContaining(@Param("medicineName") String medicineName);
-    
+
     /**
      * Đếm số loại thuốc trong đơn
      */
     long countByPrescriptionId(Long prescriptionId);
-    
+
     /**
      * Tìm thuốc được kê nhiều nhất
      */

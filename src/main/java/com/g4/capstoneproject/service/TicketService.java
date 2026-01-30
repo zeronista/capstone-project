@@ -4,12 +4,14 @@ import com.g4.capstoneproject.controller.QueueWebSocketController;
 import com.g4.capstoneproject.dto.QueueUpdateMessage;
 import com.g4.capstoneproject.entity.Ticket;
 import com.g4.capstoneproject.entity.TicketMessage;
+import com.g4.capstoneproject.entity.User;
 import com.g4.capstoneproject.repository.TicketRepository;
 import com.g4.capstoneproject.repository.TicketMessageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -93,6 +95,27 @@ public class TicketService {
                     existing.setStatus(updatedTicket.getStatus());
                     existing.setPriority(updatedTicket.getPriority());
                     return ticketRepository.save(existing);
+                })
+                .orElse(null);
+    }
+
+    /**
+     * Cập nhật trạng thái ticket
+     */
+    public Ticket updateTicketStatus(Long ticketId, Ticket.Status newStatus, User resolvedBy) {
+        return ticketRepository.findById(ticketId)
+                .map(ticket -> {
+                    ticket.setStatus(newStatus);
+
+                    // Update resolved info if status is RESOLVED or CLOSED
+                    if (newStatus == Ticket.Status.RESOLVED || newStatus == Ticket.Status.CLOSED) {
+                        ticket.setResolvedBy(resolvedBy);
+                        if (ticket.getResolvedAt() == null) {
+                            ticket.setResolvedAt(LocalDateTime.now());
+                        }
+                    }
+
+                    return ticketRepository.save(ticket);
                 })
                 .orElse(null);
     }

@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dự báo Sức khỏe - Bác sĩ</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Material Icons -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <!-- Material Symbols -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0d7cf2",
+              "primary-dark": "#0a62bf",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 20px;
+      }
+      .material-symbols-outlined.fill {
+        font-variation-settings: "FILL" 1;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Doctor Sidebar -->
+    <aside th:replace="~{fragments/doctor-layout :: doctor-sidebar}"></aside>
+
+    <!-- Main Content -->
+    <main class="ml-64 pt-8 pb-8 px-4 md:px-6 lg:px-8 min-h-screen">
+      <!-- Page Header -->
+      <div
+        class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8"
+      >
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">Dự báo Sức khỏe</h1>
+          <p class="text-gray-600 mt-2">
+            Đánh giá rủi ro và xu hướng sức khỏe bệnh nhân
+          </p>
+        </div>
+        <button
+          onclick="openPatientSearchModal()"
+          class="inline-flex items-center gap-2 px-5 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <span class="material-icons">add_chart</span>
+          Tạo dự báo mới
+        </button>
+      </div>
+
+      <!-- High Risk Alerts Banner -->
+      <div
+        id="highRiskBanner"
+        class="hidden mb-8 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl p-6 shadow-lg"
+      >
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0">
+            <span class="material-icons text-4xl">warning</span>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-xl font-bold mb-2">Cảnh báo Rủi ro Cao</h3>
+            <p id="highRiskMessage" class="text-red-100"></p>
+            <button
+              onclick="viewHighRiskAlerts()"
+              class="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-white text-red-600 font-medium rounded-lg hover:bg-red-50 transition-colors"
+            >
+              <span class="material-icons text-sm">visibility</span>
+              Xem chi tiết
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Forecasts -->
+        <div
+          class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-500">Tổng dự báo</p>
+              <p
+                id="totalForecasts"
+                class="text-3xl font-bold text-gray-900 mt-2"
+              >
+                0
+              </p>
+            </div>
+            <div
+              class="w-14 h-14 bg-blue-100 rounded-lg flex items-center justify-center"
+            >
+              <span class="material-icons text-blue-600 text-3xl"
+                >analytics</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- High Risk Count -->
+        <div
+          class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-500">Rủi ro cao</p>
+              <p
+                id="highRiskCount"
+                class="text-3xl font-bold text-red-600 mt-2"
+              >
+                0
+              </p>
+            </div>
+            <div
+              class="w-14 h-14 bg-red-100 rounded-lg flex items-center justify-center"
+            >
+              <span class="material-icons text-red-600 text-3xl"
+                >priority_high</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Average CV Risk -->
+        <div
+          class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-500">
+                TB rủi ro tim mạch
+              </p>
+              <p id="avgCVRisk" class="text-3xl font-bold text-orange-600 mt-2">
+                0%
+              </p>
+            </div>
+            <div
+              class="w-14 h-14 bg-orange-100 rounded-lg flex items-center justify-center"
+            >
+              <span class="material-icons text-orange-600 text-3xl"
+                >favorite</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Forecasts -->
+        <div
+          class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-500">Dự báo hiệu lực</p>
+              <p
+                id="activeForecasts"
+                class="text-3xl font-bold text-green-600 mt-2"
+              >
+                0
+              </p>
+            </div>
+            <div
+              class="w-14 h-14 bg-green-100 rounded-lg flex items-center justify-center"
+            >
+              <span class="material-icons text-green-600 text-3xl"
+                >check_circle</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters & Search -->
+      <div class="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Mức độ rủi ro</label
+            >
+            <select
+              id="riskFilter"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Tất cả</option>
+              <option value="LOW">Thấp</option>
+              <option value="MODERATE">Trung bình</option>
+              <option value="HIGH">Cao</option>
+              <option value="VERY_HIGH">Rất cao</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2"
+              >Trạng thái</label
+            >
+            <select
+              id="statusFilter"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">Tất cả</option>
+              <option value="ACTIVE">Hiệu lực</option>
+              <option value="OUTDATED">Đã lỗi thời</option>
+              <option value="DRAFT">Nháp</option>
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button
+              onclick="applyFilters()"
+              class="w-full px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <span class="material-icons text-sm align-middle mr-1"
+                >search</span
+              >
+              Tìm kiếm
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Forecasts Table -->
+      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th
+                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                >
+                  Bệnh nhân
+                </th>
+                <th
+                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                >
+                  Ngày dự báo
+                </th>
+                <th
+                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                >
+                  Rủi ro tim mạch
+                </th>
+                <th
+                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                >
+                  Mức độ rủi ro
+                </th>
+                <th
+                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                >
+                  Trạng thái
+                </th>
+                <th
+                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                >
+                  Cảnh báo
+                </th>
+                <th
+                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                >
+                  Thao tác
+                </th>
+              </tr>
+            </thead>
+            <tbody id="forecastsTable" class="divide-y divide-gray-200">
+              <!-- Forecasts will be loaded here via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="p-8 text-center">
+          <div
+            class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"
+          ></div>
+          <p class="text-gray-600 mt-4">Đang tải dữ liệu...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="p-12 text-center hidden">
+          <span class="material-icons text-gray-300 text-6xl mb-4"
+            >analytics</span
+          >
+          <p class="text-gray-600 text-lg">Chưa có dự báo sức khỏe</p>
+          <p class="text-gray-500 text-sm mt-2">
+            Tạo dự báo mới để đánh giá rủi ro sức khỏe bệnh nhân
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Forecast Detail Modal -->
+    <div
+      id="forecastDetailModal"
+      class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center"
+    >
+      <div
+        class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+      >
+        <div
+          class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between"
+        >
+          <h3 class="text-xl font-bold text-gray-900">
+            Chi tiết Dự báo Sức khỏe
+          </h3>
+          <button
+            onclick="closeForecastModal()"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+
+        <div id="forecastDetailContent" class="p-6">
+          <!-- Content will be loaded dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let allForecasts = [];
+      let filteredForecasts = [];
+
+      // Load forecasts on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        loadForecasts();
+        checkHighRiskAlerts();
+      });
+
+      // Load forecasts from API
+      async function loadForecasts() {
+        try {
+          const response = await fetch("/api/doctor/forecasts");
+          const data = await response.json();
+
+          allForecasts = data.forecasts || [];
+          filteredForecasts = allForecasts;
+
+          updateStatistics();
+          renderForecasts();
+        } catch (error) {
+          console.error("Error loading forecasts:", error);
+          showError("Không thể tải danh sách dự báo");
+        }
+      }
+
+      // Check for high-risk alerts
+      async function checkHighRiskAlerts() {
+        try {
+          const response = await fetch("/api/doctor/forecasts/alerts");
+          const data = await response.json();
+
+          if (data.count > 0) {
+            document
+              .getElementById("highRiskBanner")
+              .classList.remove("hidden");
+            document.getElementById("highRiskMessage").textContent =
+              `Có ${data.count} bệnh nhân với mức độ rủi ro cao cần theo dõi sát. Vui lòng kiểm tra ngay.`;
+          }
+        } catch (error) {
+          console.error("Error checking alerts:", error);
+        }
+      }
+
+      // Update statistics
+      function updateStatistics() {
+        document.getElementById("totalForecasts").textContent =
+          allForecasts.length;
+
+        const highRisk = allForecasts.filter(
+          (f) => f.overallRisk === "HIGH" || f.overallRisk === "VERY_HIGH",
+        ).length;
+        document.getElementById("highRiskCount").textContent = highRisk;
+
+        const activeCount = allForecasts.filter(
+          (f) => f.status === "ACTIVE",
+        ).length;
+        document.getElementById("activeForecasts").textContent = activeCount;
+
+        const cvRisks = allForecasts
+          .filter((f) => f.cardiovascularRisk != null)
+          .map((f) => f.cardiovascularRisk);
+        const avgCV =
+          cvRisks.length > 0
+            ? (cvRisks.reduce((a, b) => a + b, 0) / cvRisks.length).toFixed(1)
+            : "0";
+        document.getElementById("avgCVRisk").textContent = avgCV + "%";
+      }
+
+      // Render forecasts table
+      function renderForecasts() {
+        const tbody = document.getElementById("forecastsTable");
+        const loadingState = document.getElementById("loadingState");
+        const emptyState = document.getElementById("emptyState");
+
+        loadingState.classList.add("hidden");
+
+        if (filteredForecasts.length === 0) {
+          tbody.innerHTML = "";
+          emptyState.classList.remove("hidden");
+          return;
+        }
+
+        emptyState.classList.add("hidden");
+
+        tbody.innerHTML = filteredForecasts
+          .map(
+            (forecast) => `
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="px-6 py-4">
+              <div>
+                <div class="font-medium text-gray-900">${forecast.patientName}</div>
+                <div class="text-sm text-gray-500">${forecast.patientPhone || ""}</div>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-700">
+              ${formatDate(forecast.forecastDate)}
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-bold ${getCVRiskColor(forecast.cardiovascularRisk)}">
+                  ${forecast.cardiovascularRisk != null ? forecast.cardiovascularRisk.toFixed(1) + "%" : "N/A"}
+                </span>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              ${getRiskBadge(forecast.overallRisk)}
+            </td>
+            <td class="px-6 py-4">
+              ${getStatusBadge(forecast.status)}
+            </td>
+            <td class="px-6 py-4">
+              ${forecast.hasRiskAlerts ? '<span class="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs"><span class="material-icons text-sm">warning</span>Có</span>' : '<span class="text-gray-400 text-sm">Không</span>'}
+            </td>
+            <td class="px-6 py-4">
+              <button onclick="viewForecast(${forecast.id})" class="text-blue-600 hover:text-blue-800" title="Xem chi tiết">
+                <span class="material-icons text-xl">visibility</span>
+              </button>
+            </td>
+          </tr>
+        `,
+          )
+          .join("");
+      }
+
+      // Apply filters
+      function applyFilters() {
+        const riskFilter = document.getElementById("riskFilter").value;
+        const statusFilter = document.getElementById("statusFilter").value;
+
+        filteredForecasts = allForecasts.filter((forecast) => {
+          if (riskFilter && forecast.overallRisk !== riskFilter) return false;
+          if (statusFilter && forecast.status !== statusFilter) return false;
+          return true;
+        });
+
+        renderForecasts();
+      }
+
+      // View forecast detail
+      async function viewForecast(forecastId) {
+        try {
+          const response = await fetch(`/api/doctor/forecasts/${forecastId}`);
+          const forecast = await response.json();
+
+          document.getElementById("forecastDetailContent").innerHTML = `
+            <div class="space-y-6">
+              <!-- Patient Info -->
+              <div class="border-b pb-4">
+                <h4 class="font-semibold text-gray-900 mb-3">Thông tin bệnh nhân</h4>
+                <div class="grid grid-cols-2 gap-4">
+                  <div><span class="text-sm text-gray-500">Họ tên:</span><p class="font-medium">${forecast.patientName}</p></div>
+                  <div><span class="text-sm text-gray-500">Tuổi:</span><p class="font-medium">${forecast.patientAge || "N/A"}</p></div>
+                  <div><span class="text-sm text-gray-500">Giới tính:</span><p class="font-medium">${forecast.patientGender || "N/A"}</p></div>
+                  <div><span class="text-sm text-gray-500">SĐT:</span><p class="font-medium">${forecast.patientPhone || "N/A"}</p></div>
+                </div>
+              </div>
+              
+              <!-- Risk Scores -->
+              <div class="border-b pb-4">
+                <h4 class="font-semibold text-gray-900 mb-3">Điểm rủi ro</h4>
+                <div class="grid grid-cols-2 gap-4">
+                  ${Object.entries(forecast.riskScores || {})
+                    .map(
+                      ([key, value]) => `
+                    <div class="bg-gray-50 rounded-lg p-3">
+                      <span class="text-sm text-gray-600">${formatRiskKey(key)}</span>
+                      <p class="text-lg font-bold text-gray-900 mt-1">${formatRiskValue(value)}</p>
+                    </div>
+                  `,
+                    )
+                    .join("")}
+                </div>
+              </div>
+              
+              <!-- Vital Signs -->
+              <div class="border-b pb-4">
+                <h4 class="font-semibold text-gray-900 mb-3">Chỉ số sinh tồn</h4>
+                <div class="grid grid-cols-3 gap-3">
+                  ${Object.entries(forecast.vitalSignsSnapshot || {})
+                    .map(
+                      ([key, value]) => `
+                    <div class="text-center bg-blue-50 rounded-lg p-3">
+                      <span class="text-xs text-gray-600">${formatVitalKey(key)}</span>
+                      <p class="text-sm font-semibold text-gray-900 mt-1">${value || "N/A"}</p>
+                    </div>
+                  `,
+                    )
+                    .join("")}
+                </div>
+              </div>
+              
+              <!-- Predictions -->
+              <div class="border-b pb-4">
+                <h4 class="font-semibold text-gray-900 mb-3">Dự đoán xu hướng</h4>
+                <div class="space-y-2">
+                  ${Object.entries(forecast.predictions || {})
+                    .map(
+                      ([key, value]) => `
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm text-gray-700">${formatPredictionKey(key)}</span>
+                      <span class="font-medium ${getTrendColor(value)}">${formatTrendValue(value)}</span>
+                    </div>
+                  `,
+                    )
+                    .join("")}
+                </div>
+              </div>
+              
+              <!-- Recommendations -->
+              <div>
+                <h4 class="font-semibold text-gray-900 mb-3">Khuyến nghị</h4>
+                <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <pre class="whitespace-pre-wrap text-sm text-gray-700 font-sans">${forecast.recommendations || "Không có khuyến nghị"}</pre>
+                </div>
+              </div>
+            </div>
+          `;
+
+          document
+            .getElementById("forecastDetailModal")
+            .classList.remove("hidden");
+          document.getElementById("forecastDetailModal").classList.add("flex");
+        } catch (error) {
+          console.error("Error loading forecast detail:", error);
+          showError("Không thể tải chi tiết dự báo");
+        }
+      }
+
+      // Close forecast modal
+      function closeForecastModal() {
+        document.getElementById("forecastDetailModal").classList.add("hidden");
+        document.getElementById("forecastDetailModal").classList.remove("flex");
+      }
+
+      // Open patient search modal (placeholder)
+      function openPatientSearchModal() {
+        alert(
+          "Chức năng tạo dự báo mới sẽ được phát triển trong phiên bản tiếp theo",
+        );
+      }
+
+      // View high risk alerts
+      function viewHighRiskAlerts() {
+        document.getElementById("riskFilter").value = "HIGH";
+        applyFilters();
+      }
+
+      // Helper functions
+      function getRiskBadge(risk) {
+        const badges = {
+          LOW: '<span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Thấp</span>',
+          MODERATE:
+            '<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">Trung bình</span>',
+          HIGH: '<span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">Cao</span>',
+          VERY_HIGH:
+            '<span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">Rất cao</span>',
+          UNKNOWN:
+            '<span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">Chưa xác định</span>',
+        };
+        return badges[risk] || badges["UNKNOWN"];
+      }
+
+      function getStatusBadge(status) {
+        const badges = {
+          ACTIVE:
+            '<span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Hiệu lực</span>',
+          OUTDATED:
+            '<span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">Lỗi thời</span>',
+          DRAFT:
+            '<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">Nháp</span>',
+          ARCHIVED:
+            '<span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">Lưu trữ</span>',
+        };
+        return badges[status] || status;
+      }
+
+      function getCVRiskColor(risk) {
+        if (risk == null) return "text-gray-400";
+        if (risk < 5) return "text-green-600";
+        if (risk < 10) return "text-yellow-600";
+        if (risk < 20) return "text-orange-600";
+        return "text-red-600";
+      }
+
+      function getTrendColor(trend) {
+        if (trend === "IMPROVING") return "text-green-600";
+        if (trend === "WORSENING") return "text-red-600";
+        return "text-gray-600";
+      }
+
+      function formatTrendValue(value) {
+        if (value === "IMPROVING") return "↓ Cải thiện";
+        if (value === "WORSENING") return "↑ Xấu đi";
+        if (value === "STABLE") return "→ Ổn định";
+        return value || "N/A";
+      }
+
+      function formatRiskKey(key) {
+        const map = {
+          cardiovascularRisk: "Rủi ro tim mạch",
+          diabetesRisk: "Rủi ro tiểu đường",
+          hypertensionRisk: "Rủi ro tăng huyết áp",
+          strokeRisk: "Rủi ro đột quỵ",
+          overallRisk: "Rủi ro tổng thể",
+        };
+        return map[key] || key;
+      }
+
+      function formatRiskValue(value) {
+        if (typeof value === "number") return value.toFixed(1) + "%";
+        return value;
+      }
+
+      function formatVitalKey(key) {
+        const map = {
+          systolic: "Tâm thu",
+          diastolic: "Tâm trương",
+          heartRate: "Nhịp tim",
+          weight: "Cân nặng",
+          bmi: "BMI",
+          bloodSugar: "Đường huyết",
+        };
+        return map[key] || key;
+      }
+
+      function formatPredictionKey(key) {
+        const map = {
+          bloodPressureTrend: "Xu hướng huyết áp",
+          weightTrend: "Xu hướng cân nặng",
+          bmiTrend: "Xu hướng BMI",
+          bloodSugarTrend: "Xu hướng đường huyết",
+          heartRateTrend: "Xu hướng nhịp tim",
+        };
+        return map[key] || key;
+      }
+
+      function formatDate(dateString) {
+        if (!dateString) return "N/A";
+        const date = new Date(dateString);
+        return date.toLocaleDateString("vi-VN", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+      }
+
+      function showError(message) {
+        alert(message);
+      }
+    </script>
+  </body>
+</html>

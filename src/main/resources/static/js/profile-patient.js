@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadProfile();
     checkEmailVerificationStatus();
     setupEventListeners();
+    setupAvatarUpload();
 });
 
 /**
@@ -18,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 async function loadProfile() {
     try {
-        const response = await fetch('/api/patient/profile');
+        const response = await fetch('/api/profile');
         if (!response.ok) {
             if (response.status === 401) {
                 window.location.href = '/auth/login';
@@ -27,7 +28,13 @@ async function loadProfile() {
             throw new Error('Không thể tải thông tin profile');
         }
 
-        const data = await response.json();
+        const result = await response.json();
+        
+        if (!result.success) {
+            throw new Error(result.message || 'Không thể tải thông tin profile');
+        }
+        
+        const data = result.data;
         
         // Lưu dữ liệu gốc
         originalProfile = { ...data };
@@ -45,6 +52,36 @@ async function loadProfile() {
  * Hiển thị thông tin profile lên form
  */
 function displayProfile(data) {
+    // Avatar
+    const avatarImg = document.getElementById('avatarImg');
+    const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+    if (data.avatar) {
+        avatarImg.src = data.avatar;
+        avatarImg.classList.remove('hidden');
+        avatarPlaceholder.classList.add('hidden');
+    } else {
+        avatarImg.classList.add('hidden');
+        avatarPlaceholder.classList.remove('hidden');
+    }
+    
+    // Profile completion
+    const completion = data.profileCompletion || 0;
+    document.getElementById('completionPercent').textContent = completion + '%';
+    document.getElementById('completionBar').style.width = completion + '%';
+    
+    // Update progress bar color
+    const progressBar = document.getElementById('completionBar');
+    if (completion >= 80) {
+        progressBar.classList.remove('bg-yellow-500', 'bg-red-500');
+        progressBar.classList.add('bg-blue-600');
+    } else if (completion >= 50) {
+        progressBar.classList.remove('bg-blue-600', 'bg-red-500');
+        progressBar.classList.add('bg-yellow-500');
+    } else {
+        progressBar.classList.remove('bg-blue-600', 'bg-yellow-500');
+        progressBar.classList.add('bg-red-500');
+    }
+    
     // Header
     document.getElementById('profileName').textContent = data.fullName || 'Chưa cập nhật';
     document.getElementById('userName').textContent = data.fullName || 'Bệnh nhân';
@@ -134,9 +171,9 @@ async function handleProfileSubmit(e) {
     const formData = {
         fullName: document.getElementById('fullName').value.trim(),
         phoneNumber: document.getElementById('phoneNumber').value.trim(),
-        dateOfBirth: document.getElementById('dateOfBirth').value,
-        gender: document.getElementById('gender').value,
-        address: document.getElementById('address').value.trim()
+        dateOfBirth: document.getElementById('dateOfBirth').value || null,
+        gender: document.getElementById('gender').value || null,
+        address: document.getElementById('address').value.trim() || null
     };
     
     // Validation
@@ -165,13 +202,13 @@ async function handleProfileSubmit(e) {
             showMessage('Cập nhật thông tin thành công', 'success');
             
             // Cập nhật dữ liệu gốc
-            originalProfile = { ...originalProfile, ...formData };
+            originalProfile = { ...result.data };
             
             // Thoát chế độ chỉnh sửa
             cancelEditing();
             
-            // Reload để cập nhật header
-            setTimeout(() => loadProfile(), 500);
+            // Cập nhật hiển thị
+            displayProfile(result.data);
         } else {
             showMessage(result.message || 'Cập nhật thất bại', 'error');
         }
@@ -343,5 +380,76 @@ async function resendVerificationEmail() {
         showMessage('Lỗi khi gửi email. Vui lòng thử lại sau.', 'error');
         btn.innerHTML = originalText;
         btn.disabled = false;
+    }
+}
+
+/**
+ * Setup avatar upload
+ */
+function setupAvatarUpload() {
+    const avatarInput = document.getElementById('avatarInput');
+    const avatarUploadBtn = document.getElementById('avatarUploadBtn');
+    
+    if (avatarUploadBtn && avatarInput) {
+        avatarUploadBtn.addEventListener('click', () => avatarInput.click());
+        avatarInput.addEventListener('change', handleAvatarUpload);
+    }
+}
+
+/**
+ * Xử lý upload avatar
+ */
+async function handleAvatarUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.match(/^image\/(jpeg|jpg|png)$/)) {
+        showMessage('Chỉ chấp nhận file ảnh định dạng JPG, JPEG, PNG', 'error');
+        e.target.value = '';
+        return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        showMessage('Kích thước file không được vượt quá 5MB', 'error');
+        e.target.value = '';
+        return;
+    }
+    
+    try {
+        // Create FormData
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Call API
+        const response = await fetch('/api/profile/avatar', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showMessage('Upload avatar thành công', 'success');
+            
+            // Update avatar display
+            const avatarImg = document.getElementById('avatarImg');
+            const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+            avatarImg.src = result.avatarUrl;
+            avatarImg.classList.remove('hidden');
+            avatarPlaceholder.classList.add('hidden');
+            
+            // Reload profile to update completion
+            setTimeout(() => loadProfile(), 500);
+        } else {
+            showMessage(result.message || 'Upload thất bại', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error uploading avatar:', error);
+        showMessage('Lỗi khi upload avatar. Vui lòng thử lại sau.', 'error');
+    } finally {
+        e.target.value = '';
     }
 }

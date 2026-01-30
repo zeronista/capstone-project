@@ -95,4 +95,9 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
      * Đếm đơn thuốc của bác sĩ
      */
     long countByDoctorId(Long doctorId);
+
+    /**
+     * Tìm đơn thuốc theo patient ID sắp xếp theo ngày mới nhất
+     */
+    List<Prescription> findByPatientIdOrderByPrescriptionDateDesc(Long patientId);
 }

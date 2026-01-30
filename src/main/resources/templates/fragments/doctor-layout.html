@@ -1,0 +1,133 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <!-- Doctor Sidebar Fragment -->
+    <aside
+      th:fragment="doctor-sidebar"
+      class="w-64 bg-white dark:bg-[#1a2634] border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 transition-all duration-300 fixed left-0 top-0 h-full z-40"
+    >
+      <div
+        class="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800"
+      >
+        <div class="flex items-center gap-2 text-primary">
+          <span class="material-symbols-outlined fill">local_hospital</span>
+          <h1
+            class="text-xl font-bold tracking-tight text-slate-900 dark:text-white"
+          >
+            ABClinic
+          </h1>
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        <a
+          class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/doctor/dashboard"
+          th:href="@{/doctor/dashboard}"
+        >
+          <span class="material-symbols-outlined text-[20px]">dashboard</span>
+          <span class="text-sm font-medium">Bảng điều khiển</span>
+        </a>
+        <a
+          class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/doctor/patients"
+          th:href="@{/doctor/patients}"
+        >
+          <span class="material-symbols-outlined text-[20px]">groups</span>
+          <span class="text-sm font-medium">Bệnh nhân</span>
+        </a>
+        <a
+          class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/doctor/prescriptions"
+          th:href="@{/doctor/prescriptions}"
+        >
+          <span class="material-symbols-outlined text-[20px]"
+            >prescriptions</span
+          >
+          <span class="text-sm font-medium">Đơn thuốc</span>
+        </a>
+        <a
+          class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/doctor/treatments"
+          th:href="@{/doctor/treatments}"
+        >
+          <span class="material-symbols-outlined text-[20px]"
+            >medical_services</span
+          >
+          <span class="text-sm font-medium">Lộ trình điều trị</span>
+        </a>
+        <a
+          class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/doctor/health-forecast"
+          th:href="@{/doctor/health-forecast}"
+        >
+          <span class="material-symbols-outlined text-[20px]">trending_up</span>
+          <span class="text-sm font-medium">Dự báo sức khỏe</span>
+        </a>
+        <a
+          class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/doctor/knowledge"
+          th:href="@{/doctor/knowledge}"
+        >
+          <span class="material-symbols-outlined text-[20px]">menu_book</span>
+          <span class="text-sm font-medium">Kho tri thức</span>
+        </a>
+        <a
+          class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/doctor/tickets"
+          th:href="@{/doctor/tickets}"
+        >
+          <span class="material-symbols-outlined text-[20px]"
+            >confirmation_number</span
+          >
+          <span class="text-sm font-medium">Ticket hỗ trợ</span>
+        </a>
+      </div>
+      <script>
+        // Auto-detect and highlight active menu item
+        (function () {
+          const currentPath = window.location.pathname;
+          const menuItems = document.querySelectorAll(".doctor-menu-item");
+
+          menuItems.forEach((item) => {
+            const itemPath = item.getAttribute("data-path");
+            if (currentPath.startsWith(itemPath)) {
+              item.classList.add("bg-primary/10", "text-primary");
+              item.classList.remove("text-slate-600");
+              const icon = item.querySelector(".material-symbols-outlined");
+              if (icon) {
+                icon.style.fontVariationSettings =
+                  '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24';
+              }
+            }
+          });
+        })();
+      </script>
+      <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+        <div
+          class="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 flex items-center gap-3"
+        >
+          <div
+            class="bg-center bg-no-repeat bg-cover rounded-full size-10 shrink-0"
+            style="
+              background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuC_XvdpydS2siR2GnfaKR3PPEPuBMUhGThn898-eXpSsWyw06B-PrXRHJ2XLHT9pN6kljAgWs3mMljJlgIQHNEwWUiR6zuDNGgNgdgAnqCYMiuAvZd5GbdW1gfS6th7Lx3Fce9BwPhQ5Keplj0xQl7yMPZRaoYqXe-Sws3A2y7rwgycMv17B5kOSZplvY48XXaed-lKvCp9UMG1ODB82JXjoMVaay4D90g6tlF2cXHenHsmNzkEDaQst_xYTGfziBf8e87YFCM7SlM&quot;);
+            "
+          ></div>
+          <div class="overflow-hidden">
+            <p
+              class="text-sm font-bold text-slate-900 dark:text-white truncate"
+              th:text="${doctor != null && doctor.userInfo != null} ? ${doctor.userInfo.fullName} : 'BS. Doctor'"
+            >
+              BS. Doctor
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+              Bác sĩ
+            </p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </body>
+</html>

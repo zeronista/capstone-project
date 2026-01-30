@@ -1,191 +1,335 @@
-<!DOCTYPE html>
+<!doctype html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Thông Tin Cá Nhân - HMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-50">
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-50">
     <!-- Navigation -->
     <nav class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <i class="fas fa-hospital text-blue-600 text-2xl mr-3"></i>
-                    <h1 class="text-xl font-bold text-gray-800">Hệ Thống Quản Lý Bệnh Viện</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <a href="/patient" class="text-gray-600 hover:text-gray-900">
-                        <i class="fas fa-arrow-left mr-2"></i>Quay lại
-                    </a>
-                    <span class="text-gray-700" id="userName">Bệnh nhân</span>
-                    <a href="/auth/logout" class="text-red-600 hover:text-red-800">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </a>
-                </div>
-            </div>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center">
+            <i class="fas fa-hospital text-blue-600 text-2xl mr-3"></i>
+            <h1 class="text-xl font-bold text-gray-800">
+              Hệ Thống Quản Lý Bệnh Viện
+            </h1>
+          </div>
+          <div class="flex items-center space-x-4">
+            <a href="/patient" class="text-gray-600 hover:text-gray-900">
+              <i class="fas fa-arrow-left mr-2"></i>Quay lại
+            </a>
+            <span class="text-gray-700" id="userName">Bệnh nhân</span>
+            <a href="/auth/logout" class="text-red-600 hover:text-red-800">
+              <i class="fas fa-sign-out-alt"></i>
+            </a>
+          </div>
         </div>
+      </div>
     </nav>
 
     <!-- Main Content -->
     <main class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <!-- Success/Error Messages -->
-        <div id="message-container" class="mb-6"></div>
+      <!-- Success/Error Messages -->
+      <div id="message-container" class="mb-6"></div>
 
-        <!-- Profile Header -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <div class="flex items-center">
-                <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mr-6">
-                    <i class="fas fa-user text-blue-600 text-4xl"></i>
-                </div>
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-800" id="profileName">Đang tải...</h2>
-                    <p class="text-gray-600">Bệnh nhân</p>
-                    <p class="text-sm text-gray-500 mt-1">
-                        <i class="fas fa-calendar mr-2"></i>Ngày đăng ký: <span id="createdDate">-</span>
+      <!-- Profile Header -->
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <div class="relative mr-6 group">
+              <img
+                id="avatarImg"
+                src=""
+                alt="Avatar"
+                class="w-24 h-24 rounded-full object-cover hidden"
+              />
+              <div
+                id="avatarPlaceholder"
+                class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center"
+              >
+                <i class="fas fa-user text-blue-600 text-4xl"></i>
+              </div>
+              <button
+                id="avatarUploadBtn"
+                type="button"
+                class="absolute bottom-0 right-0 w-8 h-8 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-blue-50 hover:border-blue-500 transition-all duration-200 cursor-pointer group-hover:scale-110"
+                aria-label="Đổi ảnh đại diện"
+              >
+                <i
+                  class="fas fa-camera text-gray-600 text-sm group-hover:text-blue-600"
+                ></i>
+              </button>
+              <input
+                type="file"
+                id="avatarInput"
+                accept="image/jpeg,image/jpg,image/png"
+                class="hidden"
+              />
+            </div>
+            <div>
+              <h2 class="text-2xl font-bold text-gray-800" id="profileName">
+                Đang tải...
+              </h2>
+              <p class="text-gray-600">Bệnh nhân</p>
+              <p class="text-sm text-gray-500 mt-1">
+                <i class="fas fa-calendar mr-2"></i>Ngày đăng ký:
+                <span id="createdDate">-</span>
+              </p>
+            </div>
+          </div>
+          <!-- Profile Completion -->
+          <div class="text-right">
+            <p class="text-sm font-medium text-gray-700 mb-2">
+              Hoàn thiện hồ sơ
+            </p>
+            <div class="flex items-center gap-2">
+              <div class="w-32 bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                <div
+                  id="completionBar"
+                  class="bg-blue-600 h-full rounded-full transition-all duration-500"
+                  style="width: 0%"
+                ></div>
+              </div>
+              <span
+                id="completionPercent"
+                class="text-sm font-semibold text-blue-600"
+                >0%</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Form -->
+      <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-lg font-semibold text-gray-800">
+            <i class="fas fa-user-edit text-blue-600 mr-2"></i>Thông Tin Cá Nhân
+          </h3>
+          <button
+            id="editBtn"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <i class="fas fa-edit mr-2"></i>Chỉnh sửa
+          </button>
+        </div>
+
+        <form id="profileForm">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Họ và tên -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Họ và tên *</label
+              >
+              <input
+                type="text"
+                id="fullName"
+                name="fullName"
+                disabled
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                required
+              />
+            </div>
+
+            <!-- Số điện thoại -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Số điện thoại *</label
+              >
+              <input
+                type="tel"
+                id="phoneNumber"
+                name="phoneNumber"
+                disabled
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                required
+              />
+            </div>
+
+            <!-- Ngày sinh -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Ngày sinh</label
+              >
+              <input
+                type="date"
+                id="dateOfBirth"
+                name="dateOfBirth"
+                disabled
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+              />
+            </div>
+
+            <!-- Giới tính -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Giới tính</label
+              >
+              <select
+                id="gender"
+                name="gender"
+                disabled
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+              >
+                <option value="">Chọn giới tính</option>
+                <option value="MALE">Nam</option>
+                <option value="FEMALE">Nữ</option>
+                <option value="OTHER">Khác</option>
+              </select>
+            </div>
+
+            <!-- Địa chỉ -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Địa chỉ</label
+              >
+              <textarea
+                id="address"
+                name="address"
+                rows="3"
+                disabled
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+              ></textarea>
+            </div>
+
+            <!-- Email (read-only) -->
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Email</label
+              >
+              <div class="flex items-center gap-3">
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  disabled
+                  class="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed"
+                />
+                <span
+                  id="emailVerifiedBadge"
+                  class="px-3 py-2 text-sm font-medium rounded-lg whitespace-nowrap"
+                >
+                  <i class="fas fa-spinner fa-spin mr-1"></i>Đang kiểm tra...
+                </span>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Email không thể thay đổi</p>
+            </div>
+
+            <!-- Resend Email Verification (hidden initially) -->
+            <div id="resendEmailSection" class="md:col-span-2 hidden">
+              <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div class="flex items-start gap-3">
+                  <i
+                    class="fas fa-exclamation-triangle text-amber-600 mt-0.5"
+                  ></i>
+                  <div class="flex-1">
+                    <p class="text-sm font-medium text-amber-800">
+                      Email chưa được xác thực
                     </p>
+                    <p class="text-xs text-amber-700 mt-1">
+                      Vui lòng xác thực email để sử dụng đầy đủ tính năng của hệ
+                      thống.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    id="resendVerificationBtn"
+                    class="px-4 py-2 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700"
+                  >
+                    <i class="fas fa-envelope mr-1"></i>Gửi lại
+                  </button>
                 </div>
+              </div>
             </div>
-        </div>
+          </div>
 
-        <!-- Profile Form -->
-        <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-semibold text-gray-800">
-                    <i class="fas fa-user-edit text-blue-600 mr-2"></i>Thông Tin Cá Nhân
-                </h3>
-                <button id="editBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    <i class="fas fa-edit mr-2"></i>Chỉnh sửa
-                </button>
+          <!-- Action Buttons (hidden initially) -->
+          <div id="formActions" class="mt-6 flex gap-3 hidden">
+            <button
+              type="submit"
+              class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <i class="fas fa-save mr-2"></i>Lưu thay đổi
+            </button>
+            <button
+              type="button"
+              id="cancelBtn"
+              class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+            >
+              <i class="fas fa-times mr-2"></i>Hủy
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Change Password Section -->
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-6">
+          <i class="fas fa-lock text-blue-600 mr-2"></i>Đổi Mật Khẩu
+        </h3>
+
+        <form id="passwordForm" class="max-w-md">
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Mật khẩu hiện tại *</label
+              >
+              <input
+                type="password"
+                id="currentPassword"
+                name="currentPassword"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                required
+              />
             </div>
 
-            <form id="profileForm">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Họ và tên -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Họ và tên *</label>
-                        <input type="text" id="fullName" name="fullName" disabled
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                               required>
-                    </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Mật khẩu mới *</label
+              >
+              <input
+                type="password"
+                id="newPassword"
+                name="newPassword"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                required
+                minlength="6"
+              />
+              <p class="text-xs text-gray-500 mt-1">Tối thiểu 6 ký tự</p>
+            </div>
 
-                    <!-- Số điện thoại -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại *</label>
-                        <input type="tel" id="phoneNumber" name="phoneNumber" disabled
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                               required>
-                    </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2"
+                >Xác nhận mật khẩu mới *</label
+              >
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                required
+                minlength="6"
+              />
+            </div>
 
-                    <!-- Ngày sinh -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Ngày sinh</label>
-                        <input type="date" id="dateOfBirth" name="dateOfBirth" disabled
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100">
-                    </div>
-
-                    <!-- Giới tính -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Giới tính</label>
-                        <select id="gender" name="gender" disabled
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100">
-                            <option value="">Chọn giới tính</option>
-                            <option value="MALE">Nam</option>
-                            <option value="FEMALE">Nữ</option>
-                            <option value="OTHER">Khác</option>
-                        </select>
-                    </div>
-
-                    <!-- Địa chỉ -->
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Địa chỉ</label>
-                        <textarea id="address" name="address" rows="3" disabled
-                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"></textarea>
-                    </div>
-
-                    <!-- Email (read-only) -->
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                        <div class="flex items-center gap-3">
-                            <input type="email" id="email" name="email" disabled
-                                   class="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed">
-                            <span id="emailVerifiedBadge" class="px-3 py-2 text-sm font-medium rounded-lg whitespace-nowrap">
-                                <i class="fas fa-spinner fa-spin mr-1"></i>Đang kiểm tra...
-                            </span>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-1">Email không thể thay đổi</p>
-                    </div>
-                    
-                    <!-- Resend Email Verification (hidden initially) -->
-                    <div id="resendEmailSection" class="md:col-span-2 hidden">
-                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                            <div class="flex items-start gap-3">
-                                <i class="fas fa-exclamation-triangle text-amber-600 mt-0.5"></i>
-                                <div class="flex-1">
-                                    <p class="text-sm font-medium text-amber-800">Email chưa được xác thực</p>
-                                    <p class="text-xs text-amber-700 mt-1">Vui lòng xác thực email để sử dụng đầy đủ tính năng của hệ thống.</p>
-                                </div>
-                                <button type="button" id="resendVerificationBtn" 
-                                        class="px-4 py-2 bg-amber-600 text-white text-sm rounded-lg hover:bg-amber-700">
-                                    <i class="fas fa-envelope mr-1"></i>Gửi lại
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons (hidden initially) -->
-                <div id="formActions" class="mt-6 flex gap-3 hidden">
-                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <i class="fas fa-save mr-2"></i>Lưu thay đổi
-                    </button>
-                    <button type="button" id="cancelBtn" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
-                        <i class="fas fa-times mr-2"></i>Hủy
-                    </button>
-                </div>
-            </form>
-        </div>
-
-        <!-- Change Password Section -->
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-6">
-                <i class="fas fa-lock text-blue-600 mr-2"></i>Đổi Mật Khẩu
-            </h3>
-
-            <form id="passwordForm" class="max-w-md">
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Mật khẩu hiện tại *</label>
-                        <input type="password" id="currentPassword" name="currentPassword"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                               required>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Mật khẩu mới *</label>
-                        <input type="password" id="newPassword" name="newPassword"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                               required minlength="6">
-                        <p class="text-xs text-gray-500 mt-1">Tối thiểu 6 ký tự</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Xác nhận mật khẩu mới *</label>
-                        <input type="password" id="confirmPassword" name="confirmPassword"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                               required minlength="6">
-                    </div>
-
-                    <button type="submit" class="w-full px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        <i class="fas fa-key mr-2"></i>Đổi mật khẩu
-                    </button>
-                </div>
-            </form>
-        </div>
+            <button
+              type="submit"
+              class="w-full px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <i class="fas fa-key mr-2"></i>Đổi mật khẩu
+            </button>
+          </div>
+        </form>
+      </div>
     </main>
 
     <script src="/js/profile-patient.js"></script>
-</body>
+  </body>
 </html>

@@ -59,7 +59,7 @@ public class ApiController {
      */
     @GetMapping("/prescriptions/{id}")
     public ResponseEntity<Prescription> getPrescriptionById(@PathVariable Long id) {
-        Prescription prescription = prescriptionService.getPrescriptionById(id).orElse(null);
+        Prescription prescription = prescriptionService.getPrescriptionById(id);
         if (prescription != null) {
             return ResponseEntity.ok(prescription);
         }

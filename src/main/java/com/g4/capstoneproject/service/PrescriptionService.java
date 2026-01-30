@@ -1,6 +1,7 @@
 package com.g4.capstoneproject.service;
 
 import com.g4.capstoneproject.dto.PrescriptionRequest;
+import com.g4.capstoneproject.dto.Precription.PrescriptionCreateRequest;
 import com.g4.capstoneproject.entity.Prescription;
 import com.g4.capstoneproject.entity.PrescriptionDetail;
 import com.g4.capstoneproject.entity.User;
@@ -13,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Service quản lý đơn thuốc
@@ -37,11 +37,11 @@ public class PrescriptionService {
     }
 
     /**
-     * Lấy đơn thuốc theo ID
+     * Lấy đơn thuốc theo ID (trả về Prescription object, không phải Optional)
      */
     @Transactional(readOnly = true)
-    public Optional<Prescription> getPrescriptionById(Long id) {
-        return prescriptionRepository.findById(id);
+    public Prescription getPrescriptionById(Long id) {
+        return prescriptionRepository.findById(id).orElse(null);
     }
 
     /**
@@ -148,6 +148,34 @@ public class PrescriptionService {
     }
 
     /**
+     * Lấy lịch sử kê đơn của bệnh nhân (sắp xếp theo ngày mới nhất)
+     */
+    @Transactional(readOnly = true)
+    public List<Prescription> getPrescriptionHistory(Long patientId) {
+        return prescriptionRepository.findByPatientIdOrderByPrescriptionDateDesc(patientId);
+    }
+
+    /**
+     * Kiểm tra trạng thái sử dụng thuốc
+     * Trả về số lần đã kê thuốc cho một loại thuốc cụ thể của bệnh nhân
+     */
+    @Transactional(readOnly = true)
+    public int checkMedicationUsageCount(Long patientId, String medicineName) {
+        List<Prescription> prescriptions = prescriptionRepository.findByPatientId(patientId);
+        int count = 0;
+
+        for (Prescription prescription : prescriptions) {
+            for (PrescriptionDetail detail : prescription.getDetails()) {
+                if (detail.getMedicineName().equalsIgnoreCase(medicineName)) {
+                    count++;
+                }
+            }
+        }
+
+        return count;
+    }
+
+    /**
      * Tạo đơn thuốc từ DTO với validation
      */
     public Prescription createPrescriptionFromRequest(PrescriptionRequest request) {
@@ -206,5 +234,90 @@ public class PrescriptionService {
         }
 
         return prescription;
+    }
+
+    /**
+     * Tạo đơn thuốc từ PrescriptionCreateRequest DTO (for REST API)
+     */
+    public Prescription createPrescriptionFromRequest(PrescriptionCreateRequest request, User doctor, User patient) {
+        // Validate roles
+        if (patient.getRole() != User.UserRole.PATIENT) {
+            throw new IllegalArgumentException("User không phải là bệnh nhân");
+        }
+
+        if (doctor.getRole() != User.UserRole.DOCTOR) {
+            throw new IllegalArgumentException("User không phải là bác sĩ");
+        }
+
+        // Create prescription
+        Prescription prescription = Prescription.builder()
+                .patient(patient)
+                .doctor(doctor)
+                .diagnosis(request.getDiagnosis())
+                .notes(request.getNotes())
+                .prescriptionDate(LocalDate.now())
+                .status(request.getStatus() != null ? request.getStatus() : Prescription.PrescriptionStatus.ACTIVE)
+                .build();
+
+        // Save prescription first
+        prescription = prescriptionRepository.save(prescription);
+
+        // Create prescription details
+        final Prescription savedPrescription = prescription;
+        for (PrescriptionCreateRequest.MedicationItemDTO medication : request.getMedications()) {
+            PrescriptionDetail detail = PrescriptionDetail.builder()
+                    .prescription(savedPrescription)
+                    .medicineName(medication.getMedicineName())
+                    .dosage(medication.getDosage())
+                    .frequency(medication.getFrequency())
+                    .duration(medication.getDuration())
+                    .quantity(medication.getQuantity())
+                    .instructions(medication.getInstructions())
+                    .build();
+
+            prescriptionDetailRepository.save(detail);
+        }
+
+        return prescription;
+    }
+
+    /**
+     * Cập nhật đơn thuốc từ PrescriptionCreateRequest DTO (for REST API)
+     */
+    public Prescription updatePrescriptionFromRequest(Long id, PrescriptionCreateRequest request, User doctor) {
+        Prescription existingPrescription = prescriptionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn thuốc với ID: " + id));
+
+        // Validate doctor ownership
+        if (!existingPrescription.getDoctor().getId().equals(doctor.getId())) {
+            throw new IllegalArgumentException("Bạn không có quyền cập nhật đơn thuốc này");
+        }
+
+        // Update prescription fields
+        existingPrescription.setDiagnosis(request.getDiagnosis());
+        existingPrescription.setNotes(request.getNotes());
+        if (request.getStatus() != null) {
+            existingPrescription.setStatus(request.getStatus());
+        }
+
+        // Delete old prescription details
+        prescriptionDetailRepository.deleteByPrescriptionId(id);
+
+        // Create new prescription details
+        for (PrescriptionCreateRequest.MedicationItemDTO medication : request.getMedications()) {
+            PrescriptionDetail detail = PrescriptionDetail.builder()
+                    .prescription(existingPrescription)
+                    .medicineName(medication.getMedicineName())
+                    .dosage(medication.getDosage())
+                    .frequency(medication.getFrequency())
+                    .duration(medication.getDuration())
+                    .quantity(medication.getQuantity())
+                    .instructions(medication.getInstructions())
+                    .build();
+
+            prescriptionDetailRepository.save(detail);
+        }
+
+        return prescriptionRepository.save(existingPrescription);
     }
 }

@@ -1,0 +1,764 @@
+<!doctype html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Quản lý Ticket - ABClinic</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0d7cf2",
+              "primary-dark": "#0a62bf",
+              "background-light": "#f5f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              display: ["Roboto", "sans-serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 24px;
+      }
+      .material-symbols-outlined.fill {
+        font-variation-settings: "FILL" 1;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      /* Modal backdrop */
+      .modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 40;
+      }
+      .modal-backdrop.show {
+        display: block;
+      }
+      /* Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        overflow-y: auto;
+      }
+      .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display h-screen flex overflow-hidden"
+  >
+    <!-- Doctor Sidebar -->
+    <aside th:replace="~{fragments/doctor-layout :: doctor-sidebar}"></aside>
+
+    <!-- Main Content -->
+    <main
+      class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark"
+    >
+      <!-- Header -->
+      <header
+        class="h-16 flex items-center justify-between px-6 bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 shrink-0 z-10"
+      >
+        <div class="flex-1 max-w-lg">
+          <h2 class="text-2xl font-bold text-slate-900 dark:text-white">
+            Quản lý Ticket
+          </h2>
+        </div>
+        <div class="flex items-center gap-3 ml-4">
+          <button
+            class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors relative"
+          >
+            <span class="material-symbols-outlined text-[24px]"
+              >notifications</span
+            >
+          </button>
+          <button
+            class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
+          >
+            <span class="material-symbols-outlined text-[24px]">settings</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+          <!-- Statistics Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p
+                    class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                  >
+                    Tổng số ticket
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-slate-900 dark:text-white mt-1"
+                    id="totalTickets"
+                  >
+                    0
+                  </h3>
+                </div>
+                <div
+                  class="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-primary"
+                >
+                  <span class="material-symbols-outlined"
+                    >confirmation_number</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p
+                    class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                  >
+                    Đang xử lý
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-slate-900 dark:text-white mt-1"
+                    id="inProgressTickets"
+                  >
+                    0
+                  </h3>
+                </div>
+                <div
+                  class="p-2 bg-amber-50 dark:bg-amber-900/30 rounded-lg text-amber-600"
+                >
+                  <span class="material-symbols-outlined">pending</span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p
+                    class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                  >
+                    Ưu tiên cao
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-slate-900 dark:text-white mt-1"
+                    id="highPriorityTickets"
+                  >
+                    0
+                  </h3>
+                </div>
+                <div
+                  class="p-2 bg-red-50 dark:bg-red-900/30 rounded-lg text-red-600"
+                >
+                  <span class="material-symbols-outlined">priority_high</span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p
+                    class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                  >
+                    Đã giải quyết
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-slate-900 dark:text-white mt-1"
+                    id="resolvedTickets"
+                  >
+                    0
+                  </h3>
+                </div>
+                <div
+                  class="p-2 bg-green-50 dark:bg-green-900/30 rounded-lg text-green-600"
+                >
+                  <span class="material-symbols-outlined">check_circle</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters and Table -->
+          <div
+            class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col"
+          >
+            <div class="p-5 border-b border-slate-200 dark:border-slate-800">
+              <div
+                class="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center"
+              >
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+                  Danh sách Ticket
+                </h3>
+                <div class="flex flex-wrap items-center gap-3">
+                  <!-- Status Filter -->
+                  <select
+                    id="statusFilter"
+                    class="h-10 pl-3 pr-8 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="OPEN">Mới tạo</option>
+                    <option value="ASSIGNED">Đã gán</option>
+                    <option value="IN_PROGRESS">Đang xử lý</option>
+                    <option value="RESOLVED">Đã giải quyết</option>
+                    <option value="CLOSED">Đóng</option>
+                  </select>
+
+                  <!-- Priority Filter -->
+                  <select
+                    id="priorityFilter"
+                    class="h-10 pl-3 pr-8 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    <option value="">Tất cả mức độ</option>
+                    <option value="URGENT">Khẩn cấp</option>
+                    <option value="HIGH">Cao</option>
+                    <option value="MEDIUM">Trung bình</option>
+                    <option value="LOW">Thấp</option>
+                  </select>
+
+                  <button
+                    onclick="refreshTickets()"
+                    class="h-10 px-4 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center gap-2"
+                  >
+                    <span class="material-symbols-outlined text-[20px]"
+                      >refresh</span
+                    >
+                    Làm mới
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr
+                    class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800"
+                  >
+                    <th
+                      class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                    >
+                      ID
+                    </th>
+                    <th
+                      class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                    >
+                      Tiêu đề
+                    </th>
+                    <th
+                      class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                    >
+                      Bệnh nhân
+                    </th>
+                    <th
+                      class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                    >
+                      Mức độ
+                    </th>
+                    <th
+                      class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                    >
+                      Trạng thái
+                    </th>
+                    <th
+                      class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                    >
+                      Ngày tạo
+                    </th>
+                    <th
+                      class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-right"
+                    >
+                      Thao tác
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="ticketsTableBody"
+                  class="divide-y divide-slate-200 dark:divide-slate-800"
+                >
+                  <!-- Tickets will be loaded here dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <div
+              class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/20"
+            >
+              <p
+                class="text-sm text-slate-500 dark:text-slate-400"
+                id="resultsInfo"
+              >
+                Đang tải...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal: Ticket Detail -->
+    <div id="ticketDetailModal" class="modal">
+      <div
+        class="bg-white dark:bg-[#1a2634] rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col"
+      >
+        <!-- Modal Header -->
+        <div
+          class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between"
+        >
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white">
+            Chi tiết Ticket
+          </h3>
+          <button
+            onclick="closeTicketDetail()"
+            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="flex-1 overflow-y-auto p-6">
+          <div id="ticketDetailContent">
+            <!-- Content will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-6 border-t border-slate-200 dark:border-slate-800">
+          <div class="flex gap-3">
+            <select
+              id="newStatus"
+              class="flex-1 h-10 pl-3 pr-8 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium"
+            >
+              <option value="">-- Chọn trạng thái --</option>
+              <option value="IN_PROGRESS">Đang xử lý</option>
+              <option value="RESOLVED">Đã giải quyết</option>
+              <option value="CLOSED">Đóng</option>
+            </select>
+            <button
+              onclick="updateStatus()"
+              class="px-6 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-colors"
+            >
+              Cập nhật trạng thái
+            </button>
+          </div>
+
+          <div class="mt-4">
+            <textarea
+              id="replyMessage"
+              rows="3"
+              placeholder="Nhập phản hồi..."
+              class="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+            ></textarea>
+            <button
+              onclick="sendReply()"
+              class="mt-2 px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+            >
+              Gửi phản hồi
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Backdrop -->
+    <div
+      id="modalBackdrop"
+      class="modal-backdrop"
+      onclick="closeTicketDetail()"
+    ></div>
+
+    <script>
+      let currentTicketId = null;
+      let allTickets = [];
+
+      // Load tickets on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        loadTickets();
+
+        // Add event listeners for filters
+        document
+          .getElementById("statusFilter")
+          .addEventListener("change", filterTickets);
+        document
+          .getElementById("priorityFilter")
+          .addEventListener("change", filterTickets);
+      });
+
+      // Load tickets from API
+      async function loadTickets() {
+        try {
+          const response = await fetch("/api/doctor/tickets");
+          const data = await response.json();
+
+          allTickets = data.tickets || [];
+          renderTickets(allTickets);
+          updateStatistics(allTickets);
+        } catch (error) {
+          console.error("Error loading tickets:", error);
+          showError("Không thể tải danh sách ticket");
+        }
+      }
+
+      // Render tickets to table
+      function renderTickets(tickets) {
+        const tbody = document.getElementById("ticketsTableBody");
+
+        if (tickets.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="7" class="px-6 py-8 text-center text-slate-500">Không có ticket nào</td></tr>';
+          document.getElementById("resultsInfo").textContent =
+            "Không có ticket";
+          return;
+        }
+
+        tbody.innerHTML = tickets
+          .map(
+            (ticket) => `
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">#${ticket.id}</td>
+                <td class="px-6 py-4">
+                    <div class="text-sm font-medium text-slate-900 dark:text-white">${escapeHtml(ticket.title)}</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400 truncate max-w-xs">${escapeHtml(ticket.description || "")}</div>
+                </td>
+                <td class="px-6 py-4">
+                    <div class="text-sm text-slate-900 dark:text-white">${escapeHtml(ticket.patientName || "N/A")}</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400">${escapeHtml(ticket.patientPhone || "")}</div>
+                </td>
+                <td class="px-6 py-4">
+                    ${getPriorityBadge(ticket.priority)}
+                </td>
+                <td class="px-6 py-4">
+                    ${getStatusBadge(ticket.status)}
+                </td>
+                <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
+                    ${formatDateTime(ticket.createdAt)}
+                </td>
+                <td class="px-6 py-4 text-right">
+                    <button onclick="viewTicketDetail(${ticket.id})" class="text-primary hover:text-primary-dark transition-colors">
+                        <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                </td>
+            </tr>
+        `,
+          )
+          .join("");
+
+        document.getElementById("resultsInfo").textContent =
+          `Hiển thị ${tickets.length} ticket`;
+      }
+
+      // Filter tickets
+      function filterTickets() {
+        const statusFilter = document.getElementById("statusFilter").value;
+        const priorityFilter = document.getElementById("priorityFilter").value;
+
+        let filtered = allTickets;
+
+        if (statusFilter) {
+          filtered = filtered.filter((t) => t.status === statusFilter);
+        }
+
+        if (priorityFilter) {
+          filtered = filtered.filter((t) => t.priority === priorityFilter);
+        }
+
+        renderTickets(filtered);
+      }
+
+      // Update statistics
+      function updateStatistics(tickets) {
+        document.getElementById("totalTickets").textContent = tickets.length;
+        document.getElementById("inProgressTickets").textContent =
+          tickets.filter((t) => t.status === "IN_PROGRESS").length;
+        document.getElementById("highPriorityTickets").textContent =
+          tickets.filter(
+            (t) => t.priority === "HIGH" || t.priority === "URGENT",
+          ).length;
+        document.getElementById("resolvedTickets").textContent = tickets.filter(
+          (t) => t.status === "RESOLVED" || t.status === "CLOSED",
+        ).length;
+      }
+
+      // View ticket detail
+      async function viewTicketDetail(ticketId) {
+        currentTicketId = ticketId;
+
+        try {
+          const response = await fetch(`/api/doctor/tickets/${ticketId}`);
+          const ticket = await response.json();
+
+          renderTicketDetail(ticket);
+          openModal();
+        } catch (error) {
+          console.error("Error loading ticket detail:", error);
+          showError("Không thể tải chi tiết ticket");
+        }
+      }
+
+      // Render ticket detail
+      function renderTicketDetail(ticket) {
+        const content = document.getElementById("ticketDetailContent");
+
+        content.innerHTML = `
+            <div class="space-y-6">
+                <!-- Ticket Info -->
+                <div class="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Bệnh nhân</p>
+                            <p class="text-sm font-medium text-slate-900 dark:text-white">${escapeHtml(ticket.patientName || "N/A")}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Danh mục</p>
+                            <p class="text-sm font-medium text-slate-900 dark:text-white">${ticket.category || "N/A"}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Mức độ</p>
+                            ${getPriorityBadge(ticket.priority)}
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Trạng thái</p>
+                            ${getStatusBadge(ticket.status)}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-2">Mô tả</h4>
+                    <p class="text-sm text-slate-600 dark:text-slate-400">${escapeHtml(ticket.description || "Không có mô tả")}</p>
+                </div>
+
+                <!-- Messages -->
+                <div>
+                    <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-3">Lịch sử tin nhắn</h4>
+                    <div class="space-y-3">
+                        ${
+                          ticket.messages && ticket.messages.length > 0
+                            ? ticket.messages
+                                .map(
+                                  (msg) => `
+                            <div class="bg-slate-50 dark:bg-slate-800 rounded-lg p-3">
+                                <div class="flex items-start gap-3">
+                                    <div class="size-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">
+                                        ${msg.senderName ? msg.senderName.charAt(0).toUpperCase() : "?"}
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <p class="text-sm font-medium text-slate-900 dark:text-white">${escapeHtml(msg.senderName || "Unknown")}</p>
+                                            <span class="text-xs text-slate-500">${formatDateTime(msg.createdAt)}</span>
+                                        </div>
+                                        <p class="text-sm text-slate-600 dark:text-slate-400">${escapeHtml(msg.messageText)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `,
+                                )
+                                .join("")
+                            : '<p class="text-sm text-slate-500 text-center py-4">Chưa có tin nhắn</p>'
+                        }
+                    </div>
+                </div>
+            </div>
+        `;
+      }
+
+      // Update status
+      async function updateStatus() {
+        const newStatus = document.getElementById("newStatus").value;
+
+        if (!newStatus) {
+          alert("Vui lòng chọn trạng thái");
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `/api/doctor/tickets/${currentTicketId}/status`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                status: newStatus,
+                note: "",
+              }),
+            },
+          );
+
+          const result = await response.json();
+
+          if (result.success) {
+            alert("Cập nhật trạng thái thành công");
+            closeTicketDetail();
+            loadTickets();
+          }
+        } catch (error) {
+          console.error("Error updating status:", error);
+          showError("Không thể cập nhật trạng thái");
+        }
+      }
+
+      // Send reply
+      async function sendReply() {
+        const message = document.getElementById("replyMessage").value.trim();
+
+        if (!message) {
+          alert("Vui lòng nhập nội dung phản hồi");
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `/api/doctor/tickets/${currentTicketId}/messages`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                messageText: message,
+                messageType: "TEXT",
+                isInternalNote: false,
+              }),
+            },
+          );
+
+          const result = await response.json();
+
+          if (result.success) {
+            document.getElementById("replyMessage").value = "";
+            viewTicketDetail(currentTicketId); // Reload detail
+          }
+        } catch (error) {
+          console.error("Error sending reply:", error);
+          showError("Không thể gửi phản hồi");
+        }
+      }
+
+      // Refresh tickets
+      function refreshTickets() {
+        loadTickets();
+      }
+
+      // Modal functions
+      function openModal() {
+        document.getElementById("ticketDetailModal").classList.add("show");
+        document.getElementById("modalBackdrop").classList.add("show");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeTicketDetail() {
+        document.getElementById("ticketDetailModal").classList.remove("show");
+        document.getElementById("modalBackdrop").classList.remove("show");
+        document.body.style.overflow = "";
+        currentTicketId = null;
+      }
+
+      // Helper functions
+      function getPriorityBadge(priority) {
+        const badges = {
+          URGENT:
+            '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">Khẩn cấp</span>',
+          HIGH: '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">Cao</span>',
+          MEDIUM:
+            '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 border border-yellow-200">Trung bình</span>',
+          LOW: '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">Thấp</span>',
+        };
+        return badges[priority] || badges["MEDIUM"];
+      }
+
+      function getStatusBadge(status) {
+        const badges = {
+          OPEN: '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Mới tạo</span>',
+          ASSIGNED:
+            '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700">Đã gán</span>',
+          IN_PROGRESS:
+            '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700">Đang xử lý</span>',
+          RESOLVED:
+            '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">Đã giải quyết</span>',
+          CLOSED:
+            '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">Đóng</span>',
+        };
+        return badges[status] || badges["OPEN"];
+      }
+
+      function formatDateTime(dateString) {
+        if (!dateString) return "N/A";
+        const date = new Date(dateString);
+        return date.toLocaleString("vi-VN", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      function showError(message) {
+        alert(message);
+      }
+    </script>
+  </body>
+</html>
