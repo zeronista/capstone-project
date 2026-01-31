@@ -139,6 +139,54 @@ public class AuthController {
     }
 
     /**
+     * POST /auth/forgot-password - Xử lý quên mật khẩu
+     */
+    @PostMapping("/forgot-password")
+    public String forgotPassword(@RequestParam String email,
+            RedirectAttributes redirectAttributes,
+            Model model) {
+
+        AuthResponse response = authService.forgotPassword(email);
+
+        if (response.getSuccess()) {
+            redirectAttributes.addFlashAttribute("success", response.getMessage());
+            return "redirect:/auth/login";
+        } else {
+            model.addAttribute("error", response.getMessage());
+            return "auth/forgot-password";
+        }
+    }
+
+    /**
+     * POST /auth/reset-password - Xử lý đặt lại mật khẩu
+     */
+    @PostMapping("/reset-password")
+    public String resetPassword(@RequestParam String token,
+            @RequestParam String password,
+            @RequestParam String confirmPassword,
+            RedirectAttributes redirectAttributes,
+            Model model) {
+
+        // Kiểm tra mật khẩu khớp
+        if (!password.equals(confirmPassword)) {
+            model.addAttribute("error", "Mật khẩu xác nhận không khớp.");
+            model.addAttribute("token", token);
+            return "auth/reset-password";
+        }
+
+        AuthResponse response = authService.resetPassword(token, password);
+
+        if (response.getSuccess()) {
+            redirectAttributes.addFlashAttribute("success", response.getMessage());
+            return "redirect:/auth/login";
+        } else {
+            model.addAttribute("error", response.getMessage());
+            model.addAttribute("token", token);
+            return "auth/reset-password";
+        }
+    }
+
+    /**
      * GET /auth/oauth2/success - Xử lý thành công OAuth2 login
      */
     @GetMapping("/oauth2/success")

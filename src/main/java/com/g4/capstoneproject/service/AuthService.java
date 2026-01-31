@@ -379,4 +379,103 @@ public class AuthService {
             return false;
         }
     }
+
+    /**
+     * Xử lý quên mật khẩu - tạo reset token và gửi email
+     */
+    @Transactional
+    public AuthResponse forgotPassword(String email) {
+        try {
+            Optional<User> userOpt = userRepository.findByEmail(email);
+
+            if (userOpt.isEmpty()) {
+                // Không thông báo user không tồn tại để tránh lộ thông tin
+                log.warn("Forgot password request for non-existent email: {}", email);
+                return AuthResponse.builder()
+                        .success(true)
+                        .message("Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.")
+                        .build();
+            }
+
+            User user = userOpt.get();
+
+            // Tạo reset token
+            String resetToken = UUID.randomUUID().toString();
+            user.setPasswordResetToken(resetToken);
+            user.setPasswordResetTokenExpiry(LocalDateTime.now().plusHours(1)); // Token có hiệu lực 1 giờ
+
+            userRepository.save(user);
+
+            // Gửi email reset password
+            String resetUrl = String.format("%s/auth/reset-password?token=%s", baseUrl, resetToken);
+            log.info("Sending password reset email to: {}", email);
+            asyncEmailService.sendPasswordResetEmailAsync(user.getEmail(), 
+                    user.getFullName() != null ? user.getFullName() : "User", 
+                    resetToken,
+                    resetUrl);
+
+            log.info("Password reset token generated for user: {}", email);
+            return AuthResponse.builder()
+                    .success(true)
+                    .message("Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.")
+                    .build();
+        } catch (Exception e) {
+            log.error("Error during forgot password", e);
+            return AuthResponse.builder()
+                    .success(false)
+                    .message("Đã xảy ra lỗi khi xử lý yêu cầu. Vui lòng thử lại sau.")
+                    .build();
+        }
+    }
+
+    /**
+     * Đặt lại mật khẩu với token
+     * Clears user cache after password reset
+     */
+    @CacheEvict(value = "users", allEntries = true)
+    @Transactional
+    public AuthResponse resetPassword(String token, String newPassword) {
+        try {
+            Optional<User> userOpt = userRepository.findByPasswordResetToken(token);
+
+            if (userOpt.isEmpty()) {
+                log.warn("Password reset failed: Invalid token");
+                return AuthResponse.builder()
+                        .success(false)
+                        .message("Link đặt lại mật khẩu không hợp lệ.")
+                        .build();
+            }
+
+            User user = userOpt.get();
+
+            // Kiểm tra token đã hết hạn chưa
+            if (user.getPasswordResetTokenExpiry() != null &&
+                    user.getPasswordResetTokenExpiry().isBefore(LocalDateTime.now())) {
+                log.warn("Password reset failed: Token expired for user {}", user.getEmail());
+                return AuthResponse.builder()
+                        .success(false)
+                        .message("Link đặt lại mật khẩu đã hết hạn. Vui lòng yêu cầu lại.")
+                        .build();
+            }
+
+            // Đặt lại mật khẩu và xóa token
+            user.setPassword(passwordEncoder.encode(newPassword));
+            user.setPasswordResetToken(null);
+            user.setPasswordResetTokenExpiry(null);
+
+            userRepository.save(user);
+
+            log.info("Password reset successfully for user: {}", user.getEmail());
+            return AuthResponse.builder()
+                    .success(true)
+                    .message("Mật khẩu đã được đặt lại thành công. Bạn có thể đăng nhập với mật khẩu mới.")
+                    .build();
+        } catch (Exception e) {
+            log.error("Error during password reset", e);
+            return AuthResponse.builder()
+                    .success(false)
+                    .message("Đã xảy ra lỗi khi đặt lại mật khẩu. Vui lòng thử lại sau.")
+                    .build();
+        }
+    }
 }

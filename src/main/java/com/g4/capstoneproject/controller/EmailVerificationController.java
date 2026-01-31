@@ -34,8 +34,7 @@ public class EmailVerificationController {
         boolean success = authService.verifyEmail(token);
         
         if (success) {
-            redirectAttributes.addFlashAttribute("success", true);
-            redirectAttributes.addFlashAttribute("message", 
+            redirectAttributes.addFlashAttribute("success", 
                 "Email đã được xác thực thành công! Bạn có thể đăng nhập ngay bây giờ.");
             return "redirect:/auth/login";
         } else {

@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * DTO cho response profile (flattened User + UserInfo)
@@ -26,6 +27,7 @@ public class ProfileResponse {
     private Boolean isActive;
     private Boolean isVerified;
     private String googleId;
+    private LocalDateTime createdAt;
 
     // UserInfo fields
     private String fullName;

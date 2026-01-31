@@ -53,6 +53,7 @@ public class ProfileService {
                 .isActive(user.getIsActive())
                 .isVerified(user.getEmailVerified())
                 .googleId(user.getGoogleId())
+                .createdAt(user.getCreatedAt())
                 .canChangePassword(user.getGoogleId() == null) // Chỉ cho đổi MK nếu không phải Google OAuth
                 .build();
 
