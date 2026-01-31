@@ -421,8 +421,26 @@
       onclick="closeTicketDetail()"
     ></div>
 
-    <script>
-      let currentTicketId = null;
+    <!-- External JavaScript Module -->
+    <script type="module">
+        import * as doctorTickets from '/static/js/doctor-tickets.js';
+        
+        // Initialize the module
+        document.addEventListener('DOMContentLoaded', () => {
+            doctorTickets.init();
+        });
+        
+        // Expose functions to window for inline onclick handlers
+        window.doctorTickets = {
+            viewTicketDetail: doctorTickets.viewTicketDetail,
+            closeTicketDetail: doctorTickets.closeTicketDetail,
+            updateStatus: doctorTickets.updateStatus,
+            sendReply: doctorTickets.sendReply,
+            refreshTickets: doctorTickets.refreshTickets
+        };
+    </script>
+  </body>
+</html>
       let allTickets = [];
 
       // Load tickets on page load

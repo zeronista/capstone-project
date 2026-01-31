@@ -271,13 +271,28 @@
         </div>
     </div>
     
-    <script>
-        // State
-        let currentUserId = null;
-        let allAccounts = [];
-        let currentFilter = '';
+    <!-- External JavaScript Module -->
+    <script type="module">
+        import * as adminAccounts from '/static/js/admin-accounts.js';
         
-        // Load accounts on page load
+        // Initialize the module
+        document.addEventListener('DOMContentLoaded', () => {
+            adminAccounts.init();
+        });
+        
+        // Expose functions to window for inline onclick handlers
+        window.adminAccounts = {
+            openAssignRoleModal: adminAccounts.openAssignRoleModal,
+            closeAssignRoleModal: adminAccounts.closeAssignRoleModal,
+            openCreateAccountModal: adminAccounts.openCreateAccountModal,
+            closeCreateAccountModal: adminAccounts.closeCreateAccountModal,
+            confirmAssignRole: adminAccounts.confirmAssignRole,
+            toggleAccountStatus: adminAccounts.toggleAccountStatus
+        };
+    </script>
+    
+</body>
+</html>
         document.addEventListener('DOMContentLoaded', function() {
             loadAccounts();
             setupEventListeners();

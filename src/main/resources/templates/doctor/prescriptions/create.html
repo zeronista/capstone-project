@@ -687,9 +687,27 @@
       </div>
     </div>
 
-    <script>
-      // Toggle mobile sidebar
-      function toggleMobileSidebar() {
+    <!-- Hidden input for doctor ID from Thymeleaf -->
+    <input type="hidden" id="doctorId" th:value="${doctor?.id}" />
+    
+    <!-- External JavaScript Module -->
+    <script type="module">
+        import * as prescriptionCreate from '/static/js/doctor-prescription-create.js';
+        
+        // Initialize the module
+        document.addEventListener('DOMContentLoaded', () => {
+            prescriptionCreate.init();
+        });
+        
+        // Expose functions to window for inline onclick handlers
+        window.prescriptionCreate = {
+            toggleMobileSidebar: prescriptionCreate.toggleMobileSidebar,
+            addMedicationRow: prescriptionCreate.addMedicationRow,
+            removeMedicationRow: prescriptionCreate.removeMedicationRow
+        };
+    </script>
+  </body>
+</html>
         const sidebar = document.querySelector("aside");
         sidebar.classList.toggle("hidden");
       }

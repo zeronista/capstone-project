@@ -752,10 +752,17 @@
         </div>
     </main>
     
-    <script>
-        // Patient Trend Chart
-        const patientCtx = document.getElementById('patientTrendChart').getContext('2d');
-        new Chart(patientCtx, {
+    <!-- External JavaScript Module -->
+    <script type="module">
+        import * as dashboardCharts from '/static/js/dashboard-charts.js';
+        
+        // Initialize charts
+        document.addEventListener('DOMContentLoaded', () => {
+            dashboardCharts.init();
+        });
+    </script>
+</body>
+</html>
             type: 'line',
             data: {
                 labels: ['Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12', 'Tháng 1'],

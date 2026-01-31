@@ -435,9 +435,17 @@
         </div>
     </main>
     
-    <script>
-        // Daily Visits Chart
-        new Chart(document.getElementById('dailyVisitsChart'), {
+    <!-- External JavaScript Module -->
+    <script type="module">
+        import * as reportsDetailCharts from '/static/js/reports-detail-charts.js';
+        
+        // Initialize charts
+        document.addEventListener('DOMContentLoaded', () => {
+            reportsDetailCharts.init();
+        });
+    </script>
+</body>
+</html>
             type: 'line',
             data: {
                 labels: Array.from({length: 31}, (_, i) => i + 1),

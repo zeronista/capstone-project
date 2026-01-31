@@ -312,8 +312,26 @@
       </div>
     </div>
 
-    <script>
-      let allTreatments = [];
+    <!-- External JavaScript Module -->
+    <script type="module">
+        import * as doctorTreatments from '/static/js/doctor-treatments.js';
+        
+        // Initialize the module
+        document.addEventListener('DOMContentLoaded', () => {
+            doctorTreatments.init();
+        });
+        
+        // Expose functions to window for inline onclick handlers
+        window.doctorTreatments = {
+            viewTreatment: doctorTreatments.viewTreatment,
+            closeTreatmentModal: doctorTreatments.closeTreatmentModal,
+            managementCheckups: doctorTreatments.managementCheckups,
+            openCreateTreatmentModal: doctorTreatments.openCreateTreatmentModal,
+            applyFilters: doctorTreatments.applyFilters
+        };
+    </script>
+  </body>
+</html>
       let filteredTreatments = [];
 
       // Load treatment plans on page load

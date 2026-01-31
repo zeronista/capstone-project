@@ -329,8 +329,27 @@
       </div>
     </div>
 
-    <script>
-      let allPrescriptions = [];
+    <!-- External JavaScript Module -->
+    <script type="module">
+        import * as doctorPrescriptions from '/static/js/doctor-prescriptions.js';
+        
+        // Initialize the module
+        document.addEventListener('DOMContentLoaded', () => {
+            doctorPrescriptions.init();
+        });
+        
+        // Expose functions to window for inline onclick handlers
+        window.doctorPrescriptions = {
+            viewPrescription: doctorPrescriptions.viewPrescription,
+            closePrescriptionModal: doctorPrescriptions.closePrescriptionModal,
+            editPrescription: doctorPrescriptions.editPrescription,
+            printPrescription: doctorPrescriptions.printPrescription,
+            applyFilters: doctorPrescriptions.applyFilters,
+            clearFilters: doctorPrescriptions.clearFilters
+        };
+    </script>
+  </body>
+</html>
       let filteredPrescriptions = [];
 
       // Load prescriptions on page load
