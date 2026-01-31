@@ -1,0 +1,792 @@
+<!doctype html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head(title='Gọi tư vấn')}"></head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans h-screen flex overflow-hidden"
+  >
+    <!-- Mobile Sidebar Backdrop -->
+    <div th:replace="~{fragments/layout :: sidebar-backdrop}"></div>
+
+    <!-- Patient Sidebar -->
+    <aside th:replace="~{fragments/layout :: patient-sidebar}"></aside>
+
+    <!-- Main Content -->
+    <main
+      class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark"
+    >
+      <!-- Header -->
+      <header
+        th:replace="~{fragments/layout :: header(title='Gọi tư vấn')}"
+      ></header>
+
+      <!-- Content Area -->
+      <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+        <div class="max-w-4xl mx-auto">
+          <!-- Page Title -->
+          <div class="mb-6">
+            <h2
+              class="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3"
+            >
+              <span class="material-symbols-outlined text-primary">call</span>
+              Gọi tư vấn sức khỏe
+            </h2>
+            <p class="text-slate-500 dark:text-slate-400 mt-1">
+              Liên hệ với nhân viên tư vấn của ABClinic để được hỗ trợ
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Call Panel - Main -->
+            <div class="lg:col-span-2">
+              <div
+                class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden"
+              >
+                <!-- Connection Status -->
+                <div
+                  class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="status-dot disconnected" id="statusDot"></div>
+                    <span
+                      class="text-sm font-medium text-slate-600 dark:text-slate-400"
+                      id="statusText"
+                      >Đang kết nối...</span
+                    >
+                  </div>
+                  <div class="text-xs text-slate-400" id="connectionInfo">
+                    --
+                  </div>
+                </div>
+
+                <!-- User Info -->
+                <div
+                  class="p-6 border-b border-slate-200 dark:border-slate-800"
+                >
+                  <div class="flex items-center gap-4">
+                    <div
+                      class="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-white font-bold text-xl"
+                      id="userAvatar"
+                    >
+                      ?
+                    </div>
+                    <div>
+                      <h3
+                        class="text-lg font-semibold text-slate-900 dark:text-white"
+                        id="userName"
+                      >
+                        Đang tải...
+                      </h3>
+                      <p
+                        class="text-sm text-slate-500 dark:text-slate-400"
+                        id="userEmail"
+                      >
+                        --
+                      </p>
+                      <p class="text-xs text-slate-400 mt-1">
+                        Stringee ID:
+                        <span id="stringeeId" class="font-mono">--</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Call States -->
+                <div class="p-8">
+                  <!-- Idle State -->
+                  <div id="idleState" class="text-center">
+                    <div
+                      class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 flex items-center justify-center"
+                    >
+                      <span
+                        class="material-symbols-outlined text-5xl text-emerald-500"
+                        >headset_mic</span
+                      >
+                    </div>
+                    <h3
+                      class="text-xl font-semibold text-slate-800 dark:text-white mb-2"
+                    >
+                      Sẵn sàng nhận cuộc gọi
+                    </h3>
+                    <p
+                      class="text-slate-500 dark:text-slate-400 mb-6 max-w-sm mx-auto"
+                    >
+                      Hệ thống sẽ tự động thông báo khi nhân viên tư vấn gọi
+                      đến. Vui lòng giữ trang này mở.
+                    </p>
+                    <div
+                      class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg text-sm font-medium"
+                    >
+                      <span class="relative flex h-3 w-3">
+                        <span
+                          class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+                        ></span>
+                        <span
+                          class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"
+                        ></span>
+                      </span>
+                      Đang chờ cuộc gọi...
+                    </div>
+                  </div>
+
+                  <!-- Incoming Call State -->
+                  <div id="incomingState" class="text-center hidden">
+                    <div class="relative w-28 h-28 mx-auto mb-6">
+                      <div
+                        class="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping"
+                      ></div>
+                      <div
+                        class="absolute inset-2 rounded-full bg-emerald-500/30 animate-ping"
+                        style="animation-delay: 0.2s"
+                      ></div>
+                      <div
+                        class="relative w-28 h-28 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30"
+                      >
+                        <span
+                          class="material-symbols-outlined text-5xl animate-bounce"
+                          >call</span
+                        >
+                      </div>
+                    </div>
+                    <p class="text-slate-500 dark:text-slate-400 mb-1">
+                      Cuộc gọi đến từ
+                    </p>
+                    <h3
+                      class="text-2xl font-bold text-slate-900 dark:text-white mb-1"
+                      id="callerName"
+                    >
+                      Nhân viên ABClinic
+                    </h3>
+                    <p class="text-slate-400 text-sm mb-8" id="callerId">--</p>
+
+                    <div class="flex justify-center gap-6">
+                      <button
+                        onclick="rejectCall()"
+                        class="group flex flex-col items-center"
+                      >
+                        <div
+                          class="w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-all transform hover:scale-105"
+                        >
+                          <span class="material-symbols-outlined text-3xl"
+                            >call_end</span
+                          >
+                        </div>
+                        <span
+                          class="text-sm text-slate-500 mt-2 group-hover:text-red-500"
+                          >Từ chối</span
+                        >
+                      </button>
+                      <button
+                        onclick="answerCall()"
+                        class="group flex flex-col items-center"
+                      >
+                        <div
+                          class="w-16 h-16 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-lg hover:bg-emerald-600 transition-all transform hover:scale-105 animate-pulse"
+                        >
+                          <span class="material-symbols-outlined text-3xl"
+                            >call</span
+                          >
+                        </div>
+                        <span
+                          class="text-sm text-slate-500 mt-2 group-hover:text-emerald-500"
+                          >Trả lời</span
+                        >
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- In Call State -->
+                  <div id="inCallState" class="text-center hidden">
+                    <div
+                      class="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-lg"
+                    >
+                      <span class="material-symbols-outlined text-4xl"
+                        >call</span
+                      >
+                    </div>
+                    <h3
+                      class="text-lg font-semibold text-slate-800 dark:text-white mb-1"
+                      id="inCallName"
+                    >
+                      Nhân viên ABClinic
+                    </h3>
+                    <p
+                      class="text-3xl font-mono font-bold text-emerald-500 mb-8"
+                      id="callDuration"
+                    >
+                      00:00
+                    </p>
+
+                    <div class="flex justify-center">
+                      <button
+                        onclick="endCall()"
+                        class="w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-all transform hover:scale-105"
+                      >
+                        <span class="material-symbols-outlined text-3xl"
+                          >call_end</span
+                        >
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Side Panel -->
+            <div class="space-y-6">
+              <!-- Quick Info -->
+              <div
+                class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5"
+              >
+                <h4
+                  class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2"
+                >
+                  <span
+                    class="material-symbols-outlined text-primary text-[20px]"
+                    >info</span
+                  >
+                  Thông tin hỗ trợ
+                </h4>
+                <div class="space-y-3 text-sm">
+                  <div class="flex items-start gap-3">
+                    <span
+                      class="material-symbols-outlined text-slate-400 text-[18px] mt-0.5"
+                      >schedule</span
+                    >
+                    <div>
+                      <p class="font-medium text-slate-700 dark:text-slate-300">
+                        Giờ làm việc
+                      </p>
+                      <p class="text-slate-500 dark:text-slate-400">
+                        8:00 - 20:00 (T2 - CN)
+                      </p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <span
+                      class="material-symbols-outlined text-slate-400 text-[18px] mt-0.5"
+                      >phone</span
+                    >
+                    <div>
+                      <p class="font-medium text-slate-700 dark:text-slate-300">
+                        Hotline
+                      </p>
+                      <p class="text-slate-500 dark:text-slate-400">
+                        1900 1234
+                      </p>
+                    </div>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <span
+                      class="material-symbols-outlined text-slate-400 text-[18px] mt-0.5"
+                      >mail</span
+                    >
+                    <div>
+                      <p class="font-medium text-slate-700 dark:text-slate-300">
+                        Email
+                      </p>
+                      <p class="text-slate-500 dark:text-slate-400">
+                        support@abclinic.com
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Activity Log -->
+              <div
+                class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5"
+              >
+                <div class="flex items-center justify-between mb-4">
+                  <h4
+                    class="font-semibold text-slate-900 dark:text-white flex items-center gap-2"
+                  >
+                    <span
+                      class="material-symbols-outlined text-amber-500 text-[20px]"
+                      >history</span
+                    >
+                    Nhật ký
+                  </h4>
+                  <button
+                    onclick="clearLogs()"
+                    class="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  >
+                    Xóa
+                  </button>
+                </div>
+                <div
+                  id="logList"
+                  class="h-48 overflow-y-auto space-y-2 text-xs font-mono bg-slate-50 dark:bg-slate-900/50 rounded-lg p-3"
+                >
+                  <div class="text-slate-400">Đang khởi tạo...</div>
+                </div>
+              </div>
+
+              <!-- Tips -->
+              <div
+                class="bg-gradient-to-br from-primary/5 to-purple-500/5 dark:from-primary/10 dark:to-purple-500/10 rounded-xl border border-primary/20 p-5"
+              >
+                <h4
+                  class="font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2"
+                >
+                  <span
+                    class="material-symbols-outlined text-primary text-[20px]"
+                    >lightbulb</span
+                  >
+                  Lưu ý
+                </h4>
+                <ul
+                  class="text-sm text-slate-600 dark:text-slate-400 space-y-2"
+                >
+                  <li class="flex items-start gap-2">
+                    <span class="text-primary">•</span>
+                    Giữ trang này mở để nhận cuộc gọi
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-primary">•</span>
+                    Đảm bảo microphone đã được bật
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-primary">•</span>
+                    Kiểm tra kết nối Internet ổn định
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Audio elements -->
+    <audio id="localAudio" autoplay muted></audio>
+    <audio id="remoteAudio" autoplay></audio>
+
+    <!-- Scripts -->
+    <script src="/js/latest.sdk.bundle.min.js"></script>
+    <script th:src="@{/js/sidebar-controller.js}"></script>
+    <script>
+      // Initialize theme from localStorage
+      (function () {
+        const theme = localStorage.getItem("theme");
+        if (
+          theme === "dark" ||
+          (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
+
+    <script th:inline="javascript">
+      const STRINGEE_SERVER_ADDRS = [
+        "wss://v1.stringee.com:6899/",
+        "wss://v2.stringee.com:6899/",
+      ];
+
+      var stringeeClient,
+        currentCall,
+        myToken,
+        currentUser = null;
+      var callDurationInterval, callStartTime;
+      var isMuted = false,
+        isSpeakerOn = true;
+
+      document.addEventListener("DOMContentLoaded", function () {
+        loadCurrentUser();
+      });
+
+      async function loadCurrentUser() {
+        try {
+          const response = await fetch("/api/web-call/current-user");
+          if (!response.ok) throw new Error("Không thể lấy thông tin user");
+          const data = await response.json();
+
+          if (data.authenticated) {
+            currentUser = data;
+            document.getElementById("userName").textContent =
+              data.fullName || data.email;
+            document.getElementById("userEmail").textContent = data.email;
+            document.getElementById("userAvatar").textContent = getInitials(
+              data.fullName || data.email,
+            );
+            document.getElementById("stringeeId").textContent =
+              "user_" + data.id;
+            addLog("Đã đăng nhập: " + (data.fullName || data.email), "success");
+            await connectStringee();
+          } else {
+            addLog("Chưa đăng nhập", "error");
+            document.getElementById("userName").textContent = "Chưa đăng nhập";
+            alert("Vui lòng đăng nhập để nhận cuộc gọi");
+            window.location.href = "/auth/login";
+          }
+        } catch (err) {
+          console.error("Lỗi:", err);
+          addLog("Lỗi: " + err.message, "error");
+        }
+      }
+
+      async function connectStringee() {
+        try {
+          updateStatus("connecting", "Đang kết nối...");
+          addLog("Đang lấy token Stringee...", "info");
+
+          const tokenResponse = await fetch("/api/web-call/token");
+          if (!tokenResponse.ok) throw new Error("Không thể lấy token");
+          const tokenData = await tokenResponse.json();
+          myToken = tokenData.token;
+
+          stringeeClient = new StringeeClient(STRINGEE_SERVER_ADDRS);
+
+          stringeeClient.on("connect", () => {
+            addLog("Đã kết nối Stringee", "success");
+            updateStatus("connected", "Đã kết nối");
+            document.getElementById("connectionInfo").textContent =
+              "user_" + currentUser.id;
+          });
+
+          stringeeClient.on("authen", (res) => {
+            if (res.r === 0) {
+              addLog("Xác thực thành công", "success");
+            } else {
+              addLog("Xác thực thất bại: " + res.message, "error");
+              updateStatus("disconnected", "Lỗi xác thực");
+            }
+          });
+
+          stringeeClient.on("disconnect", () => {
+            addLog("Mất kết nối Stringee", "warning");
+            updateStatus("disconnected", "Mất kết nối");
+          });
+
+          stringeeClient.on("incomingcall", (incomingCall) => {
+            addLog("📞 Có cuộc gọi đến từ: " + incomingCall.fromNumber, "info");
+            currentCall = incomingCall;
+            showIncomingCall(incomingCall);
+            setupCallEvents(incomingCall);
+          });
+
+          stringeeClient.connect(myToken);
+        } catch (err) {
+          console.error("Lỗi kết nối:", err);
+          addLog("Lỗi: " + err.message, "error");
+          updateStatus("disconnected", "Lỗi kết nối");
+        }
+      }
+
+      function showIncomingCall(call) {
+        document.getElementById("idleState").classList.add("hidden");
+        document.getElementById("incomingState").classList.remove("hidden");
+        document.getElementById("inCallState").classList.add("hidden");
+
+        const callerId = call.fromNumber;
+        document.getElementById("callerId").textContent = callerId;
+
+        if (callerId.startsWith("user_")) {
+          fetchCallerInfo(callerId.replace("user_", ""));
+        }
+
+        playRingtone();
+      }
+
+      async function fetchCallerInfo(userId) {
+        try {
+          const response = await fetch("/api/users/" + userId);
+          if (response.ok) {
+            const user = await response.json();
+            document.getElementById("callerName").textContent =
+              user.fullName || "Nhân viên ABClinic";
+          }
+        } catch (e) {
+          console.log("Could not fetch caller info");
+        }
+      }
+
+      function setupCallEvents(call) {
+        call.on("signalingstate", (state) => {
+          addLog("Call state: " + state.reason, "info");
+
+          switch (state.code) {
+            case 3: // Answered
+              showInCallState();
+              startCallTimer();
+              break;
+            case 4: // Busy
+            case 5: // Ended
+            case 6: // Rejected
+              endCallUI();
+              break;
+          }
+        });
+
+        call.on("mediastate", (state) => {
+          addLog("Media state: " + state.reason, "info");
+        });
+
+        call.on("otherdevice", (data) => {
+          if (data.type === "answer" || data.type === "reject") {
+            endCallUI();
+          }
+        });
+      }
+
+      function answerCall() {
+        if (!currentCall) return;
+
+        addLog("Đang trả lời cuộc gọi...", "info");
+        stopRingtone();
+
+        currentCall.answer((res) => {
+          if (res.r === 0) {
+            addLog("✅ Đã trả lời cuộc gọi", "success");
+          } else {
+            addLog("Lỗi trả lời: " + res.message, "error");
+          }
+        });
+      }
+
+      function rejectCall() {
+        if (!currentCall) return;
+
+        addLog("Từ chối cuộc gọi", "warning");
+        stopRingtone();
+
+        currentCall.reject((res) => {
+          endCallUI();
+        });
+      }
+
+      function endCall() {
+        if (!currentCall) return;
+
+        addLog("Kết thúc cuộc gọi", "info");
+        currentCall.hangup((res) => {
+          endCallUI();
+        });
+      }
+
+      function showInCallState() {
+        document.getElementById("idleState").classList.add("hidden");
+        document.getElementById("incomingState").classList.add("hidden");
+        document.getElementById("inCallState").classList.remove("hidden");
+
+        const callerName = document.getElementById("callerName").textContent;
+        document.getElementById("inCallName").textContent = callerName;
+      }
+
+      function endCallUI() {
+        stopCallTimer();
+        stopRingtone();
+        currentCall = null;
+
+        document.getElementById("idleState").classList.remove("hidden");
+        document.getElementById("incomingState").classList.add("hidden");
+        document.getElementById("inCallState").classList.add("hidden");
+
+        isMuted = false;
+        isSpeakerOn = true;
+        document.getElementById("muteIcon").textContent = "mic";
+        document
+          .getElementById("muteBtn")
+          .classList.remove("bg-red-500", "text-white");
+        document
+          .getElementById("muteBtn")
+          .classList.add(
+            "bg-slate-100",
+            "dark:bg-slate-800",
+            "text-slate-600",
+            "dark:text-slate-400",
+          );
+
+        addLog("Cuộc gọi đã kết thúc", "info");
+      }
+
+      function toggleMute() {
+        if (!currentCall) return;
+
+        isMuted = !isMuted;
+        currentCall.mute(isMuted);
+
+        const btn = document.getElementById("muteBtn");
+        const icon = document.getElementById("muteIcon");
+
+        if (isMuted) {
+          icon.textContent = "mic_off";
+          btn.classList.remove(
+            "bg-slate-100",
+            "dark:bg-slate-800",
+            "text-slate-600",
+            "dark:text-slate-400",
+          );
+          btn.classList.add("bg-red-500", "text-white");
+          addLog("🔇 Đã tắt mic", "warning");
+        } else {
+          icon.textContent = "mic";
+          btn.classList.remove("bg-red-500", "text-white");
+          btn.classList.add(
+            "bg-slate-100",
+            "dark:bg-slate-800",
+            "text-slate-600",
+            "dark:text-slate-400",
+          );
+          addLog("🎤 Đã bật mic", "info");
+        }
+      }
+
+      function toggleSpeaker() {
+        const audio = document.getElementById("remoteAudio");
+        isSpeakerOn = !isSpeakerOn;
+        audio.muted = !isSpeakerOn;
+
+        const btn = document.getElementById("speakerBtn");
+        const icon = document.getElementById("speakerIcon");
+
+        if (isSpeakerOn) {
+          icon.textContent = "volume_up";
+          btn.classList.remove("bg-slate-200", "dark:bg-slate-700");
+          addLog("🔊 Đã bật loa", "info");
+        } else {
+          icon.textContent = "volume_off";
+          btn.classList.add("bg-slate-200", "dark:bg-slate-700");
+          addLog("🔈 Đã tắt loa", "warning");
+        }
+      }
+
+      function startCallTimer() {
+        callStartTime = new Date();
+        callDurationInterval = setInterval(() => {
+          const duration = Math.floor((new Date() - callStartTime) / 1000);
+          document.getElementById("callDuration").textContent =
+            formatDuration(duration);
+        }, 1000);
+      }
+
+      function stopCallTimer() {
+        if (callDurationInterval) {
+          clearInterval(callDurationInterval);
+          callDurationInterval = null;
+        }
+      }
+
+      function formatDuration(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return (
+          String(mins).padStart(2, "0") + ":" + String(secs).padStart(2, "0")
+        );
+      }
+
+      var audioContext, ringtoneInterval;
+
+      function playRingtone() {
+        try {
+          audioContext = new (window.AudioContext ||
+            window.webkitAudioContext)();
+
+          function playTone() {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+
+            osc.frequency.value = 440;
+            osc.type = "sine";
+            gain.gain.value = 0.3;
+
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(
+              0.001,
+              audioContext.currentTime + 0.5,
+            );
+            osc.stop(audioContext.currentTime + 0.5);
+          }
+
+          playTone();
+          ringtoneInterval = setInterval(playTone, 1000);
+        } catch (e) {
+          console.log("Could not play ringtone:", e);
+        }
+      }
+
+      function stopRingtone() {
+        if (ringtoneInterval) {
+          clearInterval(ringtoneInterval);
+          ringtoneInterval = null;
+        }
+        if (audioContext) {
+          audioContext.close();
+          audioContext = null;
+        }
+      }
+
+      function updateStatus(status, text) {
+        const dot = document.getElementById("statusDot");
+        const statusText = document.getElementById("statusText");
+
+        dot.className = "status-dot " + status;
+        statusText.textContent = text;
+      }
+
+      function getInitials(name) {
+        if (!name) return "?";
+        const parts = name.split(" ");
+        if (parts.length >= 2) {
+          return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        return name.substring(0, 2).toUpperCase();
+      }
+
+      function addLog(message, type = "info") {
+        const logList = document.getElementById("logList");
+        const time = new Date().toLocaleTimeString("vi-VN");
+        const colorClass =
+          {
+            info: "text-blue-600 dark:text-blue-400",
+            success: "text-emerald-600 dark:text-emerald-400",
+            warning: "text-amber-600 dark:text-amber-400",
+            error: "text-red-600 dark:text-red-400",
+          }[type] || "text-slate-600 dark:text-slate-400";
+
+        const log = document.createElement("div");
+        log.className = colorClass;
+        log.innerHTML = `<span class="text-slate-400">[${time}]</span> ${message}`;
+        logList.appendChild(log);
+        logList.scrollTop = logList.scrollHeight;
+      }
+
+      function clearLogs() {
+        document.getElementById("logList").innerHTML =
+          '<div class="text-slate-400">Đã xóa nhật ký</div>';
+      }
+    </script>
+
+    <style>
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .status-dot.connected {
+        background: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+      }
+      .status-dot.disconnected {
+        background: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+      }
+      .status-dot.connecting {
+        background: #f59e0b;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+        animation: blink 1s infinite;
+      }
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+    </style>
+  </body>
+</html>

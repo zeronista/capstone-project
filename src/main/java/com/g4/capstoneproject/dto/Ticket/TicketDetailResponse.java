@@ -68,6 +68,7 @@ public class TicketDetailResponse {
                 private Long id;
                 private Long senderId;
                 private String senderName;
+                private String senderRole;
                 private String senderAvatar;
                 private String messageText;
                 private TicketMessage.MessageType messageType;
@@ -84,6 +85,8 @@ public class TicketDetailResponse {
                                                                         ? message.getSender().getUserInfo()
                                                                                         .getFullName()
                                                                         : "Unknown")
+                                        .senderRole(message.getSender() != null ? message.getSender().getRole().name()
+                                                        : null)
                                         .senderAvatar(message.getSender() != null
                                                         && message.getSender().getUserInfo() != null
                                                                         ? message.getSender().getUserInfo()

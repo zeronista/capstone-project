@@ -45,6 +45,15 @@ public class PatientService {
     }
 
     /**
+     * Get all active patients with UserInfo (for call center)
+     * Returns patients with their personal information loaded
+     */
+    @Transactional(readOnly = true)
+    public List<User> getAllActivePatientsWithInfo() {
+        return userRepository.findAllActivePatientsWithUserInfo();
+    }
+
+    /**
      * Get patient by ID
      * Cached for 30 minutes
      */

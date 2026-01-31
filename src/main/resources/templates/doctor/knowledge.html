@@ -1,788 +1,751 @@
 <!doctype html>
-<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kho tri thức Y khoa - Doctor Dashboard</title>
+    <title>Kho Tri Thức Y Khoa - ABClinic</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script th:src="@{/js/tailwind-config.js}"></script>
     <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@200..700&display=swap"
       rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
     />
-    <!-- Quill Editor -->
     <link
-      href="https://cdn.quilljs.com/1.3.6/quill.snow.css"
       rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap"
     />
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <style>
-      .category-tree-item {
-        cursor: pointer;
-        transition: all 0.2s;
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
       }
-      .category-tree-item:hover {
-        background-color: rgba(59, 130, 246, 0.1);
+      .material-symbols-outlined.fill {
+        font-variation-settings: "FILL" 1;
       }
-      .category-tree-item.active {
-        background-color: rgba(59, 130, 246, 0.15);
-        font-weight: 600;
-        color: rgb(37, 99, 235);
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
       }
-      .ql-editor {
-        min-height: 300px;
-        max-height: 500px;
-        overflow-y: auto;
+      ::-webkit-scrollbar-track {
+        background: transparent;
       }
-      .tag-badge {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.25rem 0.75rem;
-        background-color: rgb(219, 234, 254);
-        color: rgb(30, 64, 175);
-        border-radius: 9999px;
-        font-size: 0.875rem;
-        margin: 0.25rem;
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
       }
-      .tag-remove {
-        margin-left: 0.5rem;
-        cursor: pointer;
-        font-weight: bold;
+      .dark ::-webkit-scrollbar-thumb {
+        background: #475569;
       }
-      .status-badge {
-        padding: 0.25rem 0.75rem;
-        border-radius: 0.375rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
-      .status-PUBLISHED {
-        background-color: #d1fae5;
-        color: #065f46;
-      }
-      .status-DRAFT {
-        background-color: #fef3c7;
-        color: #92400e;
-      }
-      .status-ARCHIVED {
-        background-color: #e5e7eb;
-        color: #374151;
+      .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
       }
     </style>
   </head>
-  <body class="bg-slate-50 dark:bg-slate-900">
+  <body
+    class="bg-slate-50 dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-sans"
+  >
     <div class="flex h-screen overflow-hidden">
       <!-- Sidebar -->
       <aside th:replace="~{fragments/doctor-layout :: doctor-sidebar}"></aside>
 
-      <!-- Main content -->
-      <main class="flex-1 overflow-y-auto">
-        <!-- Header -->
-        <header class="bg-white dark:bg-slate-800 shadow-sm sticky top-0 z-10">
-          <div class="px-6 py-4">
-            <div class="flex items-center justify-between">
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Header -->
+        <header
+          class="bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 px-6 py-4"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <button
+                onclick="toggleSidebar()"
+                class="lg:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+              >
+                <span class="material-symbols-outlined">menu</span>
+              </button>
               <div>
-                <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
-                  Kho tri thức Y khoa
+                <h1 class="text-xl font-bold text-slate-900 dark:text-white">
+                  Kho Tri Thức Y Khoa
                 </h1>
-                <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                  Quản lý tài liệu và kiến thức y khoa
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                  Quản lý và tìm kiếm tài liệu y khoa
                 </p>
               </div>
-              <button
-                onclick="openArticleModal()"
-                class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                <span class="material-symbols-outlined text-[20px]">add</span>
-                <span>Tạo bài viết mới</span>
-              </button>
             </div>
+            <button
+              onclick="openCreateModal()"
+              class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
+            >
+              <span class="material-symbols-outlined text-[20px]">add</span>
+              <span class="hidden sm:inline">Thêm tài liệu</span>
+            </button>
           </div>
         </header>
 
-        <!-- Content -->
-        <div class="p-6">
-          <!-- Statistics -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm">
-              <div class="flex items-center justify-between">
+        <!-- Search & Filters -->
+        <div
+          class="bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 px-6 py-4"
+        >
+          <div class="flex flex-wrap items-center gap-4">
+            <!-- Search Bar -->
+            <div class="flex-1 min-w-[300px] relative">
+              <span
+                class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                >search</span
+              >
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Tìm kiếm theo tiêu đề, nội dung, tags..."
+                onkeyup="debounceSearch()"
+                class="w-full pl-10 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            <!-- Category Filter -->
+            <select
+              id="categoryFilter"
+              onchange="loadArticles()"
+              class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary min-w-[180px]"
+            >
+              <option value="">Tất cả danh mục</option>
+            </select>
+
+            <!-- Status Filter -->
+            <select
+              id="statusFilter"
+              onchange="loadArticles()"
+              class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="PUBLISHED">Đã xuất bản</option>
+              <option value="DRAFT">Bản nháp</option>
+              <option value="ARCHIVED">Đã lưu trữ</option>
+            </select>
+          </div>
+
+          <!-- Popular Tags -->
+          <div id="popularTags" class="mt-3 flex flex-wrap gap-2">
+            <!-- Tags will be loaded here -->
+          </div>
+        </div>
+
+        <!-- Content Area -->
+        <main class="flex-1 overflow-y-auto p-6">
+          <!-- Statistics Cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-4"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-blue-600 dark:text-blue-400"
+                    >article</span
+                  >
+                </div>
                 <div>
-                  <p class="text-sm text-slate-600 dark:text-slate-400">
-                    Tổng bài viết
-                  </p>
                   <p
-                    class="text-2xl font-bold text-slate-900 dark:text-white mt-1"
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
                     id="totalArticles"
                   >
                     0
                   </p>
+                  <p class="text-xs text-slate-500">Tổng bài viết</p>
                 </div>
-                <span
-                  class="material-symbols-outlined text-blue-600 text-[40px]"
-                  >description</span
-                >
               </div>
             </div>
-            <div class="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm">
-              <div class="flex items-center justify-between">
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-4"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-green-600 dark:text-green-400"
+                    >publish</span
+                  >
+                </div>
                 <div>
-                  <p class="text-sm text-slate-600 dark:text-slate-400">
-                    Đã xuất bản
-                  </p>
                   <p
-                    class="text-2xl font-bold text-green-600 mt-1"
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
                     id="publishedArticles"
                   >
                     0
                   </p>
+                  <p class="text-xs text-slate-500">Đã xuất bản</p>
                 </div>
-                <span
-                  class="material-symbols-outlined text-green-600 text-[40px]"
-                  >check_circle</span
-                >
               </div>
             </div>
-            <div class="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm">
-              <div class="flex items-center justify-between">
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-4"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-amber-600 dark:text-amber-400"
+                    >edit_note</span
+                  >
+                </div>
                 <div>
-                  <p class="text-sm text-slate-600 dark:text-slate-400">
-                    Bản nháp
-                  </p>
                   <p
-                    class="text-2xl font-bold text-yellow-600 mt-1"
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
                     id="draftArticles"
                   >
                     0
                   </p>
+                  <p class="text-xs text-slate-500">Bản nháp</p>
                 </div>
-                <span
-                  class="material-symbols-outlined text-yellow-600 text-[40px]"
-                  >edit_note</span
-                >
               </div>
             </div>
-            <div class="bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm">
-              <div class="flex items-center justify-between">
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-4"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-purple-600 dark:text-purple-400"
+                    >category</span
+                  >
+                </div>
                 <div>
-                  <p class="text-sm text-slate-600 dark:text-slate-400">
-                    Danh mục
-                  </p>
                   <p
-                    class="text-2xl font-bold text-purple-600 mt-1"
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
                     id="totalCategories"
                   >
                     0
                   </p>
-                </div>
-                <span
-                  class="material-symbols-outlined text-purple-600 text-[40px]"
-                  >folder</span
-                >
-              </div>
-            </div>
-          </div>
-
-          <!-- Main content area -->
-          <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <!-- Category Tree Sidebar -->
-            <div class="lg:col-span-1">
-              <div class="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-4">
-                <div class="flex items-center justify-between mb-4">
-                  <h3 class="font-semibold text-slate-900 dark:text-white">
-                    Danh mục
-                  </h3>
-                  <button
-                    onclick="openCategoryModal()"
-                    class="text-blue-600 hover:text-blue-700"
-                    title="Thêm danh mục"
-                  >
-                    <span class="material-symbols-outlined text-[20px]"
-                      >add</span
-                    >
-                  </button>
-                </div>
-                <div
-                  class="category-tree-item px-3 py-2 rounded-md mb-1"
-                  onclick="filterByCategory(null)"
-                  id="category-all"
-                >
-                  <span
-                    class="material-symbols-outlined text-[18px] align-middle"
-                    >apps</span
-                  >
-                  <span class="ml-2">Tất cả bài viết</span>
-                </div>
-                <div id="categoryTree" class="space-y-1"></div>
-              </div>
-            </div>
-
-            <!-- Articles List -->
-            <div class="lg:col-span-3">
-              <div class="bg-white dark:bg-slate-800 rounded-lg shadow-sm">
-                <!-- Filters -->
-                <div
-                  class="p-4 border-b border-slate-200 dark:border-slate-700"
-                >
-                  <div class="flex flex-wrap gap-3">
-                    <div class="flex-1 min-w-[200px]">
-                      <input
-                        type="text"
-                        id="searchInput"
-                        placeholder="Tìm kiếm bài viết..."
-                        class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
-                        onkeyup="handleSearch(event)"
-                      />
-                    </div>
-                    <select
-                      id="statusFilter"
-                      class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
-                      onchange="loadArticles()"
-                    >
-                      <option value="">Tất cả trạng thái</option>
-                      <option value="PUBLISHED">Đã xuất bản</option>
-                      <option value="DRAFT">Bản nháp</option>
-                      <option value="ARCHIVED">Đã lưu trữ</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Articles Table -->
-                <div class="overflow-x-auto">
-                  <table class="w-full">
-                    <thead class="bg-slate-50 dark:bg-slate-700">
-                      <tr>
-                        <th
-                          class="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase"
-                        >
-                          Tiêu đề
-                        </th>
-                        <th
-                          class="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase"
-                        >
-                          Danh mục
-                        </th>
-                        <th
-                          class="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase"
-                        >
-                          Trạng thái
-                        </th>
-                        <th
-                          class="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase"
-                        >
-                          Lượt xem
-                        </th>
-                        <th
-                          class="px-6 py-3 text-left text-xs font-medium text-slate-700 dark:text-slate-300 uppercase"
-                        >
-                          Ngày tạo
-                        </th>
-                        <th
-                          class="px-6 py-3 text-right text-xs font-medium text-slate-700 dark:text-slate-300 uppercase"
-                        >
-                          Thao tác
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody
-                      id="articlesTableBody"
-                      class="divide-y divide-slate-200 dark:divide-slate-700"
-                    >
-                      <!-- Articles will be inserted here -->
-                    </tbody>
-                  </table>
-                </div>
-
-                <!-- Pagination -->
-                <div
-                  class="p-4 border-t border-slate-200 dark:border-slate-700"
-                >
-                  <div class="flex items-center justify-between">
-                    <p
-                      class="text-sm text-slate-600 dark:text-slate-400"
-                      id="paginationInfo"
-                    >
-                      Đang hiển thị 0 - 0 của 0 bài viết
-                    </p>
-                    <div class="flex gap-2" id="paginationButtons"></div>
-                  </div>
+                  <p class="text-xs text-slate-500">Danh mục</p>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </main>
+
+          <!-- Articles Grid -->
+          <div
+            id="articlesGrid"
+            class="grid md:grid-cols-2 xl:grid-cols-3 gap-4"
+          >
+            <!-- Articles will be loaded here -->
+            <div class="col-span-full text-center py-12">
+              <span
+                class="material-symbols-outlined text-6xl text-slate-300 dark:text-slate-600"
+                >library_books</span
+              >
+              <p class="text-slate-500 dark:text-slate-400 mt-4">
+                Đang tải dữ liệu...
+              </p>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div
+            id="pagination"
+            class="mt-6 flex items-center justify-center gap-2"
+          >
+            <!-- Pagination will be loaded here -->
+          </div>
+        </main>
+      </div>
     </div>
 
-    <!-- Article Modal -->
+    <!-- Create/Edit Modal -->
     <div
       id="articleModal"
-      class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto"
+      class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4"
     >
-      <div class="min-h-screen px-4 flex items-center justify-center">
+      <div
+        class="bg-white dark:bg-[#1a2634] rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col"
+      >
         <div
-          class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+          class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between"
         >
-          <div
-            class="sticky top-0 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-4 flex items-center justify-between z-10"
+          <h3
+            id="modalTitle"
+            class="text-lg font-semibold text-slate-900 dark:text-white"
           >
-            <h3
-              class="text-xl font-bold text-slate-900 dark:text-white"
-              id="modalTitle"
-            >
-              Tạo bài viết mới
-            </h3>
-            <button
-              onclick="closeArticleModal()"
-              class="text-slate-400 hover:text-slate-600"
-            >
-              <span class="material-symbols-outlined">close</span>
-            </button>
-          </div>
-          <form id="articleForm" class="p-6 space-y-4">
-            <input type="hidden" id="articleId" />
+            Thêm bài viết mới
+          </h3>
+          <button
+            onclick="closeModal()"
+            class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
 
+        <form
+          id="articleForm"
+          onsubmit="saveArticle(event)"
+          class="flex-1 overflow-y-auto p-6"
+        >
+          <input type="hidden" id="articleId" />
+
+          <div class="space-y-4">
             <!-- Title -->
             <div>
               <label
-                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
               >
-                Tiêu đề <span class="text-red-500">*</span>
+                Tiêu đề *
               </label>
               <input
                 type="text"
                 id="articleTitle"
                 required
-                class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
                 placeholder="Nhập tiêu đề bài viết"
+                class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
               />
             </div>
 
             <!-- Category -->
             <div>
               <label
-                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
               >
                 Danh mục
               </label>
               <select
                 id="articleCategory"
-                class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
               >
-                <option value="">Chưa phân loại</option>
+                <option value="">-- Chọn danh mục --</option>
               </select>
             </div>
 
             <!-- Summary -->
             <div>
               <label
-                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
               >
                 Tóm tắt
               </label>
               <textarea
                 id="articleSummary"
                 rows="2"
-                class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
-                placeholder="Tóm tắt ngắn gọn nội dung bài viết"
+                placeholder="Mô tả ngắn gọn nội dung bài viết"
+                class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary resize-none"
               ></textarea>
             </div>
 
-            <!-- Content Editor -->
+            <!-- Content -->
             <div>
               <label
-                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
               >
-                Nội dung <span class="text-red-500">*</span>
+                Nội dung *
               </label>
-              <div
-                id="editor"
-                class="bg-white border border-slate-300 dark:border-slate-600 rounded-lg"
-              ></div>
+              <textarea
+                id="articleContent"
+                rows="10"
+                required
+                placeholder="Nhập nội dung chi tiết bài viết..."
+                class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary resize-none"
+              ></textarea>
             </div>
 
             <!-- Tags -->
             <div>
               <label
-                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
               >
-                Tags
+                Tags (phân cách bằng dấu phẩy)
               </label>
-              <div class="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  id="tagInput"
-                  class="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
-                  placeholder="Nhập tag và nhấn Enter"
-                  onkeypress="handleTagInput(event)"
-                />
-              </div>
-              <div id="tagsContainer" class="flex flex-wrap"></div>
+              <input
+                type="text"
+                id="articleTags"
+                placeholder="VD: tim mạch, huyết áp, tiểu đường"
+                class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+              />
             </div>
 
             <!-- Status & Featured -->
-            <div class="flex gap-4">
-              <div class="flex-1">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
                 <label
-                  class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
                 >
                   Trạng thái
                 </label>
                 <select
                   id="articleStatus"
-                  class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                  class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
                 >
                   <option value="DRAFT">Bản nháp</option>
                   <option value="PUBLISHED">Xuất bản</option>
                   <option value="ARCHIVED">Lưu trữ</option>
                 </select>
               </div>
-              <div class="flex items-end">
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" id="articleFeatured" class="rounded" />
+              <div class="flex items-center">
+                <label class="flex items-center gap-3 cursor-pointer mt-6">
+                  <input
+                    type="checkbox"
+                    id="articleFeatured"
+                    class="w-5 h-5 rounded text-primary focus:ring-primary"
+                  />
                   <span class="text-sm text-slate-700 dark:text-slate-300"
-                    >Bài viết nổi bật</span
+                    >Đánh dấu nổi bật</span
                   >
                 </label>
               </div>
             </div>
+          </div>
+        </form>
 
-            <!-- Actions -->
-            <div class="flex gap-3 pt-4">
-              <button
-                type="submit"
-                class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                Lưu bài viết
-              </button>
-              <button
-                type="button"
-                onclick="closeArticleModal()"
-                class="px-6 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-              >
-                Hủy
-              </button>
-            </div>
-          </form>
+        <div
+          class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3"
+        >
+          <button
+            onclick="closeModal()"
+            class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            Hủy
+          </button>
+          <button
+            type="submit"
+            form="articleForm"
+            class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
+          >
+            Lưu bài viết
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Category Modal -->
+    <!-- View Article Modal -->
     <div
-      id="categoryModal"
-      class="hidden fixed inset-0 bg-black bg-opacity-50 z-50"
+      id="viewModal"
+      class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4"
     >
-      <div class="min-h-screen px-4 flex items-center justify-center">
+      <div
+        class="bg-white dark:bg-[#1a2634] rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+      >
         <div
-          class="bg-white dark:bg-slate-800 rounded-lg shadow-xl max-w-md w-full"
+          class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between"
         >
-          <div
-            class="border-b border-slate-200 dark:border-slate-700 px-6 py-4 flex items-center justify-between"
-          >
-            <h3 class="text-xl font-bold text-slate-900 dark:text-white">
-              Thêm danh mục
-            </h3>
+          <div class="flex items-center gap-3">
+            <span
+              id="viewCategory"
+              class="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full"
+            ></span>
+            <span id="viewStatus" class="px-2 py-1 text-xs rounded-full"></span>
+          </div>
+          <div class="flex items-center gap-2">
             <button
-              onclick="closeCategoryModal()"
-              class="text-slate-400 hover:text-slate-600"
+              onclick="editCurrentArticle()"
+              class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+              title="Chỉnh sửa"
+            >
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+            <button
+              onclick="closeViewModal()"
+              class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
             >
               <span class="material-symbols-outlined">close</span>
             </button>
           </div>
-          <form id="categoryForm" class="p-6 space-y-4">
-            <div>
-              <label
-                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-6">
+          <h2
+            id="viewTitle"
+            class="text-2xl font-bold text-slate-900 dark:text-white mb-4"
+          ></h2>
+
+          <div
+            class="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-6"
+          >
+            <span class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-[18px]">person</span>
+              <span id="viewAuthor"></span>
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-[18px]"
+                >calendar_today</span
               >
-                Tên danh mục <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="categoryName"
-                required
-                class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
-              />
-            </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+              <span id="viewDate"></span>
+            </span>
+            <span class="flex items-center gap-1">
+              <span class="material-symbols-outlined text-[18px]"
+                >visibility</span
               >
-                Mô tả
-              </label>
-              <textarea
-                id="categoryDescription"
-                rows="3"
-                class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
-              ></textarea>
-            </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
-              >
-                Danh mục cha
-              </label>
-              <select
-                id="categoryParent"
-                class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
-              >
-                <option value="">Danh mục gốc</option>
-              </select>
-            </div>
-            <div class="flex gap-3 pt-4">
-              <button
-                type="submit"
-                class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
-                Tạo danh mục
-              </button>
-              <button
-                type="button"
-                onclick="closeCategoryModal()"
-                class="px-6 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-              >
-                Hủy
-              </button>
-            </div>
-          </form>
+              <span id="viewViews"></span> lượt xem
+            </span>
+          </div>
+
+          <div id="viewTags" class="flex flex-wrap gap-2 mb-6"></div>
+
+          <div
+            id="viewSummary"
+            class="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg mb-6 text-slate-700 dark:text-slate-300 italic"
+          ></div>
+
+          <div
+            id="viewContent"
+            class="prose dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 whitespace-pre-wrap"
+          ></div>
         </div>
       </div>
     </div>
 
-    <script th:inline="javascript">
-      let quill;
-      let allArticles = [];
-      let currentPage = 0;
-      let pageSize = 20;
-      let totalPages = 0;
-      let selectedCategoryId = null;
-      let articleTags = [];
+    <!-- Toast Container -->
+    <div
+      id="toastContainer"
+      class="fixed bottom-4 right-4 z-50 space-y-2"
+    ></div>
+
+    <!-- Scripts -->
+    <script th:src="@{/js/doctor-sidebar-controller.js}"></script>
+    <script>
+      // Global state
+      let articles = [];
       let categories = [];
+      let currentPage = 0;
+      let totalPages = 0;
+      let currentArticle = null;
+      let searchTimeout = null;
 
-      // Initialize Quill Editor
+      // Initialize
       document.addEventListener("DOMContentLoaded", function () {
-        quill = new Quill("#editor", {
-          theme: "snow",
-          modules: {
-            toolbar: [
-              [{ header: [1, 2, 3, false] }],
-              ["bold", "italic", "underline", "strike"],
-              [{ list: "ordered" }, { list: "bullet" }],
-              [{ color: [] }, { background: [] }],
-              ["link", "blockquote", "code-block"],
-              ["clean"],
-            ],
-          },
-        });
-
         loadCategories();
-        loadArticles();
         loadStatistics();
+        loadArticles();
+        loadPopularTags();
       });
-
-      // Load statistics
-      async function loadStatistics() {
-        try {
-          const response = await fetch("/api/doctor/articles/statistics");
-          const stats = await response.json();
-
-          document.getElementById("totalArticles").textContent =
-            stats.totalCount;
-          document.getElementById("publishedArticles").textContent =
-            stats.publishedCount;
-          document.getElementById("draftArticles").textContent =
-            stats.draftCount;
-        } catch (error) {
-          console.error("Error loading statistics:", error);
-        }
-      }
 
       // Load categories
       async function loadCategories() {
         try {
-          const response = await fetch("/api/doctor/categories");
+          const response = await fetch("/api/doctor/knowledge/categories");
+          if (!response.ok) throw new Error("Failed to load categories");
+
           categories = await response.json();
-
-          document.getElementById("totalCategories").textContent =
-            categories.length;
-
-          // Populate category tree
-          const treeContainer = document.getElementById("categoryTree");
-          treeContainer.innerHTML = "";
-          categories.forEach((category) =>
-            renderCategory(category, treeContainer, 0),
-          );
-
-          // Populate category selects
-          populateCategorySelect("articleCategory", categories);
-          populateCategorySelect("categoryParent", categories);
+          populateCategorySelects();
         } catch (error) {
-          console.error("Error loading categories:", error);
+          console.error("Error:", error);
         }
       }
 
-      function renderCategory(category, container, depth) {
-        const item = document.createElement("div");
-        item.className = "category-tree-item px-3 py-2 rounded-md mb-1";
-        item.style.paddingLeft = `${depth * 16 + 12}px`;
-        item.setAttribute("data-category-id", category.id);
-        item.onclick = () => filterByCategory(category.id);
+      // Populate category selects
+      function populateCategorySelects() {
+        const filterSelect = document.getElementById("categoryFilter");
+        const formSelect = document.getElementById("articleCategory");
 
-        item.innerHTML = `
-          <span class="material-symbols-outlined text-[18px] align-middle">
-            ${category.hasChildren ? "folder" : "folder_open"}
-          </span>
-          <span class="ml-2">${category.name}</span>
-          <span class="text-xs text-slate-500 ml-2">(${category.articleCount || 0})</span>
-        `;
+        const options = categories
+          .map((c) => `<option value="${c.id}">${c.name}</option>`)
+          .join("");
 
-        container.appendChild(item);
+        filterSelect.innerHTML =
+          '<option value="">Tất cả danh mục</option>' + options;
+        formSelect.innerHTML =
+          '<option value="">-- Chọn danh mục --</option>' + options;
+      }
 
-        if (category.children && category.children.length > 0) {
-          category.children.forEach((child) =>
-            renderCategory(child, container, depth + 1),
-          );
+      // Load statistics
+      async function loadStatistics() {
+        try {
+          const response = await fetch("/api/doctor/knowledge/statistics");
+          if (!response.ok) throw new Error("Failed to load statistics");
+
+          const stats = await response.json();
+          document.getElementById("totalArticles").textContent =
+            stats.total || 0;
+          document.getElementById("publishedArticles").textContent =
+            stats.published || 0;
+          document.getElementById("draftArticles").textContent =
+            stats.draft || 0;
+          document.getElementById("totalCategories").textContent =
+            stats.categories || 0;
+        } catch (error) {
+          console.error("Error:", error);
         }
       }
 
-      function populateCategorySelect(selectId, categories, depth = 0) {
-        const select = document.getElementById(selectId);
-        categories.forEach((category) => {
-          const option = document.createElement("option");
-          option.value = category.id;
-          option.textContent = "  ".repeat(depth) + category.name;
-          select.appendChild(option);
+      // Load popular tags
+      async function loadPopularTags() {
+        try {
+          const response = await fetch("/api/doctor/knowledge/tags");
+          if (!response.ok) throw new Error("Failed to load tags");
 
-          if (category.children && category.children.length > 0) {
-            populateCategorySelect(selectId, category.children, depth + 1);
+          const tags = await response.json();
+          const container = document.getElementById("popularTags");
+
+          if (tags.length === 0) {
+            container.innerHTML = "";
+            return;
           }
-        });
+
+          container.innerHTML =
+            '<span class="text-xs text-slate-500 dark:text-slate-400 mr-2">Tags phổ biến:</span>' +
+            tags
+              .slice(0, 10)
+              .map(
+                (tag) => `
+              <button onclick="searchByTag('${tag}')" 
+                class="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-primary/10 hover:text-primary text-xs rounded-full transition-colors">
+                #${tag}
+              </button>
+            `,
+              )
+              .join("");
+        } catch (error) {
+          console.error("Error:", error);
+        }
       }
 
-      // Filter by category
-      function filterByCategory(categoryId) {
-        selectedCategoryId = categoryId;
-        currentPage = 0;
-
-        // Update active state
-        document.querySelectorAll(".category-tree-item").forEach((item) => {
-          item.classList.remove("active");
-        });
-
-        if (categoryId === null) {
-          document.getElementById("category-all").classList.add("active");
-        } else {
-          document
-            .querySelector(`[data-category-id="${categoryId}"]`)
-            ?.classList.add("active");
-        }
-
+      // Search by tag
+      function searchByTag(tag) {
+        document.getElementById("searchInput").value = tag;
         loadArticles();
       }
 
+      // Debounced search
+      function debounceSearch() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => loadArticles(), 300);
+      }
+
       // Load articles
-      async function loadArticles() {
+      async function loadArticles(page = 0) {
+        const keyword = document.getElementById("searchInput").value;
+        const categoryId = document.getElementById("categoryFilter").value;
+        const status = document.getElementById("statusFilter").value;
+
+        const params = new URLSearchParams({
+          page: page,
+          size: 12,
+          ...(keyword && { keyword }),
+          ...(categoryId && { categoryId }),
+          ...(status && { status }),
+        });
+
         try {
-          const status = document.getElementById("statusFilter").value;
-          const keyword = document.getElementById("searchInput").value;
+          const response = await fetch(
+            `/api/doctor/knowledge/articles?${params}`,
+          );
+          if (!response.ok) throw new Error("Failed to load articles");
 
-          let url = `/api/doctor/articles?page=${currentPage}&size=${pageSize}`;
-          if (status) url += `&status=${status}`;
-          if (selectedCategoryId) url += `&categoryId=${selectedCategoryId}`;
-          if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
-
-          const response = await fetch(url);
           const data = await response.json();
-
-          allArticles = data.articles;
-          totalPages = data.totalPages;
+          articles = data.content || [];
+          currentPage = data.number || 0;
+          totalPages = data.totalPages || 0;
 
           renderArticles();
-          renderPagination(data.currentPage, data.totalPages, data.totalItems);
+          renderPagination();
         } catch (error) {
-          console.error("Error loading articles:", error);
-          alert("Lỗi tải danh sách bài viết");
+          console.error("Error:", error);
+          document.getElementById("articlesGrid").innerHTML = `
+            <div class="col-span-full text-center py-12">
+              <span class="material-symbols-outlined text-6xl text-slate-300 dark:text-slate-600">error</span>
+              <p class="text-slate-500 dark:text-slate-400 mt-4">Không thể tải dữ liệu</p>
+            </div>
+          `;
         }
       }
 
-      // Render articles
+      // Render articles grid
       function renderArticles() {
-        const tbody = document.getElementById("articlesTableBody");
-        tbody.innerHTML = "";
+        const container = document.getElementById("articlesGrid");
 
-        if (allArticles.length === 0) {
-          tbody.innerHTML =
-            '<tr><td colspan="6" class="px-6 py-8 text-center text-slate-500">Không có bài viết nào</td></tr>';
+        if (articles.length === 0) {
+          container.innerHTML = `
+            <div class="col-span-full text-center py-12">
+              <span class="material-symbols-outlined text-6xl text-slate-300 dark:text-slate-600">library_books</span>
+              <p class="text-slate-500 dark:text-slate-400 mt-4">Không có bài viết nào</p>
+              <button onclick="openCreateModal()" class="mt-4 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg">
+                Tạo bài viết đầu tiên
+              </button>
+            </div>
+          `;
           return;
         }
 
-        allArticles.forEach((article) => {
-          const row = document.createElement("tr");
-          row.className = "hover:bg-slate-50 dark:hover:bg-slate-700";
-          row.innerHTML = `
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2">
-                ${article.featured ? '<span class="material-symbols-outlined text-yellow-500 text-[18px]">star</span>' : ""}
-                <span class="font-medium text-slate-900 dark:text-white">${article.title}</span>
+        container.innerHTML = articles
+          .map(
+            (article) => `
+          <div class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+               onclick="viewArticle(${article.id})">
+            <div class="p-5">
+              <div class="flex items-center justify-between mb-3">
+                <span class="px-2 py-1 ${getStatusBg(article.status)} text-xs rounded-full">${getStatusName(article.status)}</span>
+                ${article.featured ? '<span class="material-symbols-outlined fill text-amber-500 text-[18px]">star</span>' : ""}
               </div>
-            </td>
-            <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-              ${article.categoryName || "Chưa phân loại"}
-            </td>
-            <td class="px-6 py-4">
-              <span class="status-badge status-${article.status}">${getStatusText(article.status)}</span>
-            </td>
-            <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-              ${article.views}
-            </td>
-            <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-              ${formatDate(article.createdAt)}
-            </td>
-            <td class="px-6 py-4 text-right space-x-2">
-              <button
-                onclick="viewArticle(${article.id})"
-                class="text-blue-600 hover:text-blue-700"
-                title="Xem chi tiết"
-              >
-                <span class="material-symbols-outlined text-[20px]">visibility</span>
+              <h3 class="font-semibold text-slate-900 dark:text-white mb-2 line-clamp-2">${article.title}</h3>
+              <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-3 mb-3">${article.summary || ""}</p>
+              
+              <div class="flex flex-wrap gap-1 mb-3">
+                ${(article.tags || "")
+                  .split(",")
+                  .filter((t) => t.trim())
+                  .slice(0, 3)
+                  .map(
+                    (tag) =>
+                      `<span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-xs rounded">#${tag.trim()}</span>`,
+                  )
+                  .join("")}
+              </div>
+
+              <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                <span class="flex items-center gap-1">
+                  <span class="material-symbols-outlined text-[16px]">visibility</span>
+                  ${article.views || 0}
+                </span>
+                <span>${formatDate(article.createdAt)}</span>
+              </div>
+            </div>
+            
+            <div class="px-5 py-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-2">
+              <button onclick="event.stopPropagation(); editArticle(${article.id})" 
+                class="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-400" title="Sửa">
+                <span class="material-symbols-outlined text-[18px]">edit</span>
               </button>
-              <button
-                onclick="editArticle(${article.id})"
-                class="text-green-600 hover:text-green-700"
-                title="Chỉnh sửa"
-              >
-                <span class="material-symbols-outlined text-[20px]">edit</span>
+              <button onclick="event.stopPropagation(); deleteArticle(${article.id})" 
+                class="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded text-red-600" title="Xóa">
+                <span class="material-symbols-outlined text-[18px]">delete</span>
               </button>
-              <button
-                onclick="deleteArticle(${article.id})"
-                class="text-red-600 hover:text-red-700"
-                title="Xóa"
-              >
-                <span class="material-symbols-outlined text-[20px]">delete</span>
-              </button>
-            </td>
-          `;
-          tbody.appendChild(row);
-        });
+            </div>
+          </div>
+        `,
+          )
+          .join("");
       }
 
       // Render pagination
-      function renderPagination(currentPage, totalPages, totalItems) {
-        const info = document.getElementById("paginationInfo");
-        const start = currentPage * pageSize + 1;
-        const end = Math.min((currentPage + 1) * pageSize, totalItems);
-        info.textContent = `Đang hiển thị ${start} - ${end} của ${totalItems} bài viết`;
+      function renderPagination() {
+        const container = document.getElementById("pagination");
 
-        const buttons = document.getElementById("paginationButtons");
-        buttons.innerHTML = "";
+        if (totalPages <= 1) {
+          container.innerHTML = "";
+          return;
+        }
 
-        if (totalPages <= 1) return;
+        let html = "";
 
-        // Previous button
-        const prevBtn = document.createElement("button");
-        prevBtn.className = `px-3 py-1 border border-slate-300 dark:border-slate-600 rounded ${currentPage === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-slate-50 dark:hover:bg-slate-700"}`;
-        prevBtn.textContent = "‹";
-        prevBtn.disabled = currentPage === 0;
-        prevBtn.onclick = () => changePage(currentPage - 1);
-        buttons.appendChild(prevBtn);
+        // Previous
+        html += `<button onclick="loadArticles(${currentPage - 1})" 
+          ${currentPage === 0 ? "disabled" : ""} 
+          class="p-2 rounded-lg ${currentPage === 0 ? "text-slate-300 dark:text-slate-600 cursor-not-allowed" : "hover:bg-slate-100 dark:hover:bg-slate-800"}">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>`;
 
         // Page numbers
         for (let i = 0; i < totalPages; i++) {
@@ -791,288 +754,256 @@
             i === totalPages - 1 ||
             (i >= currentPage - 1 && i <= currentPage + 1)
           ) {
-            const pageBtn = document.createElement("button");
-            pageBtn.className = `px-3 py-1 border border-slate-300 dark:border-slate-600 rounded ${i === currentPage ? "bg-blue-600 text-white" : "hover:bg-slate-50 dark:hover:bg-slate-700"}`;
-            pageBtn.textContent = i + 1;
-            pageBtn.onclick = () => changePage(i);
-            buttons.appendChild(pageBtn);
+            html += `<button onclick="loadArticles(${i})" 
+              class="w-10 h-10 rounded-lg ${i === currentPage ? "bg-primary text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}">
+              ${i + 1}
+            </button>`;
           } else if (i === currentPage - 2 || i === currentPage + 2) {
-            const dots = document.createElement("span");
-            dots.textContent = "...";
-            dots.className = "px-2";
-            buttons.appendChild(dots);
+            html += '<span class="px-2">...</span>';
           }
         }
 
-        // Next button
-        const nextBtn = document.createElement("button");
-        nextBtn.className = `px-3 py-1 border border-slate-300 dark:border-slate-600 rounded ${currentPage === totalPages - 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-slate-50 dark:hover:bg-slate-700"}`;
-        nextBtn.textContent = "›";
-        nextBtn.disabled = currentPage === totalPages - 1;
-        nextBtn.onclick = () => changePage(currentPage + 1);
-        buttons.appendChild(nextBtn);
+        // Next
+        html += `<button onclick="loadArticles(${currentPage + 1})" 
+          ${currentPage >= totalPages - 1 ? "disabled" : ""} 
+          class="p-2 rounded-lg ${currentPage >= totalPages - 1 ? "text-slate-300 dark:text-slate-600 cursor-not-allowed" : "hover:bg-slate-100 dark:hover:bg-slate-800"}">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>`;
+
+        container.innerHTML = html;
       }
 
-      function changePage(page) {
-        currentPage = page;
-        loadArticles();
-      }
-
-      // Search
-      let searchTimeout;
-      function handleSearch(event) {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-          currentPage = 0;
-          loadArticles();
-        }, 500);
-      }
-
-      // Article Modal
-      function openArticleModal(articleId = null) {
-        document.getElementById("articleModal").classList.remove("hidden");
-        document.getElementById("modalTitle").textContent = articleId
-          ? "Chỉnh sửa bài viết"
-          : "Tạo bài viết mới";
-
-        if (articleId) {
-          loadArticleForEdit(articleId);
-        } else {
-          resetArticleForm();
-        }
-      }
-
-      function closeArticleModal() {
-        document.getElementById("articleModal").classList.add("hidden");
-        resetArticleForm();
-      }
-
-      function resetArticleForm() {
-        document.getElementById("articleForm").reset();
-        document.getElementById("articleId").value = "";
-        quill.setContents([]);
-        articleTags = [];
-        renderTags();
-      }
-
-      async function loadArticleForEdit(id) {
-        try {
-          const response = await fetch(`/api/doctor/articles/${id}`);
-          const article = await response.json();
-
-          document.getElementById("articleId").value = article.id;
-          document.getElementById("articleTitle").value = article.title;
-          document.getElementById("articleSummary").value =
-            article.summary || "";
-          document.getElementById("articleCategory").value =
-            article.categoryId || "";
-          document.getElementById("articleStatus").value = article.status;
-          document.getElementById("articleFeatured").checked = article.featured;
-
-          quill.root.innerHTML = article.content;
-          articleTags = article.tags || [];
-          renderTags();
-        } catch (error) {
-          console.error("Error loading article:", error);
-          alert("Lỗi tải bài viết");
-        }
-      }
-
-      // Submit article form
-      document
-        .getElementById("articleForm")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
-
-          const id = document.getElementById("articleId").value;
-          const title = document.getElementById("articleTitle").value;
-          const summary = document.getElementById("articleSummary").value;
-          const content = quill.root.innerHTML;
-          const categoryId =
-            document.getElementById("articleCategory").value || null;
-          const status = document.getElementById("articleStatus").value;
-          const featured = document.getElementById("articleFeatured").checked;
-
-          const data = {
-            title,
-            summary,
-            content,
-            categoryId: categoryId ? parseInt(categoryId) : null,
-            tags: articleTags,
-            status,
-            featured,
-          };
-
-          try {
-            const url = id
-              ? `/api/doctor/articles/${id}`
-              : "/api/doctor/articles";
-            const method = id ? "PUT" : "POST";
-
-            const response = await fetch(url, {
-              method,
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(data),
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-              alert(result.message);
-              closeArticleModal();
-              loadArticles();
-              loadStatistics();
-            } else {
-              alert(result.message);
-            }
-          } catch (error) {
-            console.error("Error saving article:", error);
-            alert("Lỗi lưu bài viết");
-          }
-        });
-
-      // View article (read-only)
+      // View article
       async function viewArticle(id) {
         try {
-          const response = await fetch(`/api/doctor/articles/${id}`);
-          const article = await response.json();
+          const response = await fetch(`/api/doctor/knowledge/articles/${id}`);
+          if (!response.ok) throw new Error("Failed to load article");
 
-          alert(
-            `Tiêu đề: ${article.title}\n\nTóm tắt: ${article.summary || "Không có"}\n\nLượt xem: ${article.views}\n\n(Chức năng xem chi tiết đầy đủ sẽ được phát triển thêm)`,
+          currentArticle = await response.json();
+
+          document.getElementById("viewTitle").textContent =
+            currentArticle.title;
+          document.getElementById("viewCategory").textContent =
+            currentArticle.categoryName || "Chưa phân loại";
+          document.getElementById("viewStatus").textContent = getStatusName(
+            currentArticle.status,
           );
+          document.getElementById("viewStatus").className =
+            `px-2 py-1 text-xs rounded-full ${getStatusBg(currentArticle.status)}`;
+          document.getElementById("viewAuthor").textContent =
+            currentArticle.createdByName || "N/A";
+          document.getElementById("viewDate").textContent = formatDate(
+            currentArticle.createdAt,
+          );
+          document.getElementById("viewViews").textContent =
+            currentArticle.views || 0;
+          document.getElementById("viewSummary").textContent =
+            currentArticle.summary || "";
+          document
+            .getElementById("viewSummary")
+            .classList.toggle("hidden", !currentArticle.summary);
+          document.getElementById("viewContent").textContent =
+            currentArticle.content;
+
+          // Tags
+          const tags = (currentArticle.tags || "")
+            .split(",")
+            .filter((t) => t.trim());
+          document.getElementById("viewTags").innerHTML = tags
+            .map(
+              (tag) =>
+                `<span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-sm rounded-full">#${tag.trim()}</span>`,
+            )
+            .join("");
+
+          document.getElementById("viewModal").classList.remove("hidden");
+          document.getElementById("viewModal").classList.add("flex");
         } catch (error) {
-          console.error("Error viewing article:", error);
+          console.error("Error:", error);
+          showToast("Không thể tải bài viết", "error");
         }
+      }
+
+      // Close view modal
+      function closeViewModal() {
+        document.getElementById("viewModal").classList.add("hidden");
+        document.getElementById("viewModal").classList.remove("flex");
+        currentArticle = null;
+      }
+
+      // Edit current article from view modal
+      function editCurrentArticle() {
+        if (currentArticle) {
+          closeViewModal();
+          editArticle(currentArticle.id);
+        }
+      }
+
+      // Open create modal
+      function openCreateModal() {
+        document.getElementById("modalTitle").textContent = "Thêm bài viết mới";
+        document.getElementById("articleForm").reset();
+        document.getElementById("articleId").value = "";
+        document.getElementById("articleModal").classList.remove("hidden");
+        document.getElementById("articleModal").classList.add("flex");
       }
 
       // Edit article
-      function editArticle(id) {
-        openArticleModal(id);
+      async function editArticle(id) {
+        try {
+          const response = await fetch(`/api/doctor/knowledge/articles/${id}`);
+          if (!response.ok) throw new Error("Failed to load article");
+
+          const article = await response.json();
+
+          document.getElementById("modalTitle").textContent =
+            "Chỉnh sửa bài viết";
+          document.getElementById("articleId").value = article.id;
+          document.getElementById("articleTitle").value = article.title;
+          document.getElementById("articleCategory").value =
+            article.categoryId || "";
+          document.getElementById("articleSummary").value =
+            article.summary || "";
+          document.getElementById("articleContent").value = article.content;
+          document.getElementById("articleTags").value = article.tags || "";
+          document.getElementById("articleStatus").value = article.status;
+          document.getElementById("articleFeatured").checked =
+            article.featured || false;
+
+          document.getElementById("articleModal").classList.remove("hidden");
+          document.getElementById("articleModal").classList.add("flex");
+        } catch (error) {
+          console.error("Error:", error);
+          showToast("Không thể tải bài viết", "error");
+        }
+      }
+
+      // Close modal
+      function closeModal() {
+        document.getElementById("articleModal").classList.add("hidden");
+        document.getElementById("articleModal").classList.remove("flex");
+      }
+
+      // Save article
+      async function saveArticle(event) {
+        event.preventDefault();
+
+        const id = document.getElementById("articleId").value;
+        const data = {
+          title: document.getElementById("articleTitle").value,
+          categoryId: document.getElementById("articleCategory").value || null,
+          summary: document.getElementById("articleSummary").value,
+          content: document.getElementById("articleContent").value,
+          tags: document.getElementById("articleTags").value,
+          status: document.getElementById("articleStatus").value,
+          featured: document.getElementById("articleFeatured").checked,
+        };
+
+        try {
+          const url = id
+            ? `/api/doctor/knowledge/articles/${id}`
+            : "/api/doctor/knowledge/articles";
+          const method = id ? "PUT" : "POST";
+
+          const response = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (!response.ok) throw new Error("Failed to save article");
+
+          showToast(
+            id ? "Cập nhật thành công" : "Tạo bài viết thành công",
+            "success",
+          );
+          closeModal();
+          loadArticles(currentPage);
+          loadStatistics();
+          loadPopularTags();
+        } catch (error) {
+          console.error("Error:", error);
+          showToast("Lỗi khi lưu bài viết", "error");
+        }
       }
 
       // Delete article
       async function deleteArticle(id) {
-        if (!confirm("Bạn có chắc chắn muốn xóa bài viết này?")) return;
+        if (!confirm("Bạn có chắc muốn xóa bài viết này?")) return;
 
         try {
-          const response = await fetch(`/api/doctor/articles/${id}`, {
+          const response = await fetch(`/api/doctor/knowledge/articles/${id}`, {
             method: "DELETE",
           });
-          const result = await response.json();
 
-          if (result.success) {
-            alert(result.message);
-            loadArticles();
-            loadStatistics();
-          } else {
-            alert(result.message);
-          }
+          if (!response.ok) throw new Error("Failed to delete article");
+
+          showToast("Xóa bài viết thành công", "success");
+          loadArticles(currentPage);
+          loadStatistics();
         } catch (error) {
-          console.error("Error deleting article:", error);
-          alert("Lỗi xóa bài viết");
+          console.error("Error:", error);
+          showToast("Lỗi khi xóa bài viết", "error");
         }
       }
 
-      // Tags management
-      function handleTagInput(event) {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          const input = event.target;
-          const tag = input.value.trim();
-
-          if (tag && !articleTags.includes(tag)) {
-            articleTags.push(tag);
-            renderTags();
-            input.value = "";
-          }
-        }
+      // Helpers
+      function getStatusBg(status) {
+        const map = {
+          PUBLISHED:
+            "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+          DRAFT:
+            "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
+          ARCHIVED:
+            "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400",
+        };
+        return map[status] || map.DRAFT;
       }
 
-      function removeTag(tag) {
-        articleTags = articleTags.filter((t) => t !== tag);
-        renderTags();
-      }
-
-      function renderTags() {
-        const container = document.getElementById("tagsContainer");
-        container.innerHTML = "";
-
-        articleTags.forEach((tag) => {
-          const badge = document.createElement("span");
-          badge.className = "tag-badge";
-          badge.innerHTML = `
-            ${tag}
-            <span class="tag-remove" onclick="removeTag('${tag}')">×</span>
-          `;
-          container.appendChild(badge);
-        });
-      }
-
-      // Category Modal
-      function openCategoryModal() {
-        document.getElementById("categoryModal").classList.remove("hidden");
-      }
-
-      function closeCategoryModal() {
-        document.getElementById("categoryModal").classList.add("hidden");
-        document.getElementById("categoryForm").reset();
-      }
-
-      // Submit category form
-      document
-        .getElementById("categoryForm")
-        .addEventListener("submit", async function (e) {
-          e.preventDefault();
-
-          const name = document.getElementById("categoryName").value;
-          const description = document.getElementById(
-            "categoryDescription",
-          ).value;
-          const parentId =
-            document.getElementById("categoryParent").value || null;
-
-          const data = {
-            name,
-            description,
-            parentId: parentId ? parseInt(parentId) : null,
-            displayOrder: 0,
-          };
-
-          try {
-            const response = await fetch("/api/doctor/categories", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(data),
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-              alert(result.message);
-              closeCategoryModal();
-              loadCategories();
-            } else {
-              alert(result.message);
-            }
-          } catch (error) {
-            console.error("Error creating category:", error);
-            alert("Lỗi tạo danh mục");
-          }
-        });
-
-      // Helper functions
-      function getStatusText(status) {
-        const statusMap = {
+      function getStatusName(status) {
+        const map = {
           PUBLISHED: "Đã xuất bản",
           DRAFT: "Bản nháp",
-          ARCHIVED: "Đã lưu trữ",
+          ARCHIVED: "Lưu trữ",
         };
-        return statusMap[status] || status;
+        return map[status] || status;
       }
 
-      function formatDate(dateString) {
-        const date = new Date(dateString);
+      function formatDate(dateStr) {
+        if (!dateStr) return "N/A";
+        const date = new Date(dateStr);
         return date.toLocaleDateString("vi-VN");
+      }
+
+      function showToast(message, type = "info") {
+        const container = document.getElementById("toastContainer");
+        const toast = document.createElement("div");
+
+        const colors = {
+          success: "bg-green-500",
+          error: "bg-red-500",
+          info: "bg-blue-500",
+          warning: "bg-amber-500",
+        };
+
+        const icons = {
+          success: "check_circle",
+          error: "error",
+          info: "info",
+          warning: "warning",
+        };
+
+        toast.className = `flex items-center gap-3 px-4 py-3 ${colors[type]} text-white rounded-lg shadow-lg min-w-[300px]`;
+        toast.innerHTML = `
+          <span class="material-symbols-outlined">${icons[type]}</span>
+          <span class="flex-1">${message}</span>
+          <button onclick="this.parentElement.remove()" class="p-1 hover:bg-white/20 rounded">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        `;
+
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
       }
     </script>
   </body>

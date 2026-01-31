@@ -1,0 +1,1398 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gọi Bệnh Nhân - ABClinic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0"
+    />
+    <script th:inline="javascript">
+      window.contextPath = /*[[@{/}]]*/ "/";
+    </script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0d7cf2",
+              secondary: "#6c757d",
+              success: "#28a745",
+              danger: "#dc3545",
+              warning: "#ffc107",
+              dark: "#1a1a2e",
+              darker: "#16213e",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+      body {
+        font-family: "Inter", sans-serif;
+      }
+
+      .material-symbols-rounded {
+        font-variation-settings:
+          "FILL" 1,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+
+      /* Call state backgrounds */
+      .call-bg-idle {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+
+      .call-bg-calling {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        animation: gradientShift 3s ease infinite;
+      }
+
+      .call-bg-connected {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      }
+
+      .call-bg-ended {
+        background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+      }
+
+      @keyframes gradientShift {
+        0%,
+        100% {
+          filter: hue-rotate(0deg);
+        }
+        50% {
+          filter: hue-rotate(30deg);
+        }
+      }
+
+      /* Pulse animation for avatar */
+      .avatar-pulse {
+        animation: avatarPulse 2s ease-in-out infinite;
+      }
+
+      @keyframes avatarPulse {
+        0%,
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+        }
+        50% {
+          transform: scale(1.05);
+          box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
+        }
+      }
+
+      /* Calling ripple effect */
+      .ripple-container {
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .ripple {
+        position: absolute;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        animation: rippleEffect 2s ease-out infinite;
+      }
+
+      .ripple:nth-child(1) {
+        width: 100%;
+        height: 100%;
+        animation-delay: 0s;
+      }
+      .ripple:nth-child(2) {
+        width: 130%;
+        height: 130%;
+        animation-delay: 0.5s;
+      }
+      .ripple:nth-child(3) {
+        width: 160%;
+        height: 160%;
+        animation-delay: 1s;
+      }
+
+      @keyframes rippleEffect {
+        0% {
+          transform: scale(0.8);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1.5);
+          opacity: 0;
+        }
+      }
+
+      /* Waveform animation */
+      .waveform {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        height: 40px;
+      }
+
+      .wave-bar {
+        width: 4px;
+        background: white;
+        border-radius: 2px;
+        animation: waveAnimation 1s ease-in-out infinite;
+      }
+
+      .wave-bar:nth-child(1) {
+        animation-delay: 0s;
+      }
+      .wave-bar:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .wave-bar:nth-child(3) {
+        animation-delay: 0.2s;
+      }
+      .wave-bar:nth-child(4) {
+        animation-delay: 0.3s;
+      }
+      .wave-bar:nth-child(5) {
+        animation-delay: 0.4s;
+      }
+      .wave-bar:nth-child(6) {
+        animation-delay: 0.5s;
+      }
+      .wave-bar:nth-child(7) {
+        animation-delay: 0.6s;
+      }
+
+      @keyframes waveAnimation {
+        0%,
+        100% {
+          height: 8px;
+        }
+        50% {
+          height: 32px;
+        }
+      }
+
+      /* Dial pad button */
+      .dial-btn {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+
+      .dial-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: scale(1.05);
+      }
+
+      .dial-btn:active {
+        transform: scale(0.95);
+      }
+
+      /* Control buttons */
+      .control-btn {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
+
+      .control-btn:hover {
+        transform: scale(1.1);
+      }
+
+      .control-btn:active {
+        transform: scale(0.95);
+      }
+
+      /* Patient list item */
+      .patient-item {
+        transition: all 0.2s ease;
+      }
+
+      .patient-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* Scrollbar styling */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+      }
+
+      /* Glass card effect */
+      .glass-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+      }
+
+      /* Floating animation */
+      .float-animation {
+        animation: floatUpDown 3s ease-in-out infinite;
+      }
+
+      @keyframes floatUpDown {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen">
+    <!-- Main Container -->
+    <div
+      id="callContainer"
+      class="min-h-screen call-bg-idle transition-all duration-500 flex"
+    >
+      <!-- Left Panel - Patient List -->
+      <div
+        class="w-80 bg-black/20 backdrop-blur-xl border-r border-white/10 flex flex-col"
+      >
+        <!-- Header -->
+        <div class="p-4 border-b border-white/10">
+          <div class="flex items-center gap-3 mb-4">
+            <a
+              th:href="@{/receptionist/dashboard}"
+              class="text-white/80 hover:text-white transition-colors"
+            >
+              <span class="material-symbols-rounded text-2xl">arrow_back</span>
+            </a>
+            <h1 class="text-xl font-semibold text-white">Gọi Bệnh Nhân</h1>
+          </div>
+
+          <!-- Search -->
+          <div class="relative">
+            <span
+              class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-white/50"
+              >search</span
+            >
+            <input
+              type="text"
+              id="searchPatient"
+              placeholder="Tìm bệnh nhân..."
+              class="w-full bg-white/10 border border-white/20 rounded-full py-2.5 pl-10 pr-4 text-white placeholder-white/50 focus:outline-none focus:border-white/40"
+            />
+          </div>
+        </div>
+
+        <!-- Recent Calls -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar">
+          <div class="p-3">
+            <h3
+              class="text-white/60 text-xs font-medium uppercase tracking-wider mb-2 px-2"
+            >
+              Cuộc gọi gần đây
+            </h3>
+
+            <div id="recentPatients" class="space-y-1">
+              <!-- Sample patients - will be loaded dynamically -->
+              <div
+                class="patient-item flex items-center gap-3 p-3 rounded-xl cursor-pointer"
+                onclick="selectPatient('Nguyễn Văn An', '0901234567', 'BN001')"
+              >
+                <div
+                  class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold"
+                >
+                  NA
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-white font-medium truncate">Nguyễn Văn An</p>
+                  <p class="text-white/60 text-sm">0901234567</p>
+                </div>
+                <span class="material-symbols-rounded text-green-400"
+                  >call_made</span
+                >
+              </div>
+
+              <div
+                class="patient-item flex items-center gap-3 p-3 rounded-xl cursor-pointer"
+                onclick="selectPatient('Trần Thị Bình', '0912345678', 'BN002')"
+              >
+                <div
+                  class="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-red-500 flex items-center justify-center text-white font-semibold"
+                >
+                  TB
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-white font-medium truncate">Trần Thị Bình</p>
+                  <p class="text-white/60 text-sm">0912345678</p>
+                </div>
+                <span class="material-symbols-rounded text-red-400"
+                  >call_received</span
+                >
+              </div>
+
+              <div
+                class="patient-item flex items-center gap-3 p-3 rounded-xl cursor-pointer"
+                onclick="selectPatient('Lê Hoàng Cường', '0923456789', 'BN003')"
+              >
+                <div
+                  class="w-12 h-12 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center text-white font-semibold"
+                >
+                  LC
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-white font-medium truncate">Lê Hoàng Cường</p>
+                  <p class="text-white/60 text-sm">0923456789</p>
+                </div>
+                <span class="material-symbols-rounded text-green-400"
+                  >call_made</span
+                >
+              </div>
+
+              <div
+                class="patient-item flex items-center gap-3 p-3 rounded-xl cursor-pointer"
+                onclick="selectPatient('Phạm Minh Đức', '0934567890', 'BN004')"
+              >
+                <div
+                  class="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-semibold"
+                >
+                  PĐ
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-white font-medium truncate">Phạm Minh Đức</p>
+                  <p class="text-white/60 text-sm">0934567890</p>
+                </div>
+                <span class="material-symbols-rounded text-yellow-400"
+                  >call_missed</span
+                >
+              </div>
+
+              <div
+                class="patient-item flex items-center gap-3 p-3 rounded-xl cursor-pointer"
+                onclick="selectPatient('Hoàng Thị E', '0945678901', 'BN005')"
+              >
+                <div
+                  class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-blue-500 flex items-center justify-center text-white font-semibold"
+                >
+                  HE
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-white font-medium truncate">Hoàng Thị E</p>
+                  <p class="text-white/60 text-sm">0945678901</p>
+                </div>
+                <span class="material-symbols-rounded text-green-400"
+                  >call_made</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Queue Section -->
+          <div class="p-3 border-t border-white/10">
+            <h3
+              class="text-white/60 text-xs font-medium uppercase tracking-wider mb-2 px-2"
+            >
+              Hàng đợi gọi lại
+            </h3>
+
+            <div id="callQueue" class="space-y-1">
+              <div
+                class="patient-item flex items-center gap-3 p-3 rounded-xl cursor-pointer bg-yellow-500/20 border border-yellow-500/30"
+                onclick="selectPatient('Võ Văn F', '0956789012', 'BN006')"
+              >
+                <div
+                  class="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center text-white font-semibold"
+                >
+                  VF
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-white font-medium truncate">Võ Văn F</p>
+                  <p class="text-yellow-300 text-sm">Cần gọi lại</p>
+                </div>
+                <span class="material-symbols-rounded text-yellow-400"
+                  >schedule</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="p-4 border-t border-white/10">
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="glass-card p-2">
+              <p class="text-2xl font-bold text-white" id="totalCalls">24</p>
+              <p class="text-white/60 text-xs">Tổng gọi</p>
+            </div>
+            <div class="glass-card p-2">
+              <p class="text-2xl font-bold text-green-400" id="successCalls">
+                18
+              </p>
+              <p class="text-white/60 text-xs">Thành công</p>
+            </div>
+            <div class="glass-card p-2">
+              <p class="text-2xl font-bold text-red-400" id="missedCalls">6</p>
+              <p class="text-white/60 text-xs">Nhỡ</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel - Call Interface -->
+      <div
+        class="flex-1 flex flex-col items-center justify-center p-8 relative"
+      >
+        <!-- Idle State - Dial Pad -->
+        <div id="idleState" class="flex flex-col items-center">
+          <!-- Phone Number Display -->
+          <div class="glass-card px-8 py-4 mb-8 min-w-[300px] text-center">
+            <p
+              id="phoneDisplay"
+              class="text-3xl font-light text-white tracking-widest"
+            >
+              Nhập số điện thoại
+            </p>
+            <p id="patientNameDisplay" class="text-white/60 text-sm mt-1"></p>
+          </div>
+
+          <!-- Dial Pad -->
+          <div class="grid grid-cols-3 gap-4 mb-8">
+            <button class="dial-btn text-white" onclick="dialNumber('1')">
+              <span class="text-2xl font-medium">1</span>
+            </button>
+            <button class="dial-btn text-white" onclick="dialNumber('2')">
+              <span class="text-2xl font-medium">2</span>
+              <span class="text-[10px] text-white/60">ABC</span>
+            </button>
+            <button class="dial-btn text-white" onclick="dialNumber('3')">
+              <span class="text-2xl font-medium">3</span>
+              <span class="text-[10px] text-white/60">DEF</span>
+            </button>
+            <button class="dial-btn text-white" onclick="dialNumber('4')">
+              <span class="text-2xl font-medium">4</span>
+              <span class="text-[10px] text-white/60">GHI</span>
+            </button>
+            <button class="dial-btn text-white" onclick="dialNumber('5')">
+              <span class="text-2xl font-medium">5</span>
+              <span class="text-[10px] text-white/60">JKL</span>
+            </button>
+            <button class="dial-btn text-white" onclick="dialNumber('6')">
+              <span class="text-2xl font-medium">6</span>
+              <span class="text-[10px] text-white/60">MNO</span>
+            </button>
+            <button class="dial-btn text-white" onclick="dialNumber('7')">
+              <span class="text-2xl font-medium">7</span>
+              <span class="text-[10px] text-white/60">PQRS</span>
+            </button>
+            <button class="dial-btn text-white" onclick="dialNumber('8')">
+              <span class="text-2xl font-medium">8</span>
+              <span class="text-[10px] text-white/60">TUV</span>
+            </button>
+            <button class="dial-btn text-white" onclick="dialNumber('9')">
+              <span class="text-2xl font-medium">9</span>
+              <span class="text-[10px] text-white/60">WXYZ</span>
+            </button>
+            <button class="dial-btn text-white" onclick="dialNumber('*')">
+              <span class="text-2xl font-medium">*</span>
+            </button>
+            <button class="dial-btn text-white" onclick="dialNumber('0')">
+              <span class="text-2xl font-medium">0</span>
+              <span class="text-[10px] text-white/60">+</span>
+            </button>
+            <button class="dial-btn text-white" onclick="dialNumber('#')">
+              <span class="text-2xl font-medium">#</span>
+            </button>
+          </div>
+
+          <!-- Call & Delete Buttons -->
+          <div class="flex items-center gap-6">
+            <button
+              id="deleteBtn"
+              class="control-btn bg-white/20 text-white opacity-0 transition-opacity"
+              onclick="deleteNumber()"
+            >
+              <span class="material-symbols-rounded text-2xl">backspace</span>
+            </button>
+            <button
+              id="callBtn"
+              class="control-btn bg-green-500 text-white w-16 h-16 shadow-lg shadow-green-500/30"
+              onclick="startCall()"
+            >
+              <span class="material-symbols-rounded text-3xl">call</span>
+            </button>
+            <div class="w-[60px]"></div>
+          </div>
+        </div>
+
+        <!-- Calling State -->
+        <div id="callingState" class="hidden flex-col items-center">
+          <!-- Ripple Effect -->
+          <div class="ripple-container mb-4">
+            <div class="ripple"></div>
+            <div class="ripple"></div>
+            <div class="ripple"></div>
+            <div
+              id="callingAvatar"
+              class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-4xl font-semibold z-10 avatar-pulse"
+            >
+              ?
+            </div>
+          </div>
+
+          <h2 id="callingName" class="text-2xl font-semibold text-white mt-4">
+            Đang gọi...
+          </h2>
+          <p id="callingPhone" class="text-white/70 text-lg mt-1">0901234567</p>
+          <p
+            id="callingStatus"
+            class="text-white/50 mt-4 flex items-center gap-2"
+          >
+            <span class="material-symbols-rounded animate-pulse"
+              >ring_volume</span
+            >
+            Đang kết nối...
+          </p>
+
+          <!-- End Call Button -->
+          <button
+            class="control-btn bg-red-500 text-white w-16 h-16 mt-12 shadow-lg shadow-red-500/30"
+            onclick="endCall()"
+          >
+            <span class="material-symbols-rounded text-3xl">call_end</span>
+          </button>
+        </div>
+
+        <!-- Connected State -->
+        <div id="connectedState" class="hidden flex-col items-center">
+          <!-- Avatar -->
+          <div
+            id="connectedAvatar"
+            class="w-32 h-32 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center text-white text-4xl font-semibold float-animation mb-4"
+          >
+            ?
+          </div>
+
+          <h2 id="connectedName" class="text-2xl font-semibold text-white mt-2">
+            Nguyễn Văn An
+          </h2>
+          <p id="connectedPhone" class="text-white/70">0901234567</p>
+
+          <!-- Call Duration -->
+          <div class="mt-4 glass-card px-6 py-3">
+            <p
+              id="callDuration"
+              class="text-3xl font-light text-white tracking-wider"
+            >
+              00:00
+            </p>
+          </div>
+
+          <!-- Waveform -->
+          <div class="waveform mt-6">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+          </div>
+
+          <!-- Control Buttons -->
+          <div class="flex items-center gap-6 mt-10">
+            <button
+              id="muteBtn"
+              class="control-btn bg-white/20 text-white"
+              onclick="toggleMute()"
+            >
+              <span class="material-symbols-rounded text-2xl">mic</span>
+            </button>
+            <button
+              id="speakerBtn"
+              class="control-btn bg-white/20 text-white"
+              onclick="toggleSpeaker()"
+            >
+              <span class="material-symbols-rounded text-2xl">volume_up</span>
+            </button>
+            <button
+              id="recordBtn"
+              class="control-btn bg-white/20 text-white"
+              onclick="toggleRecord()"
+            >
+              <span class="material-symbols-rounded text-2xl"
+                >fiber_manual_record</span
+              >
+            </button>
+            <button
+              id="dialpadBtn"
+              class="control-btn bg-white/20 text-white"
+              onclick="showDialpad()"
+            >
+              <span class="material-symbols-rounded text-2xl">dialpad</span>
+            </button>
+          </div>
+
+          <!-- End Call Button -->
+          <button
+            class="control-btn bg-red-500 text-white w-16 h-16 mt-8 shadow-lg shadow-red-500/30"
+            onclick="endCall()"
+          >
+            <span class="material-symbols-rounded text-3xl">call_end</span>
+          </button>
+        </div>
+
+        <!-- Call Ended State -->
+        <div id="endedState" class="hidden flex-col items-center">
+          <div
+            class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center mb-6"
+          >
+            <span class="material-symbols-rounded text-5xl text-white"
+              >call_end</span
+            >
+          </div>
+
+          <h2 id="endedName" class="text-2xl font-semibold text-white">
+            Cuộc gọi kết thúc
+          </h2>
+          <p id="endedDuration" class="text-white/70 mt-2">Thời lượng: 02:34</p>
+
+          <!-- Quick Actions -->
+          <div class="flex items-center gap-4 mt-8">
+            <button
+              class="glass-card px-6 py-3 text-white flex items-center gap-2 hover:bg-white/20 transition-colors"
+              onclick="callAgain()"
+            >
+              <span class="material-symbols-rounded">replay</span>
+              Gọi lại
+            </button>
+            <button
+              class="glass-card px-6 py-3 text-white flex items-center gap-2 hover:bg-white/20 transition-colors"
+              onclick="addNote()"
+            >
+              <span class="material-symbols-rounded">note_add</span>
+              Thêm ghi chú
+            </button>
+            <button
+              class="glass-card px-6 py-3 text-white flex items-center gap-2 hover:bg-white/20 transition-colors"
+              onclick="backToIdle()"
+            >
+              <span class="material-symbols-rounded">dialpad</span>
+              Gọi số khác
+            </button>
+          </div>
+        </div>
+
+        <!-- Note Modal -->
+        <div
+          id="noteModal"
+          class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+        >
+          <div
+            class="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-gray-800 dark:text-white">
+                Thêm ghi chú cuộc gọi
+              </h3>
+              <button
+                onclick="closeNoteModal()"
+                class="text-gray-500 hover:text-gray-700"
+              >
+                <span class="material-symbols-rounded">close</span>
+              </button>
+            </div>
+            <textarea
+              id="callNote"
+              rows="4"
+              placeholder="Nhập ghi chú về cuộc gọi..."
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
+            ></textarea>
+            <div class="flex items-center gap-3 mt-4">
+              <label
+                class="flex items-center gap-2 text-gray-600 dark:text-gray-300"
+              >
+                <input
+                  type="checkbox"
+                  id="scheduleCallback"
+                  class="w-4 h-4 rounded text-primary"
+                />
+                <span>Hẹn gọi lại</span>
+              </label>
+              <input
+                type="datetime-local"
+                id="callbackTime"
+                class="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg p-2 text-sm dark:bg-gray-700 dark:text-white"
+              />
+            </div>
+            <div class="flex justify-end gap-3 mt-4">
+              <button
+                onclick="closeNoteModal()"
+                class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              >
+                Hủy
+              </button>
+              <button
+                onclick="saveNote()"
+                class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+              >
+                Lưu ghi chú
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audio elements -->
+    <audio id="ringTone" loop>
+      <source
+        src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+        type="audio/mpeg"
+      />
+    </audio>
+
+    <script th:src="@{/js/latest.sdk.bundle.min.js}"></script>
+    <script>
+      // State management
+      let currentState = "idle";
+      let currentPhone = "";
+      let currentPatientName = "";
+      let currentPatientId = "";
+      let callStartTime = null;
+      let callDurationInterval = null;
+      let isMuted = false;
+      let isSpeakerOn = false;
+      let isRecording = false;
+
+      // Recording variables
+      let mediaRecorder = null;
+      let recordedChunks = [];
+      let localStream = null;
+      let audioContext = null;
+
+      // Stringee client (will be initialized)
+      let stringeeClient = null;
+      let currentCall = null;
+
+      // DOM Elements
+      const callContainer = document.getElementById("callContainer");
+      const phoneDisplay = document.getElementById("phoneDisplay");
+      const patientNameDisplay = document.getElementById("patientNameDisplay");
+      const deleteBtn = document.getElementById("deleteBtn");
+
+      // Initialize Stringee
+      async function initStringee() {
+        try {
+          const response = await fetch(
+            window.contextPath + "api/stringee/token",
+          );
+          const data = await response.json();
+
+          if (data.token) {
+            stringeeClient = new StringeeClient();
+
+            stringeeClient.on("connect", () => {
+              console.log("Stringee connected");
+            });
+
+            stringeeClient.on("authen", (res) => {
+              console.log("Stringee authenticated:", res);
+            });
+
+            stringeeClient.on("disconnect", () => {
+              console.log("Stringee disconnected");
+            });
+
+            stringeeClient.on("incomingcall", (incomingCall) => {
+              handleIncomingCall(incomingCall);
+            });
+
+            stringeeClient.connect(data.token);
+          }
+        } catch (error) {
+          console.error("Failed to initialize Stringee:", error);
+        }
+      }
+
+      // Select patient from list
+      function selectPatient(name, phone, patientId) {
+        currentPhone = phone;
+        currentPatientName = name;
+        currentPatientId = patientId;
+        phoneDisplay.textContent = formatPhoneDisplay(phone);
+        patientNameDisplay.textContent = name;
+        deleteBtn.style.opacity = "1";
+      }
+
+      // Dial a number
+      function dialNumber(num) {
+        currentPhone += num;
+        phoneDisplay.textContent = formatPhoneDisplay(currentPhone);
+        deleteBtn.style.opacity = currentPhone.length > 0 ? "1" : "0";
+
+        // Play DTMF tone if in call
+        if (currentState === "connected" && currentCall) {
+          currentCall.sendDtmf(num);
+        }
+      }
+
+      // Delete last number
+      function deleteNumber() {
+        if (currentPhone.length > 0) {
+          currentPhone = currentPhone.slice(0, -1);
+          phoneDisplay.textContent =
+            currentPhone.length > 0
+              ? formatPhoneDisplay(currentPhone)
+              : "Nhập số điện thoại";
+          deleteBtn.style.opacity = currentPhone.length > 0 ? "1" : "0";
+
+          if (currentPhone.length === 0) {
+            patientNameDisplay.textContent = "";
+            currentPatientName = "";
+          }
+        }
+      }
+
+      // Format phone number display
+      function formatPhoneDisplay(phone) {
+        if (phone.length <= 4) return phone;
+        if (phone.length <= 7) return phone.slice(0, 4) + " " + phone.slice(4);
+        return (
+          phone.slice(0, 4) + " " + phone.slice(4, 7) + " " + phone.slice(7)
+        );
+      }
+
+      // Start call
+      function startCall() {
+        if (!currentPhone || currentPhone.length < 10) {
+          alert("Vui lòng nhập số điện thoại hợp lệ");
+          return;
+        }
+
+        setState("calling");
+
+        // Update calling state UI
+        document.getElementById("callingName").textContent =
+          currentPatientName || "Không xác định";
+        document.getElementById("callingPhone").textContent =
+          formatPhoneDisplay(currentPhone);
+        document.getElementById("callingAvatar").textContent = getInitials(
+          currentPatientName || currentPhone,
+        );
+
+        // Play ring tone
+        document
+          .getElementById("ringTone")
+          .play()
+          .catch(() => {});
+
+        // Make actual call with Stringee
+        if (stringeeClient && stringeeClient.isConnected()) {
+          makeStringeeCall();
+        } else {
+          // Simulate call for demo
+          setTimeout(() => {
+            document.getElementById("ringTone").pause();
+            setState("connected");
+            startCallTimer();
+          }, 3000);
+        }
+      }
+
+      // Make Stringee call
+      function makeStringeeCall() {
+        const callConfig = {
+          from: "ABClinic",
+          to: currentPhone,
+          isVideoCall: false,
+        };
+
+        currentCall = new StringeeCall(
+          stringeeClient,
+          callConfig.from,
+          callConfig.to,
+          callConfig.isVideoCall,
+        );
+
+        currentCall.on("state", (state) => {
+          console.log("Call state:", state);
+
+          switch (state.code) {
+            case 3: // Ringing
+              document.getElementById("callingStatus").innerHTML =
+                '<span class="material-symbols-rounded animate-pulse">ring_volume</span> Đang đổ chuông...';
+              break;
+            case 4: // Answered
+              document.getElementById("ringTone").pause();
+              setState("connected");
+              startCallTimer();
+              // Auto start recording when call connects
+              setTimeout(() => startRecording(), 1000);
+              break;
+            case 5: // Busy
+            case 6: // Ended
+              document.getElementById("ringTone").pause();
+              endCall();
+              break;
+          }
+        });
+
+        currentCall.makeCall();
+      }
+
+      // End call
+      function endCall() {
+        document.getElementById("ringTone").pause();
+
+        // Stop recording if active
+        if (isRecording) {
+          stopRecording();
+        }
+
+        if (currentCall) {
+          currentCall.hangup();
+          currentCall = null;
+        }
+
+        stopCallTimer();
+
+        // Update ended state
+        document.getElementById("endedName").textContent =
+          currentPatientName || "Cuộc gọi kết thúc";
+        document.getElementById("endedDuration").textContent =
+          "Thời lượng: " + document.getElementById("callDuration").textContent;
+
+        setState("ended");
+
+        // Log call to server
+        logCall();
+      }
+
+      // Log call to server
+      async function logCall() {
+        try {
+          const duration = callStartTime
+            ? Math.floor((Date.now() - callStartTime) / 1000)
+            : 0;
+
+          await fetch(window.contextPath + "api/calls/log", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              patientId: currentPatientId,
+              phoneNumber: currentPhone,
+              duration: duration,
+              status: currentState === "connected" ? "COMPLETED" : "MISSED",
+            }),
+          });
+        } catch (error) {
+          console.error("Failed to log call:", error);
+        }
+      }
+
+      // State management
+      function setState(state) {
+        currentState = state;
+
+        // Hide all states
+        document.getElementById("idleState").classList.add("hidden");
+        document.getElementById("callingState").classList.add("hidden");
+        document.getElementById("connectedState").classList.add("hidden");
+        document.getElementById("endedState").classList.add("hidden");
+
+        // Remove all background classes
+        callContainer.classList.remove(
+          "call-bg-idle",
+          "call-bg-calling",
+          "call-bg-connected",
+          "call-bg-ended",
+        );
+
+        // Show current state
+        switch (state) {
+          case "idle":
+            document.getElementById("idleState").classList.remove("hidden");
+            callContainer.classList.add("call-bg-idle");
+            break;
+          case "calling":
+            document.getElementById("callingState").classList.remove("hidden");
+            document.getElementById("callingState").classList.add("flex");
+            callContainer.classList.add("call-bg-calling");
+            break;
+          case "connected":
+            document
+              .getElementById("connectedState")
+              .classList.remove("hidden");
+            document.getElementById("connectedState").classList.add("flex");
+            callContainer.classList.add("call-bg-connected");
+
+            // Update connected state UI
+            document.getElementById("connectedName").textContent =
+              currentPatientName || "Không xác định";
+            document.getElementById("connectedPhone").textContent =
+              formatPhoneDisplay(currentPhone);
+            document.getElementById("connectedAvatar").textContent =
+              getInitials(currentPatientName || currentPhone);
+            break;
+          case "ended":
+            document.getElementById("endedState").classList.remove("hidden");
+            document.getElementById("endedState").classList.add("flex");
+            callContainer.classList.add("call-bg-ended");
+            break;
+        }
+      }
+
+      // Call timer
+      function startCallTimer() {
+        callStartTime = Date.now();
+        callDurationInterval = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+          const minutes = Math.floor(elapsed / 60)
+            .toString()
+            .padStart(2, "0");
+          const seconds = (elapsed % 60).toString().padStart(2, "0");
+          document.getElementById("callDuration").textContent =
+            `${minutes}:${seconds}`;
+        }, 1000);
+      }
+
+      function stopCallTimer() {
+        if (callDurationInterval) {
+          clearInterval(callDurationInterval);
+          callDurationInterval = null;
+        }
+      }
+
+      // Toggle controls
+      function toggleMute() {
+        isMuted = !isMuted;
+        const btn = document.getElementById("muteBtn");
+        const icon = btn.querySelector(".material-symbols-rounded");
+
+        if (isMuted) {
+          btn.classList.add("bg-red-500");
+          btn.classList.remove("bg-white/20");
+          icon.textContent = "mic_off";
+        } else {
+          btn.classList.remove("bg-red-500");
+          btn.classList.add("bg-white/20");
+          icon.textContent = "mic";
+        }
+
+        if (currentCall) {
+          currentCall.mute(isMuted);
+        }
+      }
+
+      function toggleSpeaker() {
+        isSpeakerOn = !isSpeakerOn;
+        const btn = document.getElementById("speakerBtn");
+        const icon = btn.querySelector(".material-symbols-rounded");
+
+        if (isSpeakerOn) {
+          btn.classList.add("bg-primary");
+          btn.classList.remove("bg-white/20");
+          icon.textContent = "volume_up";
+        } else {
+          btn.classList.remove("bg-primary");
+          btn.classList.add("bg-white/20");
+          icon.textContent = "volume_down";
+        }
+      }
+
+      function toggleRecord() {
+        if (!isRecording) {
+          // Start recording
+          startRecording();
+        } else {
+          // Stop recording
+          stopRecording();
+        }
+      }
+
+      // Start recording function
+      async function startRecording() {
+        try {
+          // Get local audio stream
+          localStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: false,
+          });
+
+          // Create audio context to mix local and remote audio
+          audioContext = new AudioContext();
+          const destination = audioContext.createMediaStreamDestination();
+
+          // Add local audio
+          const localSource = audioContext.createMediaStreamSource(localStream);
+          localSource.connect(destination);
+
+          // Try to capture remote audio from Stringee
+          if (currentCall && currentCall.remoteStream) {
+            const remoteSource = audioContext.createMediaStreamSource(
+              currentCall.remoteStream,
+            );
+            remoteSource.connect(destination);
+          }
+
+          // Create MediaRecorder
+          mediaRecorder = new MediaRecorder(destination.stream, {
+            mimeType: "audio/webm;codecs=opus",
+          });
+
+          recordedChunks = [];
+
+          mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+              recordedChunks.push(event.data);
+            }
+          };
+
+          mediaRecorder.onstop = () => {
+            uploadRecording();
+          };
+
+          mediaRecorder.start(1000);
+          isRecording = true;
+
+          // Update UI
+          const btn = document.getElementById("recordBtn");
+          btn.classList.add("bg-red-500");
+          btn.classList.remove("bg-white/20");
+          btn
+            .querySelector(".material-symbols-rounded")
+            .classList.add("animate-pulse");
+
+          console.log("Recording started");
+        } catch (error) {
+          console.error("Failed to start recording:", error);
+          alert("Không thể bắt đầu ghi âm: " + error.message);
+        }
+      }
+
+      // Stop recording function
+      function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+          mediaRecorder.stop();
+        }
+
+        if (localStream) {
+          localStream.getTracks().forEach((track) => track.stop());
+          localStream = null;
+        }
+
+        if (audioContext) {
+          audioContext.close();
+          audioContext = null;
+        }
+
+        isRecording = false;
+
+        // Update UI
+        const btn = document.getElementById("recordBtn");
+        if (btn) {
+          btn.classList.remove("bg-red-500");
+          btn.classList.add("bg-white/20");
+          btn
+            .querySelector(".material-symbols-rounded")
+            .classList.remove("animate-pulse");
+        }
+
+        console.log("Recording stopped");
+      }
+
+      // Upload recording function
+      async function uploadRecording() {
+        if (recordedChunks.length === 0) {
+          console.log("No recording data to upload");
+          return;
+        }
+
+        try {
+          const blob = new Blob(recordedChunks, { type: "audio/webm" });
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+          const filename = `call_receptionist_to_${currentPhone || "unknown"}_${timestamp}.webm`;
+
+          const formData = new FormData();
+          formData.append("file", blob, filename);
+          formData.append("callId", "web_" + Date.now());
+          formData.append(
+            "userId",
+            "receptionist_" + (currentPatientId || currentPhone || "unknown"),
+          );
+
+          console.log("Uploading recording:", filename);
+
+          const response = await fetch(
+            window.contextPath + "api/stringee/upload-recording",
+            {
+              method: "POST",
+              body: formData,
+            },
+          );
+
+          if (response.ok) {
+            const result = await response.json();
+            console.log("Recording uploaded successfully:", result);
+          } else {
+            const errorText = await response.text();
+            console.error("Failed to upload recording:", errorText);
+          }
+        } catch (error) {
+          console.error("Error uploading recording:", error);
+        }
+
+        recordedChunks = [];
+      }
+
+      function showDialpad() {
+        // TODO: Show in-call dialpad overlay
+        alert("Bàn phím số sẽ hiển thị ở đây");
+      }
+
+      // Actions
+      function callAgain() {
+        setState("calling");
+        document.getElementById("callingName").textContent =
+          currentPatientName || "Không xác định";
+        document.getElementById("callingPhone").textContent =
+          formatPhoneDisplay(currentPhone);
+        document
+          .getElementById("ringTone")
+          .play()
+          .catch(() => {});
+
+        setTimeout(() => {
+          document.getElementById("ringTone").pause();
+          setState("connected");
+          startCallTimer();
+        }, 3000);
+      }
+
+      function addNote() {
+        document.getElementById("noteModal").classList.remove("hidden");
+      }
+
+      function closeNoteModal() {
+        document.getElementById("noteModal").classList.add("hidden");
+      }
+
+      function saveNote() {
+        const note = document.getElementById("callNote").value;
+        const scheduleCallback =
+          document.getElementById("scheduleCallback").checked;
+        const callbackTime = document.getElementById("callbackTime").value;
+
+        // TODO: Save note to server
+        console.log("Saving note:", { note, scheduleCallback, callbackTime });
+
+        closeNoteModal();
+        alert("Đã lưu ghi chú!");
+      }
+
+      function backToIdle() {
+        currentPhone = "";
+        currentPatientName = "";
+        phoneDisplay.textContent = "Nhập số điện thoại";
+        patientNameDisplay.textContent = "";
+        deleteBtn.style.opacity = "0";
+        setState("idle");
+      }
+
+      // Utility functions
+      function getInitials(name) {
+        if (!name) return "?";
+        const parts = name.split(" ");
+        if (parts.length >= 2) {
+          return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+        return name.substring(0, 2).toUpperCase();
+      }
+
+      // Search functionality
+      document
+        .getElementById("searchPatient")
+        .addEventListener("input", function (e) {
+          const query = e.target.value.toLowerCase();
+          const patients = document.querySelectorAll(
+            "#recentPatients .patient-item",
+          );
+
+          patients.forEach((patient) => {
+            const name = patient
+              .querySelector("p.font-medium")
+              .textContent.toLowerCase();
+            const phone = patient.querySelector("p.text-sm").textContent;
+
+            if (name.includes(query) || phone.includes(query)) {
+              patient.style.display = "flex";
+            } else {
+              patient.style.display = "none";
+            }
+          });
+        });
+
+      // Keyboard support
+      document.addEventListener("keydown", function (e) {
+        if (currentState === "idle" || currentState === "connected") {
+          if (/^[0-9*#]$/.test(e.key)) {
+            dialNumber(e.key);
+          } else if (e.key === "Backspace") {
+            deleteNumber();
+          } else if (e.key === "Enter" && currentState === "idle") {
+            startCall();
+          } else if (e.key === "Escape") {
+            if (currentState !== "idle") {
+              endCall();
+            }
+          }
+        }
+      });
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", () => {
+        initStringee();
+
+        // Check URL params for auto-fill patient info
+        const urlParams = new URLSearchParams(window.location.search);
+        const patientId = urlParams.get("patientId");
+        const phone = urlParams.get("phone");
+        const name = urlParams.get("name");
+
+        if (patientId && phone) {
+          selectPatient(name || "Bệnh nhân #" + patientId, phone, patientId);
+        }
+      });
+    </script>
+  </body>
+</html>

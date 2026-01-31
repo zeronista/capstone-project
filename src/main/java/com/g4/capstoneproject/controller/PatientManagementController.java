@@ -40,14 +40,49 @@ public class PatientManagementController {
     }
 
     /**
+     * Get all patients as simplified list for call center
+     * GET /api/patients/list
+     */
+    @GetMapping("/list")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST', 'DOCTOR')")
+    public ResponseEntity<List<Map<String, Object>>> getPatientsForCallCenter() {
+        List<User> patients = patientService.getAllActivePatientsWithInfo();
+        List<Map<String, Object>> result = patients.stream().map(p -> {
+            Map<String, Object> map = new java.util.HashMap<>();
+            map.put("id", p.getId());
+            map.put("email", p.getEmail());
+            map.put("phoneNumber", p.getPhoneNumber());
+            map.put("fullName", p.getFullName());
+            map.put("dateOfBirth", p.getDateOfBirth());
+            map.put("gender", p.getGender() != null ? p.getGender().name() : null);
+            map.put("address", p.getAddress());
+            map.put("stringeeUserId", "user_" + p.getId());
+            return map;
+        }).collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(result);
+    }
+
+    /**
      * Get patient by ID
      * GET /api/patients/{id}
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST', 'DOCTOR', 'PATIENT')")
-    public ResponseEntity<User> getPatientById(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Object>> getPatientById(@PathVariable Long id) {
         return patientService.getPatientByIdWithInfo(id)
-                .map(ResponseEntity::ok)
+                .map(p -> {
+                    Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("id", p.getId());
+                    map.put("email", p.getEmail());
+                    map.put("phoneNumber", p.getPhoneNumber());
+                    map.put("fullName", p.getFullName());
+                    map.put("dateOfBirth", p.getDateOfBirth());
+                    map.put("gender", p.getGender() != null ? p.getGender().name() : null);
+                    map.put("address", p.getAddress());
+                    map.put("stringeeUserId", "user_" + p.getId());
+                    map.put("createdAt", p.getCreatedAt());
+                    return ResponseEntity.ok(map);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 

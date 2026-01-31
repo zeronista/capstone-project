@@ -1,0 +1,952 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi tiết bệnh nhân - ABClinic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0"
+    />
+    <script src="/js/latest.sdk.bundle.min.js"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0d7cf2",
+              secondary: "#6c757d",
+              success: "#10b981",
+              danger: "#ef4444",
+              warning: "#f59e0b",
+              dark: "#1e293b",
+              darker: "#0f172a",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .material-symbols-rounded {
+        font-variation-settings:
+          "FILL" 1,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 3px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      @keyframes pulse-ring {
+        0% {
+          transform: scale(0.8);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1.5);
+          opacity: 0;
+        }
+      }
+      .pulse-ring {
+        animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+      }
+      @keyframes recording-blink {
+        0%,
+        50% {
+          opacity: 1;
+        }
+        51%,
+        100% {
+          opacity: 0.3;
+        }
+      }
+      .recording-blink {
+        animation: recording-blink 1s infinite;
+      }
+      .call-btn-active {
+        animation: call-pulse 2s infinite;
+      }
+      @keyframes call-pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+        }
+        50% {
+          box-shadow: 0 0 0 15px rgba(16, 185, 129, 0);
+        }
+      }
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .status-dot.connected {
+        background: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+      }
+      .status-dot.connecting {
+        background: #f59e0b;
+        animation: recording-blink 1s infinite;
+      }
+      .status-dot.disconnected {
+        background: #ef4444;
+      }
+      .tab-active {
+        border-bottom: 2px solid #0d7cf2;
+        color: #0d7cf2;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-4">
+            <a
+              href="/receptionist/callbot"
+              class="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors"
+            >
+              <span class="material-symbols-rounded">arrow_back</span>
+              <span class="hidden sm:inline">Danh sách bệnh nhân</span>
+            </a>
+            <div class="h-6 w-px bg-gray-300"></div>
+            <div class="flex items-center gap-3">
+              <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center"
+              >
+                <span class="material-symbols-rounded text-white">person</span>
+              </div>
+              <div>
+                <h1 class="text-lg font-semibold text-gray-800">
+                  Chi tiết bệnh nhân
+                </h1>
+                <p class="text-xs text-gray-500" id="patientNameHeader">
+                  Đang tải...
+                </p>
+              </div>
+            </div>
+          </div>
+          <div
+            id="headerStatus"
+            class="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100"
+          >
+            <div class="status-dot connecting" id="statusDot"></div>
+            <span class="text-sm font-medium text-gray-600" id="statusText"
+              >Đang kết nối...</span
+            >
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left: Patient Info & Call -->
+        <div class="lg:col-span-1 space-y-6">
+          <!-- Patient Info Card -->
+          <div
+            class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+          >
+            <div
+              class="bg-gradient-to-br from-primary to-blue-600 p-6 text-white text-center"
+            >
+              <div
+                id="patientAvatar"
+                class="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto text-2xl font-bold mb-3"
+              >
+                ...
+              </div>
+              <h2 id="patientName" class="text-xl font-semibold">
+                Đang tải...
+              </h2>
+              <p id="patientMeta" class="text-white/70 text-sm mt-1">---</p>
+            </div>
+            <div class="p-4 space-y-3">
+              <div class="flex items-center gap-3 text-gray-600">
+                <span class="material-symbols-rounded text-primary">phone</span>
+                <span id="patientPhone">---</span>
+              </div>
+              <div class="flex items-center gap-3 text-gray-600">
+                <span class="material-symbols-rounded text-primary">mail</span>
+                <span id="patientEmail" class="truncate">---</span>
+              </div>
+              <div class="flex items-center gap-3 text-gray-600">
+                <span class="material-symbols-rounded text-primary"
+                  >location_on</span
+                >
+                <span id="patientAddress" class="truncate">---</span>
+              </div>
+              <div class="flex items-center gap-3 text-gray-600">
+                <span class="material-symbols-rounded text-primary">badge</span>
+                <span id="patientStringeeId" class="font-mono text-sm"
+                  >---</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- Call Control Card -->
+          <div
+            class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+          >
+            <div
+              class="bg-gradient-to-r from-gray-50 to-white px-6 py-4 border-b border-gray-100"
+            >
+              <h2 class="font-semibold text-gray-800 flex items-center gap-2">
+                <span class="material-symbols-rounded text-primary"
+                  >phone_in_talk</span
+                >
+                Gọi điện
+              </h2>
+            </div>
+            <div class="p-6">
+              <!-- Auto Record -->
+              <div class="mb-4 p-3 bg-gray-50 rounded-xl">
+                <label class="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id="autoRecordCheckbox"
+                    checked
+                    class="w-5 h-5 rounded text-primary focus:ring-primary"
+                  />
+                  <div>
+                    <span class="font-medium text-gray-800 text-sm"
+                      >Tự động ghi âm</span
+                    >
+                    <p class="text-xs text-gray-500">Ghi lại cuộc hội thoại</p>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Call Status -->
+              <div
+                id="callStatusBox"
+                class="mb-4 p-4 rounded-xl bg-gray-100 text-center hidden"
+              >
+                <p id="callStatus" class="text-lg font-medium text-gray-700">
+                  Sẵn sàng
+                </p>
+                <p
+                  id="callDuration"
+                  class="text-3xl font-light text-gray-800 mt-2 hidden"
+                >
+                  00:00
+                </p>
+              </div>
+
+              <!-- Recording Indicator -->
+              <div
+                id="recordingInfo"
+                class="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 hidden"
+              >
+                <div class="flex items-center justify-center gap-3">
+                  <div
+                    class="w-3 h-3 rounded-full bg-red-500 recording-blink"
+                  ></div>
+                  <span class="font-medium text-red-700 text-sm"
+                    >Đang ghi âm</span
+                  >
+                  <span
+                    id="recordingDuration"
+                    class="font-mono text-red-600 text-sm"
+                    >00:00</span
+                  >
+                </div>
+              </div>
+
+              <!-- Call Buttons -->
+              <div class="flex flex-col gap-3">
+                <button
+                  id="btnCall"
+                  onclick="makeCall()"
+                  class="flex items-center justify-center gap-2 w-full px-6 py-4 bg-success text-white rounded-xl font-semibold hover:bg-success/90 transition-all shadow-lg shadow-success/30 call-btn-active"
+                >
+                  <span class="material-symbols-rounded text-2xl">call</span>
+                  Gọi ngay
+                </button>
+                <button
+                  id="btnHangup"
+                  onclick="hangupCall()"
+                  class="hidden flex items-center justify-center gap-2 w-full px-6 py-4 bg-danger text-white rounded-xl font-semibold hover:bg-danger/90 transition-all"
+                >
+                  <span class="material-symbols-rounded text-2xl"
+                    >call_end</span
+                  >
+                  Kết thúc
+                </button>
+                <button
+                  id="btnAnswer"
+                  onclick="answerCall()"
+                  class="hidden flex items-center justify-center gap-2 w-full px-6 py-4 bg-success text-white rounded-xl font-semibold"
+                >
+                  <span class="material-symbols-rounded text-2xl">call</span>
+                  Trả lời
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Tabs Content -->
+        <div class="lg:col-span-2">
+          <div
+            class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+          >
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200">
+              <button
+                onclick="switchTab('recordings')"
+                id="tabRecordings"
+                class="flex-1 px-6 py-4 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors tab-active"
+              >
+                <span class="material-symbols-rounded text-lg align-middle mr-2"
+                  >audio_file</span
+                >
+                File ghi âm
+              </button>
+              <button
+                onclick="switchTab('activity')"
+                id="tabActivity"
+                class="flex-1 px-6 py-4 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors"
+              >
+                <span class="material-symbols-rounded text-lg align-middle mr-2"
+                  >history</span
+                >
+                Nhật ký hoạt động
+              </button>
+              <button
+                onclick="switchTab('stt')"
+                id="tabSTT"
+                class="flex-1 px-6 py-4 text-sm font-medium text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors"
+              >
+                <span class="material-symbols-rounded text-lg align-middle mr-2"
+                  >record_voice_over</span
+                >
+                Speech to Text
+              </button>
+            </div>
+
+            <!-- Tab Content: Recordings -->
+            <div id="contentRecordings" class="p-4">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-800">
+                  File ghi âm của bệnh nhân này
+                </h3>
+                <button
+                  onclick="loadRecordings()"
+                  class="flex items-center gap-1 px-3 py-1.5 text-sm text-primary hover:bg-primary/10 rounded-lg"
+                >
+                  <span class="material-symbols-rounded text-lg">refresh</span>
+                  Làm mới
+                </button>
+              </div>
+              <div
+                id="recordingsList"
+                class="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar"
+              >
+                <div class="p-8 text-center text-gray-500">
+                  <span class="material-symbols-rounded text-4xl text-gray-300"
+                    >audio_file</span
+                  >
+                  <p class="mt-2">Đang tải danh sách file...</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Content: Activity Log -->
+            <div id="contentActivity" class="p-4 hidden">
+              <div
+                id="logConsole"
+                class="h-[500px] overflow-y-auto custom-scrollbar bg-gray-900 rounded-xl p-4 font-mono text-sm"
+              >
+                <div class="text-blue-400">
+                  <span class="text-gray-500">[System]</span> Đang khởi tạo...
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab Content: Speech to Text -->
+            <div id="contentSTT" class="p-4 hidden">
+              <div class="text-center py-12">
+                <span class="material-symbols-rounded text-6xl text-gray-300"
+                  >construction</span
+                >
+                <h3 class="text-lg font-semibold text-gray-600 mt-4">
+                  Đang phát triển
+                </h3>
+                <p class="text-gray-500 mt-2">
+                  Tính năng Speech to Text sẽ sớm được cập nhật.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Hidden elements -->
+    <div id="remote_videos" style="display: none"></div>
+
+    <!-- Audio Player Modal -->
+    <div
+      id="audioPlayerModal"
+      class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden"
+    >
+      <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold text-gray-800 flex items-center gap-2">
+            <span class="material-symbols-rounded text-primary"
+              >music_note</span
+            >
+            <span id="audioPlayerTitle">Đang phát...</span>
+          </h3>
+          <button
+            onclick="closeAudioPlayer()"
+            class="text-gray-400 hover:text-gray-600"
+          >
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        </div>
+        <audio id="audioPlayer" controls class="w-full"></audio>
+      </div>
+    </div>
+
+    <script th:inline="javascript">
+      const STRINGEE_SERVER_ADDRS = [
+        "wss://v1.stringee.com:6899/",
+        "wss://v2.stringee.com:6899/",
+      ];
+
+      // Get patient ID from URL
+      const patientId = /*[[${patientId}]]*/ null;
+
+      var stringeeClient,
+        currentCall,
+        myToken,
+        currentUser = null,
+        patient = null;
+      var mediaRecorder,
+        recordedChunks = [],
+        recordingStartTime,
+        recordingInterval,
+        callDurationInterval,
+        callStartTime;
+      var localStream = null,
+        audioContext = null,
+        mixedStream = null;
+
+      document.addEventListener("DOMContentLoaded", function () {
+        loadPatientInfo();
+        loadCurrentUser();
+      });
+
+      function switchTab(tab) {
+        document
+          .querySelectorAll('[id^="tab"]')
+          .forEach((t) => t.classList.remove("tab-active"));
+        document
+          .querySelectorAll('[id^="content"]')
+          .forEach((c) => c.classList.add("hidden"));
+        document
+          .getElementById("tab" + tab.charAt(0).toUpperCase() + tab.slice(1))
+          .classList.add("tab-active");
+        document
+          .getElementById(
+            "content" + tab.charAt(0).toUpperCase() + tab.slice(1),
+          )
+          .classList.remove("hidden");
+      }
+
+      async function loadPatientInfo() {
+        if (!patientId) {
+          alert("Không tìm thấy ID bệnh nhân");
+          return;
+        }
+        try {
+          const response = await fetch("/api/patients/" + patientId);
+          if (!response.ok)
+            throw new Error("Không thể tải thông tin bệnh nhân");
+          patient = await response.json();
+
+          const fullName =
+            patient.fullName ||
+            (patient.userInfo && patient.userInfo.fullName) ||
+            "Chưa có tên";
+          const gender =
+            patient.gender || (patient.userInfo && patient.userInfo.gender);
+          const dob =
+            patient.dateOfBirth ||
+            (patient.userInfo && patient.userInfo.dateOfBirth);
+          const age = dob ? calculateAge(dob) : "?";
+          const initials = getInitials(fullName);
+
+          document.getElementById("patientNameHeader").textContent = fullName;
+          document.getElementById("patientAvatar").textContent = initials;
+          document.getElementById("patientName").textContent = fullName;
+          document.getElementById("patientMeta").textContent =
+            (gender === "MALE"
+              ? "Nam"
+              : gender === "FEMALE"
+                ? "Nữ"
+                : "Chưa rõ") +
+            " • " +
+            age +
+            " tuổi";
+          document.getElementById("patientPhone").textContent =
+            patient.phoneNumber || "Chưa có";
+          document.getElementById("patientEmail").textContent =
+            patient.email || "Chưa có";
+          document.getElementById("patientAddress").textContent =
+            patient.address ||
+            (patient.userInfo && patient.userInfo.address) ||
+            "Chưa có";
+          document.getElementById("patientStringeeId").textContent =
+            "user_" + patient.id;
+
+          addLog("Đã tải thông tin bệnh nhân: " + fullName, "success");
+        } catch (err) {
+          console.error("Lỗi:", err);
+          addLog("Lỗi tải thông tin bệnh nhân: " + err.message, "error");
+        }
+      }
+
+      async function loadCurrentUser() {
+        try {
+          const response = await fetch("/api/web-call/current-user");
+          if (!response.ok) throw new Error("Không thể lấy thông tin user");
+          const data = await response.json();
+          if (data.authenticated) {
+            currentUser = data;
+            addLog("Đăng nhập với: " + currentUser.fullName, "info");
+            await connectStringee();
+          } else {
+            addLog("Chưa đăng nhập", "error");
+            alert("Vui lòng đăng nhập để sử dụng chức năng gọi điện");
+          }
+        } catch (err) {
+          console.error("Lỗi:", err);
+          addLog("Lỗi: " + err.message, "error");
+        }
+      }
+
+      function updateConnectionStatus(status) {
+        const dot = document.getElementById("statusDot");
+        const text = document.getElementById("statusText");
+        dot.className = "status-dot " + status;
+        switch (status) {
+          case "connected":
+            text.textContent = "Đã kết nối";
+            text.className = "text-sm font-medium text-green-600";
+            break;
+          case "connecting":
+            text.textContent = "Đang kết nối...";
+            text.className = "text-sm font-medium text-yellow-600";
+            break;
+          case "disconnected":
+            text.textContent = "Mất kết nối";
+            text.className = "text-sm font-medium text-red-600";
+            break;
+        }
+      }
+
+      function addLog(message, type = "info") {
+        const logBox = document.getElementById("logConsole");
+        const timestamp = new Date().toLocaleTimeString();
+        const colors = {
+          info: "text-blue-400",
+          success: "text-green-400",
+          error: "text-red-400",
+          warning: "text-yellow-400",
+        };
+        const icons = { info: "ℹ️", success: "✅", error: "❌", warning: "⚠️" };
+        const logEntry = document.createElement("div");
+        logEntry.className = `${colors[type]} py-1`;
+        logEntry.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${icons[type]} ${message}`;
+        logBox.appendChild(logEntry);
+        logBox.scrollTop = logBox.scrollHeight;
+      }
+
+      async function connectStringee() {
+        if (!currentUser) return;
+        try {
+          const res = await fetch("/api/web-call/token");
+          if (!res.ok) throw new Error("HTTP error! status: " + res.status);
+          const data = await res.json();
+          if (!data.token) throw new Error("Token không có trong response");
+          myToken = data.token;
+          addLog("Đã nhận access token", "success");
+        } catch (err) {
+          addLog("Lỗi lấy token: " + err.message, "error");
+          return;
+        }
+
+        stringeeClient = new StringeeClient(STRINGEE_SERVER_ADDRS);
+        stringeeClient.on("connect", () => {
+          updateConnectionStatus("connected");
+          addLog("Đã kết nối Stringee", "success");
+        });
+        stringeeClient.on("authen", (res) => {
+          if (res.r === 0) {
+            addLog("Xác thực thành công!", "success");
+            loadRecordings();
+          } else {
+            addLog("Xác thực thất bại: " + res.message, "error");
+          }
+        });
+        stringeeClient.on("disconnect", () => {
+          updateConnectionStatus("disconnected");
+          addLog("Mất kết nối", "error");
+        });
+        stringeeClient.on("incomingcall", (incomingCall) => {
+          addLog("Cuộc gọi đến từ: " + incomingCall.fromNumber, "info");
+          currentCall = incomingCall;
+          settingCallEvents(currentCall);
+          document.getElementById("btnAnswer").classList.remove("hidden");
+          document.getElementById("btnCall").classList.add("hidden");
+        });
+        stringeeClient.connect(myToken);
+      }
+
+      function makeCall() {
+        if (!currentUser || !patient) {
+          alert("Vui lòng đợi tải xong thông tin");
+          return;
+        }
+        const calleeId = "user_" + patient.id;
+        addLog("Đang gọi tới: " + calleeId, "info");
+        showCallStatus("Đang gọi...", "calling");
+
+        currentCall = new StringeeCall(
+          stringeeClient,
+          currentUser.stringeeUserId,
+          calleeId,
+          false,
+        );
+        settingCallEvents(currentCall);
+        currentCall.makeCall(function (res) {
+          if (res.r !== 0) {
+            addLog("Gọi thất bại: " + res.message, "error");
+            resetUI();
+          }
+        });
+        showInCallUI();
+      }
+
+      function settingCallEvents(call) {
+        call.on("addremotestream", (stream) => {
+          addLog("Đã nhận luồng âm thanh", "success");
+          var videoElement = document.createElement("video");
+          videoElement.setAttribute("autoplay", "");
+          videoElement.setAttribute("playsinline", "");
+          videoElement.setAttribute("id", "remoteAudio");
+          document.getElementById("remote_videos").appendChild(videoElement);
+          stream.play(videoElement);
+        });
+
+        call.on("signalingstate", (state) => {
+          addLog("Trạng thái: " + state.reason, "info");
+          if (state.code === 3) {
+            showCallStatus("Đang trong cuộc gọi", "connected");
+            startCallDurationTimer();
+            if (document.getElementById("autoRecordCheckbox").checked) {
+              setTimeout(() => startRecording(), 500);
+            }
+          }
+          if (state.code === 6) {
+            addLog("Cuộc gọi đã kết thúc", "success");
+            showCallStatus("Đã kết thúc", "ended");
+            setTimeout(() => resetUI(), 2000);
+          }
+        });
+      }
+
+      function showCallStatus(message, type) {
+        const box = document.getElementById("callStatusBox");
+        const status = document.getElementById("callStatus");
+        box.classList.remove(
+          "hidden",
+          "bg-gray-100",
+          "bg-green-100",
+          "bg-red-100",
+          "bg-yellow-100",
+          "bg-blue-100",
+        );
+        box.classList.add(
+          type === "calling"
+            ? "bg-yellow-100"
+            : type === "connected"
+              ? "bg-green-100"
+              : type === "ended"
+                ? "bg-red-100"
+                : "bg-gray-100",
+        );
+        status.textContent = message;
+      }
+
+      function startCallDurationTimer() {
+        callStartTime = Date.now();
+        document.getElementById("callDuration").classList.remove("hidden");
+        callDurationInterval = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
+          document.getElementById("callDuration").textContent =
+            Math.floor(elapsed / 60)
+              .toString()
+              .padStart(2, "0") +
+            ":" +
+            (elapsed % 60).toString().padStart(2, "0");
+        }, 1000);
+      }
+
+      function showInCallUI() {
+        document.getElementById("btnCall").classList.add("hidden");
+        document.getElementById("btnAnswer").classList.add("hidden");
+        document.getElementById("btnHangup").classList.remove("hidden");
+      }
+
+      function hangupCall() {
+        if (currentCall) currentCall.hangup(function (res) {});
+        resetUI();
+      }
+
+      function answerCall() {
+        if (currentCall) {
+          currentCall.answer(function (res) {
+            if (res.r === 0) {
+              showInCallUI();
+              showCallStatus("Đang trong cuộc gọi", "connected");
+              startCallDurationTimer();
+              if (document.getElementById("autoRecordCheckbox").checked) {
+                setTimeout(() => startRecording(), 1000);
+              }
+            }
+          });
+        }
+      }
+
+      function resetUI() {
+        if (mediaRecorder && mediaRecorder.state === "recording")
+          stopRecording();
+        if (callDurationInterval) {
+          clearInterval(callDurationInterval);
+          callDurationInterval = null;
+        }
+        if (localStream) {
+          localStream.getTracks().forEach((t) => t.stop());
+          localStream = null;
+        }
+        if (audioContext) {
+          audioContext.close();
+          audioContext = null;
+        }
+        document.getElementById("callStatusBox").classList.add("hidden");
+        document.getElementById("callDuration").classList.add("hidden");
+        document.getElementById("btnCall").classList.remove("hidden");
+        document.getElementById("btnAnswer").classList.add("hidden");
+        document.getElementById("btnHangup").classList.add("hidden");
+        document.getElementById("recordingInfo").classList.add("hidden");
+        document.getElementById("remote_videos").innerHTML = "";
+        currentCall = null;
+      }
+
+      async function startRecording() {
+        try {
+          if (mediaRecorder && mediaRecorder.state === "recording") return;
+          addLog("Đang khởi tạo ghi âm...", "info");
+          localStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          audioContext = new (window.AudioContext ||
+            window.webkitAudioContext)();
+          const destination = audioContext.createMediaStreamDestination();
+          const localSource = audioContext.createMediaStreamSource(localStream);
+          localSource.connect(destination);
+          const remoteAudio = document.getElementById("remoteAudio");
+          if (remoteAudio && remoteAudio.srcObject) {
+            try {
+              const remoteSource = audioContext.createMediaStreamSource(
+                remoteAudio.srcObject,
+              );
+              remoteSource.connect(destination);
+            } catch (e) {}
+          }
+          mixedStream = destination.stream;
+          recordedChunks = [];
+          mediaRecorder = new MediaRecorder(mixedStream, {
+            mimeType: "audio/webm;codecs=opus",
+          });
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) recordedChunks.push(e.data);
+          };
+          mediaRecorder.onstop = async () => {
+            if (localStream) localStream.getTracks().forEach((t) => t.stop());
+            if (audioContext) audioContext.close();
+            if (recordedChunks.length > 0) {
+              const blob = new Blob(recordedChunks, { type: "audio/webm" });
+              await uploadRecording(blob);
+            }
+            if (recordingInterval) clearInterval(recordingInterval);
+          };
+          mediaRecorder.start(100);
+          recordingStartTime = Date.now();
+          addLog("Đã bắt đầu ghi âm", "success");
+          document.getElementById("recordingInfo").classList.remove("hidden");
+          recordingInterval = setInterval(() => {
+            const d = Math.floor((Date.now() - recordingStartTime) / 1000);
+            document.getElementById("recordingDuration").textContent =
+              Math.floor(d / 60)
+                .toString()
+                .padStart(2, "0") +
+              ":" +
+              (d % 60).toString().padStart(2, "0");
+          }, 1000);
+        } catch (err) {
+          addLog("Lỗi ghi âm: " + err.message, "error");
+        }
+      }
+
+      function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+          mediaRecorder.stop();
+          document.getElementById("recordingInfo").classList.add("hidden");
+          addLog("Đã dừng ghi âm", "info");
+        }
+      }
+
+      async function uploadRecording(blob) {
+        try {
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+          const filename = `call_${currentUser.stringeeUserId}_to_user_${patient.id}_${timestamp}.webm`;
+          addLog("Đang upload: " + filename, "info");
+          const formData = new FormData();
+          formData.append("file", blob, filename);
+          formData.append("callId", "web_" + Date.now());
+          formData.append("userId", currentUser.stringeeUserId);
+          const response = await fetch("/api/stringee/upload-recording", {
+            method: "POST",
+            body: formData,
+          });
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          const result = await response.json();
+          if (result.success) {
+            addLog("Upload thành công!", "success");
+            setTimeout(() => loadRecordings(), 1000);
+          } else {
+            addLog("Upload thất bại", "error");
+          }
+        } catch (err) {
+          addLog("Lỗi upload: " + err.message, "error");
+        }
+      }
+
+      async function loadRecordings() {
+        try {
+          const response = await fetch("/api/stringee/recordings");
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          const result = await response.json();
+          if (result.success) {
+            // Filter recordings related to this patient
+            const patientRecordings = result.recordings.filter(
+              (r) =>
+                r.filename.includes("_to_user_" + patient.id + "_") ||
+                r.filename.includes("_user_" + patient.id + "_"),
+            );
+            displayRecordings(patientRecordings);
+            addLog(
+              "Đã tải " + patientRecordings.length + " file ghi âm",
+              "success",
+            );
+          }
+        } catch (err) {
+          addLog("Lỗi tải danh sách: " + err.message, "error");
+        }
+      }
+
+      function displayRecordings(recordings) {
+        const container = document.getElementById("recordingsList");
+        if (!recordings || recordings.length === 0) {
+          container.innerHTML = `<div class="p-8 text-center text-gray-500"><span class="material-symbols-rounded text-4xl text-gray-300">audio_file</span><p class="mt-2">Chưa có file ghi âm nào</p></div>`;
+          return;
+        }
+        let html = "";
+        recordings.forEach((rec) => {
+          const size = (rec.size / 1024).toFixed(2);
+          const date = new Date(rec.lastModified).toLocaleString("vi-VN");
+          html += `
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                            <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                                <span class="material-symbols-rounded text-purple-600">audio_file</span>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="font-medium text-gray-800 truncate text-sm">${rec.filename}</p>
+                                <p class="text-xs text-gray-500">${date} • ${size} KB</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="playRecording('${rec.url}', '${rec.filename}')" class="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium hover:bg-green-200">
+                                <span class="material-symbols-rounded text-lg">play_arrow</span>
+                            </button>
+                            <button onclick="downloadRecording('${rec.url}', '${rec.filename}')" class="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200">
+                                <span class="material-symbols-rounded text-lg">download</span>
+                            </button>
+                        </div>
+                    </div>`;
+        });
+        container.innerHTML = html;
+      }
+
+      function playRecording(url, filename) {
+        document.getElementById("audioPlayerTitle").textContent = filename;
+        document.getElementById("audioPlayer").src = url;
+        document.getElementById("audioPlayerModal").classList.remove("hidden");
+      }
+
+      function closeAudioPlayer() {
+        document.getElementById("audioPlayerModal").classList.add("hidden");
+        document.getElementById("audioPlayer").pause();
+      }
+
+      function downloadRecording(url, filename) {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+
+      function getInitials(name) {
+        if (!name) return "?";
+        const parts = name.split(" ").filter((p) => p);
+        if (parts.length >= 2)
+          return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        return name.substring(0, 2).toUpperCase();
+      }
+
+      function calculateAge(dob) {
+        const today = new Date();
+        const birth = new Date(dob);
+        let age = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+        return age;
+      }
+    </script>
+  </body>
+</html>

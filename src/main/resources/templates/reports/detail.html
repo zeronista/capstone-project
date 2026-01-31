@@ -1,36 +1,9 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(title='Chi tiết báo cáo')}"></head>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chi tiết báo cáo - ISSVSG</title>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: { 50: '#ECFEFF', 100: '#CFFAFE', 200: '#A5F3FC', 300: '#67E8F9', 400: '#22D3EE', 500: '#0891B2', 600: '#0E7490', 700: '#155E75', 800: '#164E63', 900: '#083344' },
-                        secondary: { 50: '#F0FDF4', 100: '#DCFCE7', 500: '#22C55E', 600: '#059669' },
-                        surface: { 50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1', 400: '#94A3B8', 500: '#64748B', 600: '#475569', 700: '#334155', 800: '#1E293B', 900: '#0F172A' }
-                    },
-                    fontFamily: { heading: ['Poppins', 'sans-serif'], body: ['Open Sans', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
     <style>
-        body { font-family: 'Open Sans', sans-serif; }
-        h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; }
-        .sidebar-link.active { background-color: rgba(8, 145, 178, 0.1); color: #0891B2; border-right: 3px solid #0891B2; }
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; }
@@ -38,7 +11,7 @@
         }
     </style>
 </head>
-<body class="bg-surface-50">
+<body class="bg-surface-50 dark:bg-background-dark font-sans">
     <!-- Sidebar -->
     <nav th:replace="~{fragments/layout :: sidebar}" class="no-print"></nav>
     
@@ -452,7 +425,7 @@
                 datasets: [{
                     label: 'Lượt khám',
                     data: [145, 156, 0, 167, 178, 189, 156, 134, 145, 0, 167, 178, 189, 190, 145, 156, 167, 0, 178, 189, 201, 156, 145, 167, 0, 178, 189, 190, 156, 167, 178],
-                    borderColor: '#0891B2',
+                    borderColor: '#0d7cf2',
                     backgroundColor: 'rgba(8, 145, 178, 0.1)',
                     fill: true,
                     tension: 0.4
@@ -474,7 +447,7 @@
                 labels: ['Nội khoa', 'Ngoại khoa', 'Sản phụ khoa', 'Nhi khoa', 'Da liễu', 'Mắt'],
                 datasets: [{
                     data: [1234, 876, 654, 567, 456, 345],
-                    backgroundColor: ['#0891B2', '#059669', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4'],
+                    backgroundColor: ['#0d7cf2', '#059669', '#F59E0B', '#8B5CF6', '#EC4899', '#0a62bf'],
                     borderWidth: 0
                 }]
             },

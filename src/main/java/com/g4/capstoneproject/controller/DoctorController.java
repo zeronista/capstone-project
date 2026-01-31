@@ -19,6 +19,17 @@ import com.g4.capstoneproject.entity.TicketMessage;
 import com.g4.capstoneproject.entity.TreatmentPlan;
 import com.g4.capstoneproject.entity.User;
 import com.g4.capstoneproject.repository.UserRepository;
+import com.g4.capstoneproject.repository.MedicalReportRepository;
+import com.g4.capstoneproject.repository.FamilyMedicalHistoryRepository;
+import com.g4.capstoneproject.repository.KnowledgeArticleRepository;
+import com.g4.capstoneproject.repository.KnowledgeCategoryRepository;
+import com.g4.capstoneproject.entity.KnowledgeArticle;
+import com.g4.capstoneproject.entity.KnowledgeCategory;
+import com.g4.capstoneproject.service.PatientService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import com.g4.capstoneproject.service.PrescriptionService;
 import com.g4.capstoneproject.service.TicketService;
 import com.g4.capstoneproject.service.TreatmentPlanService;
@@ -35,6 +46,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +66,12 @@ public class DoctorController {
     private final TicketService ticketService;
     private final HealthForecastService healthForecastService;
     private final TreatmentPlanService treatmentPlanService;
+    private final PatientService patientService;
     private final UserRepository userRepository;
+    private final MedicalReportRepository medicalReportRepository;
+    private final FamilyMedicalHistoryRepository familyMedicalHistoryRepository;
+    private final KnowledgeArticleRepository knowledgeArticleRepository;
+    private final KnowledgeCategoryRepository knowledgeCategoryRepository;
 
     /**
      * Doctor Dashboard
@@ -87,6 +104,168 @@ public class DoctorController {
     }
 
     /**
+     * API: Get patients for dashboard with treatment plans
+     * GET /doctor/api/patients
+     */
+    @GetMapping("/api/patients")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getDashboardPatients(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+
+        if (doctor == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+        java.util.Set<Long> addedPatientIds = new java.util.HashSet<>();
+
+        // 1. Get patients from treatment plans (with treatment info)
+        List<TreatmentPlan> plans = treatmentPlanService.getTreatmentPlansByDoctorId(doctor.getId());
+        for (TreatmentPlan plan : plans) {
+            User patient = plan.getPatient();
+            if (patient != null && !addedPatientIds.contains(patient.getId())) {
+                Map<String, Object> data = new HashMap<>();
+                data.put("id", patient.getId());
+                data.put("fullName", patient.getFullName());
+                data.put("email", patient.getEmail());
+                data.put("phone", patient.getPhoneNumber());
+                data.put("treatmentPlanId", plan.getId());
+                data.put("diagnosis", plan.getDiagnosis());
+                data.put("status", plan.getStatus().name());
+                data.put("startDate", plan.getStartDate());
+                data.put("endDate", plan.getExpectedEndDate());
+                data.put("lastUpdated", plan.getUpdatedAt());
+                data.put("createdAt", plan.getCreatedAt());
+                result.add(data);
+                addedPatientIds.add(patient.getId());
+            }
+        }
+
+        // 2. If no treatment plans found, get all patients assigned to doctor
+        if (result.isEmpty()) {
+            List<User> patients = patientService.getPatientsByDoctorId(doctor.getId());
+            for (User patient : patients) {
+                if (!addedPatientIds.contains(patient.getId())) {
+                    Map<String, Object> data = new HashMap<>();
+                    data.put("id", patient.getId());
+                    data.put("fullName", patient.getFullName());
+                    data.put("email", patient.getEmail());
+                    data.put("phone", patient.getPhoneNumber());
+                    data.put("treatmentPlanId", null);
+                    data.put("diagnosis", null);
+                    data.put("status", "DRAFT"); // Default status for patients without treatment plan
+                    data.put("startDate", null);
+                    data.put("endDate", null);
+                    data.put("lastUpdated", patient.getUpdatedAt());
+                    data.put("createdAt", patient.getCreatedAt());
+                    result.add(data);
+                    addedPatientIds.add(patient.getId());
+                }
+            }
+        }
+
+        // 3. If still empty, get all active patients in the system (for testing/demo)
+        if (result.isEmpty()) {
+            List<User> allPatients = patientService.getAllActivePatients();
+            for (User patient : allPatients) {
+                Map<String, Object> data = new HashMap<>();
+                data.put("id", patient.getId());
+                data.put("fullName", patient.getFullName());
+                data.put("email", patient.getEmail());
+                data.put("phone", patient.getPhoneNumber());
+                data.put("treatmentPlanId", null);
+                data.put("diagnosis", null);
+                data.put("status", "DRAFT");
+                data.put("startDate", null);
+                data.put("endDate", null);
+                data.put("lastUpdated", patient.getUpdatedAt());
+                data.put("createdAt", patient.getCreatedAt());
+                result.add(data);
+            }
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * API: Get dashboard statistics
+     * GET /doctor/api/stats
+     */
+    @GetMapping("/api/stats")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getDashboardStats(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+
+        if (doctor == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Map<String, Object> stats = new HashMap<>();
+
+        List<TreatmentPlan> plans = treatmentPlanService.getTreatmentPlansByDoctorId(doctor.getId());
+        List<Prescription> prescriptions = prescriptionService.getPrescriptionsByDoctorId(doctor.getId());
+        List<Ticket> tickets = ticketService.getTicketsByAssignedUserId(doctor.getId());
+
+        // Total patients count - from multiple sources
+        long totalPatients = 0;
+        if (!plans.isEmpty()) {
+            totalPatients = plans.stream()
+                    .map(p -> p.getPatient().getId())
+                    .distinct()
+                    .count();
+        } else {
+            // Fallback to patients assigned to doctor or all active patients
+            List<User> patients = patientService.getPatientsByDoctorId(doctor.getId());
+            if (patients.isEmpty()) {
+                patients = patientService.getAllActivePatients();
+            }
+            totalPatients = patients.size();
+        }
+
+        // Count by status
+        long activeCount = plans.stream()
+                .filter(p -> p.getStatus() == TreatmentPlan.PlanStatus.ACTIVE)
+                .count();
+
+        long completedCount = plans.stream()
+                .filter(p -> p.getStatus() == TreatmentPlan.PlanStatus.COMPLETED)
+                .count();
+
+        long pendingCount = plans.stream()
+                .filter(p -> p.getStatus() == TreatmentPlan.PlanStatus.DRAFT)
+                .count();
+
+        // Urgent alerts (from tickets)
+        long urgentCount = tickets.stream()
+                .filter(t -> t.getPriority() == Ticket.Priority.URGENT && t.getStatus() == Ticket.Status.OPEN)
+                .count();
+
+        // Today's appointments (simplified - could be enhanced with actual appointment
+        // entity)
+        long todayAppointments = plans.stream()
+                .filter(p -> {
+                    LocalDate today = LocalDate.now();
+                    return p.getStartDate() != null && p.getStartDate().equals(today);
+                })
+                .count();
+
+        stats.put("totalPatients", totalPatients);
+        stats.put("activePatients", activeCount);
+        stats.put("completedPatients", completedCount);
+        stats.put("pendingPatients", pendingCount);
+        stats.put("urgentAlerts", urgentCount);
+        stats.put("todayAppointments", todayAppointments);
+        stats.put("totalPrescriptions", prescriptions.size());
+        stats.put("pendingTickets", tickets.stream().filter(t -> t.getStatus() == Ticket.Status.OPEN).count());
+
+        return ResponseEntity.ok(stats);
+    }
+
+    /**
      * Patients List
      */
     @GetMapping("/patients")
@@ -102,6 +281,136 @@ public class DoctorController {
 
         model.addAttribute("doctor", doctor);
         return "doctor/patients";
+    }
+
+    /**
+     * Patient Detail Page
+     * GET /doctor/patients/{id}
+     */
+    @GetMapping("/patients/{id}")
+    public String patientDetail(@PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails, Model model) {
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+        model.addAttribute("doctor", doctor);
+        model.addAttribute("patientId", id);
+        return "doctor/patient-detail";
+    }
+
+    /**
+     * API: Get patient detail with all related data
+     * GET /doctor/api/patients/{id}
+     */
+    @GetMapping("/api/patients/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getPatientDetail(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+
+        if (doctor == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // Get patient
+        User patient = userRepository.findById(id).orElse(null);
+        if (patient == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Map<String, Object> result = new HashMap<>();
+
+        // Basic patient info
+        Map<String, Object> patientInfo = new HashMap<>();
+        patientInfo.put("id", patient.getId());
+        patientInfo.put("fullName", patient.getFullName());
+        patientInfo.put("email", patient.getEmail());
+        patientInfo.put("phone", patient.getPhoneNumber());
+        patientInfo.put("dateOfBirth", patient.getDateOfBirth());
+        patientInfo.put("gender", patient.getGender() != null ? patient.getGender().name() : null);
+        patientInfo.put("address", patient.getAddress());
+        patientInfo.put("avatarUrl", patient.getAvatarUrl());
+        patientInfo.put("createdAt", patient.getCreatedAt());
+        result.put("patient", patientInfo);
+
+        // Treatment plans for this patient
+        List<TreatmentPlan> plans = treatmentPlanService.getTreatmentPlansByPatientId(id);
+        List<Map<String, Object>> treatmentPlans = plans.stream().map(plan -> {
+            Map<String, Object> planData = new HashMap<>();
+            planData.put("id", plan.getId());
+            planData.put("diagnosis", plan.getDiagnosis());
+            planData.put("treatmentGoal", plan.getTreatmentGoal());
+            planData.put("status", plan.getStatus().name());
+            planData.put("startDate", plan.getStartDate());
+            planData.put("expectedEndDate", plan.getExpectedEndDate());
+            planData.put("createdAt", plan.getCreatedAt());
+            planData.put("doctorName", plan.getDoctor() != null ? plan.getDoctor().getFullName() : null);
+            return planData;
+        }).collect(Collectors.toList());
+        result.put("treatmentPlans", treatmentPlans);
+
+        // Prescriptions for this patient
+        List<Prescription> prescriptions = prescriptionService.getPrescriptionHistory(id);
+        List<Map<String, Object>> prescriptionList = prescriptions.stream().map(rx -> {
+            Map<String, Object> rxData = new HashMap<>();
+            rxData.put("id", rx.getId());
+            rxData.put("prescriptionCode", "RX-" + rx.getId());
+            rxData.put("status", rx.getStatus().name());
+            rxData.put("prescribedAt", rx.getPrescriptionDate());
+            rxData.put("diagnosis", rx.getDiagnosis());
+            rxData.put("notes", rx.getNotes());
+            rxData.put("doctorName", rx.getDoctor() != null ? rx.getDoctor().getFullName() : null);
+            return rxData;
+        }).collect(Collectors.toList());
+        result.put("prescriptions", prescriptionList);
+
+        // Vital signs (latest records)
+        List<com.g4.capstoneproject.entity.VitalSigns> vitalSigns = patientService.getRecentVitalSigns(id, 10);
+        List<Map<String, Object>> vitalsList = vitalSigns.stream().map(vs -> {
+            Map<String, Object> vsData = new HashMap<>();
+            vsData.put("id", vs.getId());
+            vsData.put("systolicPressure", vs.getSystolicPressure());
+            vsData.put("diastolicPressure", vs.getDiastolicPressure());
+            vsData.put("heartRate", vs.getHeartRate());
+            vsData.put("weight", vs.getWeight());
+            vsData.put("height", vs.getHeight());
+            vsData.put("bmi", vs.getBmi());
+            vsData.put("temperature", vs.getTemperature());
+            vsData.put("respiratoryRate", vs.getRespiratoryRate());
+            vsData.put("oxygenSaturation", vs.getOxygenSaturation());
+            vsData.put("bloodSugar", vs.getBloodSugar());
+            vsData.put("recordDate", vs.getRecordDate());
+            vsData.put("notes", vs.getNotes());
+            return vsData;
+        }).collect(Collectors.toList());
+        result.put("vitalSigns", vitalsList);
+
+        // Tickets for this patient (using createdBy = patientId)
+        List<Ticket> tickets = ticketService.getTicketsByCreatedByUserId(id);
+        List<Map<String, Object>> ticketList = tickets.stream().map(ticket -> {
+            Map<String, Object> ticketData = new HashMap<>();
+            ticketData.put("id", ticket.getId());
+            ticketData.put("subject", ticket.getTitle());
+            ticketData.put("status", ticket.getStatus().name());
+            ticketData.put("priority", ticket.getPriority().name());
+            ticketData.put("category", ticket.getCategory().name());
+            ticketData.put("createdAt", ticket.getCreatedAt());
+            return ticketData;
+        }).collect(Collectors.toList());
+        result.put("tickets", ticketList);
+
+        // Summary stats
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("totalTreatmentPlans", plans.size());
+        stats.put("activeTreatmentPlans",
+                plans.stream().filter(p -> p.getStatus() == TreatmentPlan.PlanStatus.ACTIVE).count());
+        stats.put("totalPrescriptions", prescriptions.size());
+        stats.put("totalVitalRecords", vitalSigns.size());
+        stats.put("openTickets", tickets.stream().filter(t -> t.getStatus() == Ticket.Status.OPEN).count());
+        result.put("stats", stats);
+
+        return ResponseEntity.ok(result);
     }
 
     /**
@@ -162,6 +471,29 @@ public class DoctorController {
     }
 
     /**
+     * Edit Prescription Form
+     */
+    @GetMapping("/prescriptions/edit/{id}")
+    public String editPrescriptionForm(@PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails,
+            Model model) {
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+
+        if (doctor != null) {
+            Prescription prescription = prescriptionService.getPrescriptionById(id);
+            if (prescription != null && prescription.getDoctor().getId().equals(doctor.getId())) {
+                model.addAttribute("prescription", prescription);
+                model.addAttribute("patient", prescription.getPatient());
+                model.addAttribute("prescriptionId", id);
+            }
+        }
+
+        model.addAttribute("doctor", doctor);
+        return "doctor/prescriptions/edit";
+    }
+
+    /**
      * Treatment Plans Management
      */
     @GetMapping("/treatments")
@@ -210,14 +542,6 @@ public class DoctorController {
         User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
         model.addAttribute("doctor", doctor);
         return "doctor/medical-records";
-    }
-
-    /**
-     * Knowledge Base
-     */
-    @GetMapping("/knowledge")
-    public String knowledge(Model model) {
-        return "doctor/knowledge";
     }
 
     // ==================== REST API ENDPOINTS ====================
@@ -567,6 +891,50 @@ public class DoctorController {
     }
 
     /**
+     * API: Delete prescription
+     * DELETE /api/doctor/prescriptions/{id}
+     */
+    @DeleteMapping("/api/doctor/prescriptions/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deletePrescription(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+
+        if (doctor == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Prescription existingPrescription = prescriptionService.getPrescriptionById(id);
+
+        if (existingPrescription == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Check if this prescription was created by the current doctor
+        if (existingPrescription.getDoctor() == null ||
+                !existingPrescription.getDoctor().getId().equals(doctor.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // Delete prescription using service
+        boolean deleted = prescriptionService.deletePrescription(id);
+
+        Map<String, Object> response = new HashMap<>();
+        if (deleted) {
+            response.put("success", true);
+            response.put("message", "Xóa đơn thuốc thành công");
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("success", false);
+            response.put("message", "Không thể xóa đơn thuốc");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    /**
      * API: Get prescription history for a patient
      * GET /api/doctor/prescriptions/patient/{patientId}/history
      */
@@ -755,6 +1123,154 @@ public class DoctorController {
         response.put("treatment", TreatmentPlanResponse.fromEntity(updatedPlan));
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API: Create new treatment plan
+     * POST /api/doctor/treatments
+     */
+    @PostMapping("/api/doctor/treatments")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createTreatmentPlan(
+            @RequestBody Map<String, Object> treatmentData,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+
+        if (doctor == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // Get patient
+        Long patientId = Long.valueOf(treatmentData.get("patientId").toString());
+        User patient = userRepository.findById(patientId).orElse(null);
+        if (patient == null) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Không tìm thấy bệnh nhân");
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+
+        // Create treatment plan
+        TreatmentPlan plan = TreatmentPlan.builder()
+                .patient(patient)
+                .doctor(doctor)
+                .diagnosis((String) treatmentData.get("diagnosis"))
+                .treatmentGoal((String) treatmentData.get("treatmentGoal"))
+                .startDate(treatmentData.get("startDate") != null
+                        ? LocalDate.parse((String) treatmentData.get("startDate"))
+                        : null)
+                .expectedEndDate(treatmentData.get("expectedEndDate") != null
+                        ? LocalDate.parse((String) treatmentData.get("expectedEndDate"))
+                        : null)
+                .status(treatmentData.get("status") != null
+                        ? TreatmentPlan.PlanStatus.valueOf((String) treatmentData.get("status"))
+                        : TreatmentPlan.PlanStatus.DRAFT)
+                .build();
+
+        TreatmentPlan savedPlan = treatmentPlanService.createTreatmentPlan(plan);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Tạo lộ trình điều trị thành công");
+        response.put("treatment", TreatmentPlanResponse.fromEntity(savedPlan));
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API: Update treatment plan
+     * PUT /api/doctor/treatments/{id}
+     */
+    @PutMapping("/api/doctor/treatments/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateTreatmentPlan(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> treatmentData,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+
+        if (doctor == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        TreatmentPlan existingPlan = treatmentPlanService.getTreatmentPlanById(id).orElse(null);
+
+        if (existingPlan == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Check authorization
+        if (existingPlan.getDoctor() == null || !existingPlan.getDoctor().getId().equals(doctor.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // Update fields
+        existingPlan.setDiagnosis((String) treatmentData.get("diagnosis"));
+        existingPlan.setTreatmentGoal((String) treatmentData.get("treatmentGoal"));
+        if (treatmentData.get("startDate") != null) {
+            existingPlan.setStartDate(LocalDate.parse((String) treatmentData.get("startDate")));
+        }
+        if (treatmentData.get("expectedEndDate") != null) {
+            existingPlan.setExpectedEndDate(LocalDate.parse((String) treatmentData.get("expectedEndDate")));
+        }
+        if (treatmentData.get("status") != null) {
+            existingPlan.setStatus(TreatmentPlan.PlanStatus.valueOf((String) treatmentData.get("status")));
+        }
+
+        TreatmentPlan updatedPlan = treatmentPlanService.updateTreatmentPlan(id, existingPlan);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Cập nhật lộ trình thành công");
+        response.put("treatment", TreatmentPlanResponse.fromEntity(updatedPlan));
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API: Delete treatment plan
+     * DELETE /api/doctor/treatments/{id}
+     */
+    @DeleteMapping("/api/doctor/treatments/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteTreatmentPlan(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+
+        if (doctor == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        TreatmentPlan existingPlan = treatmentPlanService.getTreatmentPlanById(id).orElse(null);
+
+        if (existingPlan == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Check authorization
+        if (existingPlan.getDoctor() == null || !existingPlan.getDoctor().getId().equals(doctor.getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        boolean deleted = treatmentPlanService.deleteTreatmentPlan(id);
+
+        Map<String, Object> response = new HashMap<>();
+        if (deleted) {
+            response.put("success", true);
+            response.put("message", "Xóa lộ trình thành công");
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("success", false);
+            response.put("message", "Không thể xóa lộ trình");
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 
     /**
@@ -1070,5 +1586,445 @@ public class DoctorController {
 
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
+    }
+
+    // ================== HEALTH FORECAST APIs ==================
+
+    /**
+     * API: Get Medical Reports for a patient
+     * GET /api/doctor/health-forecast/reports/{patientId}
+     */
+    @GetMapping("/api/doctor/health-forecast/reports/{patientId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getMedicalReports(@PathVariable Long patientId) {
+        List<com.g4.capstoneproject.entity.MedicalReport> reports = medicalReportRepository
+                .findByPatientIdOrderByReportDateDesc(patientId);
+
+        List<Map<String, Object>> reportList = reports.stream().map(r -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", r.getId());
+            map.put("type", r.getType().name());
+            map.put("reportDate", r.getReportDate());
+            map.put("title", r.getTitle());
+            map.put("content", r.getContent());
+            map.put("notes", r.getNotes());
+            map.put("createdAt", r.getCreatedAt());
+            return map;
+        }).collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("reports", reportList);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API: Create Medical Report
+     * POST /api/doctor/health-forecast/reports
+     */
+    @PostMapping("/api/doctor/health-forecast/reports")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createMedicalReport(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody Map<String, Object> data) {
+
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+
+        Long patientId = Long.valueOf(data.get("patientId").toString());
+        User patient = userRepository.findById(patientId).orElse(null);
+
+        if (patient == null) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "Không tìm thấy bệnh nhân");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        com.g4.capstoneproject.entity.MedicalReport report = com.g4.capstoneproject.entity.MedicalReport.builder()
+                .patient(patient)
+                .createdBy(doctor)
+                .type(com.g4.capstoneproject.entity.MedicalReport.ReportType.valueOf(data.get("type").toString()))
+                .reportDate(LocalDate.parse(data.get("reportDate").toString()))
+                .title(data.get("title").toString())
+                .content(data.get("content").toString())
+                .notes(data.get("notes") != null ? data.get("notes").toString() : null)
+                .build();
+
+        report = medicalReportRepository.save(report);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Lưu báo cáo y tế thành công");
+        response.put("id", report.getId());
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API: Delete Medical Report
+     * DELETE /api/doctor/health-forecast/reports/{id}
+     */
+    @DeleteMapping("/api/doctor/health-forecast/reports/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteMedicalReport(@PathVariable Long id) {
+        medicalReportRepository.deleteById(id);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Xóa báo cáo thành công");
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API: Get Family History for a patient
+     * GET /api/doctor/health-forecast/family-history/{patientId}
+     */
+    @GetMapping("/api/doctor/health-forecast/family-history/{patientId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getFamilyHistory(@PathVariable Long patientId) {
+        List<com.g4.capstoneproject.entity.FamilyMedicalHistory> history = familyMedicalHistoryRepository
+                .findByPatientIdOrderByCreatedAtDesc(patientId);
+
+        List<Map<String, Object>> historyList = history.stream().map(h -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", h.getId());
+            map.put("relationship", h.getRelationship().name());
+            map.put("condition", h.getCondition());
+            map.put("ageAtDiagnosis", h.getAgeAtDiagnosis());
+            map.put("status", h.getStatus() != null ? h.getStatus().name() : null);
+            map.put("notes", h.getNotes());
+            map.put("createdAt", h.getCreatedAt());
+            return map;
+        }).collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("history", historyList);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API: Create Family History Entry
+     * POST /api/doctor/health-forecast/family-history
+     */
+    @PostMapping("/api/doctor/health-forecast/family-history")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createFamilyHistory(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody Map<String, Object> data) {
+
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+
+        Long patientId = Long.valueOf(data.get("patientId").toString());
+        User patient = userRepository.findById(patientId).orElse(null);
+
+        if (patient == null) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "Không tìm thấy bệnh nhân");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        com.g4.capstoneproject.entity.FamilyMedicalHistory history = com.g4.capstoneproject.entity.FamilyMedicalHistory
+                .builder()
+                .patient(patient)
+                .createdBy(doctor)
+                .relationship(com.g4.capstoneproject.entity.FamilyMedicalHistory.Relationship
+                        .valueOf(data.get("relationship").toString()))
+                .condition(data.get("condition").toString())
+                .ageAtDiagnosis(data.get("ageAtDiagnosis") != null && !data.get("ageAtDiagnosis").toString().isEmpty()
+                        ? Integer.valueOf(data.get("ageAtDiagnosis").toString())
+                        : null)
+                .status(data.get("status") != null
+                        ? com.g4.capstoneproject.entity.FamilyMedicalHistory.MemberStatus
+                                .valueOf(data.get("status").toString())
+                        : null)
+                .notes(data.get("notes") != null ? data.get("notes").toString() : null)
+                .build();
+
+        history = familyMedicalHistoryRepository.save(history);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Lưu tiền sử gia đình thành công");
+        response.put("id", history.getId());
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API: Delete Family History Entry
+     * DELETE /api/doctor/health-forecast/family-history/{id}
+     */
+    @DeleteMapping("/api/doctor/health-forecast/family-history/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteFamilyHistory(@PathVariable Long id) {
+        familyMedicalHistoryRepository.deleteById(id);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Xóa tiền sử gia đình thành công");
+        return ResponseEntity.ok(response);
+    }
+
+    // ==================== KNOWLEDGE BASE APIs ====================
+
+    /**
+     * Knowledge Base Page
+     * GET /doctor/knowledge
+     */
+    @GetMapping("/knowledge")
+    public String knowledgePage() {
+        return "doctor/knowledge";
+    }
+
+    /**
+     * API: Get Categories
+     * GET /api/doctor/knowledge/categories
+     */
+    @GetMapping("/api/doctor/knowledge/categories")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getKnowledgeCategories() {
+        List<KnowledgeCategory> categories = knowledgeCategoryRepository.findByActiveTrueOrderByDisplayOrderAsc();
+        List<Map<String, Object>> result = categories.stream().map(c -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", c.getId());
+            map.put("name", c.getName());
+            map.put("description", c.getDescription());
+            return map;
+        }).collect(Collectors.toList());
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * API: Get Statistics
+     * GET /api/doctor/knowledge/statistics
+     */
+    @GetMapping("/api/doctor/knowledge/statistics")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getKnowledgeStatistics() {
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("total", knowledgeArticleRepository.count());
+        stats.put("published", knowledgeArticleRepository.countByStatus(KnowledgeArticle.ArticleStatus.PUBLISHED));
+        stats.put("draft", knowledgeArticleRepository.countByStatus(KnowledgeArticle.ArticleStatus.DRAFT));
+        stats.put("categories", knowledgeCategoryRepository.countByActiveTrue());
+        return ResponseEntity.ok(stats);
+    }
+
+    /**
+     * API: Get All Tags
+     * GET /api/doctor/knowledge/tags
+     */
+    @GetMapping("/api/doctor/knowledge/tags")
+    @ResponseBody
+    public ResponseEntity<List<String>> getKnowledgeTags() {
+        List<String> tags = knowledgeArticleRepository.findAllTags();
+        return ResponseEntity.ok(tags);
+    }
+
+    /**
+     * API: Get Articles with Search & Pagination
+     * GET /api/doctor/knowledge/articles
+     */
+    @GetMapping("/api/doctor/knowledge/articles")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getKnowledgeArticles(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String status) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<KnowledgeArticle> articlePage;
+
+        KnowledgeArticle.ArticleStatus articleStatus = null;
+        if (status != null && !status.isEmpty()) {
+            articleStatus = KnowledgeArticle.ArticleStatus.valueOf(status);
+        }
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            if (categoryId != null) {
+                articlePage = knowledgeArticleRepository.searchByCategoryAndKeyword(categoryId, keyword.trim(),
+                        articleStatus, pageable);
+            } else {
+                articlePage = knowledgeArticleRepository.searchByKeyword(keyword.trim(), articleStatus, pageable);
+            }
+        } else if (categoryId != null) {
+            if (articleStatus != null) {
+                articlePage = knowledgeArticleRepository.findByCategoryIdAndStatus(categoryId, articleStatus, pageable);
+            } else {
+                articlePage = knowledgeArticleRepository.findByCategoryId(categoryId, pageable);
+            }
+        } else if (articleStatus != null) {
+            articlePage = knowledgeArticleRepository.findByStatus(articleStatus, pageable);
+        } else {
+            articlePage = knowledgeArticleRepository.findAll(pageable);
+        }
+
+        List<Map<String, Object>> content = articlePage.getContent().stream().map(this::mapArticleToResponse)
+                .collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("content", content);
+        response.put("number", articlePage.getNumber());
+        response.put("totalPages", articlePage.getTotalPages());
+        response.put("totalElements", articlePage.getTotalElements());
+        response.put("size", articlePage.getSize());
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API: Get Article Detail
+     * GET /api/doctor/knowledge/articles/{id}
+     */
+    @GetMapping("/api/doctor/knowledge/articles/{id}")
+    @ResponseBody
+    public ResponseEntity<?> getKnowledgeArticle(@PathVariable Long id) {
+        KnowledgeArticle article = knowledgeArticleRepository.findById(id).orElse(null);
+        if (article == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Increment views
+        knowledgeArticleRepository.incrementViews(id);
+
+        Map<String, Object> response = mapArticleToResponse(article);
+        response.put("content", article.getContent());
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API: Create Article
+     * POST /api/doctor/knowledge/articles
+     */
+    @PostMapping("/api/doctor/knowledge/articles")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createKnowledgeArticle(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody Map<String, Object> data) {
+
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+
+        KnowledgeCategory category = null;
+        if (data.get("categoryId") != null && !data.get("categoryId").toString().isEmpty()) {
+            category = knowledgeCategoryRepository.findById(Long.valueOf(data.get("categoryId").toString()))
+                    .orElse(null);
+        }
+
+        KnowledgeArticle.ArticleStatus status = KnowledgeArticle.ArticleStatus.DRAFT;
+        if (data.get("status") != null) {
+            status = KnowledgeArticle.ArticleStatus.valueOf(data.get("status").toString());
+        }
+
+        KnowledgeArticle article = KnowledgeArticle.builder()
+                .title(data.get("title").toString())
+                .summary(data.get("summary") != null ? data.get("summary").toString() : null)
+                .content(data.get("content").toString())
+                .category(category)
+                .tags(data.get("tags") != null ? data.get("tags").toString() : null)
+                .status(status)
+                .featured(data.get("featured") != null && Boolean.parseBoolean(data.get("featured").toString()))
+                .createdBy(doctor)
+                .views(0)
+                .publishedAt(status == KnowledgeArticle.ArticleStatus.PUBLISHED ? LocalDateTime.now() : null)
+                .build();
+
+        article = knowledgeArticleRepository.save(article);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Tạo bài viết thành công");
+        response.put("id", article.getId());
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API: Update Article
+     * PUT /api/doctor/knowledge/articles/{id}
+     */
+    @PutMapping("/api/doctor/knowledge/articles/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateKnowledgeArticle(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> data) {
+
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+
+        KnowledgeArticle article = knowledgeArticleRepository.findById(id).orElse(null);
+        if (article == null) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "Không tìm thấy bài viết");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        KnowledgeCategory category = null;
+        if (data.get("categoryId") != null && !data.get("categoryId").toString().isEmpty()) {
+            category = knowledgeCategoryRepository.findById(Long.valueOf(data.get("categoryId").toString()))
+                    .orElse(null);
+        }
+
+        KnowledgeArticle.ArticleStatus newStatus = KnowledgeArticle.ArticleStatus
+                .valueOf(data.get("status").toString());
+        boolean wasNotPublished = article.getStatus() != KnowledgeArticle.ArticleStatus.PUBLISHED;
+        boolean isNowPublished = newStatus == KnowledgeArticle.ArticleStatus.PUBLISHED;
+
+        article.setTitle(data.get("title").toString());
+        article.setSummary(data.get("summary") != null ? data.get("summary").toString() : null);
+        article.setContent(data.get("content").toString());
+        article.setCategory(category);
+        article.setTags(data.get("tags") != null ? data.get("tags").toString() : null);
+        article.setStatus(newStatus);
+        article.setFeatured(data.get("featured") != null && Boolean.parseBoolean(data.get("featured").toString()));
+        article.setUpdatedBy(doctor);
+
+        if (wasNotPublished && isNowPublished) {
+            article.setPublishedAt(LocalDateTime.now());
+        }
+
+        knowledgeArticleRepository.save(article);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Cập nhật bài viết thành công");
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API: Delete Article
+     * DELETE /api/doctor/knowledge/articles/{id}
+     */
+    @DeleteMapping("/api/doctor/knowledge/articles/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> deleteKnowledgeArticle(@PathVariable Long id) {
+        knowledgeArticleRepository.deleteById(id);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Xóa bài viết thành công");
+        return ResponseEntity.ok(response);
+    }
+
+    // Helper method to map article to response
+    private Map<String, Object> mapArticleToResponse(KnowledgeArticle article) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", article.getId());
+        map.put("title", article.getTitle());
+        map.put("summary", article.getSummary());
+        map.put("categoryId", article.getCategory() != null ? article.getCategory().getId() : null);
+        map.put("categoryName", article.getCategory() != null ? article.getCategory().getName() : null);
+        map.put("tags", article.getTags());
+        map.put("status", article.getStatus().name());
+        map.put("featured", article.getFeatured());
+        map.put("views", article.getViews());
+        map.put("createdAt", article.getCreatedAt());
+        map.put("updatedAt", article.getUpdatedAt());
+        map.put("publishedAt", article.getPublishedAt());
+        map.put("createdByName", article.getCreatedBy() != null ? article.getCreatedBy().getFullName() : null);
+        return map;
     }
 }

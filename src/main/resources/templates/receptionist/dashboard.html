@@ -1,1282 +1,1063 @@
 <!doctype html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Receptionist Dashboard | ABClinic</title>
-
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Bảng điều phối Lễ tân - ABClinic</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&amp;display=swap"
       rel="stylesheet"
     />
     <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
       rel="stylesheet"
     />
-
-    <script th:src="@{/js/tailwind-config.js}"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link th:href="@{/css/app.css}" rel="stylesheet" />
-
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0d7cf2",
+              "primary-dark": "#0a62bf",
+              "background-light": "#f5f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              display: ["Roboto", "sans-serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
     <!-- WebSocket dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 24px;
+      }
+      .material-symbols-outlined.fill {
+        font-variation-settings: "FILL" 1;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
+      .animate-slide-in {
+        animation: slideIn 0.3s ease-out;
+      }
+      .animate-fade-out {
+        animation: fadeOut 0.3s ease-out;
+      }
+    </style>
   </head>
-  <body class="bg-gray-50 font-sans">
-    <div class="flex h-screen overflow-hidden">
-      <!-- Receptionist Sidebar - Desktop -->
-      <aside
-        id="sidebar"
-        class="w-64 flex-none bg-white border-r border-slate-200 flex-col justify-between h-full z-10 hidden lg:flex"
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display h-screen flex overflow-hidden"
+  >
+    <!-- Mobile Sidebar Backdrop -->
+    <div
+      id="sidebarBackdrop"
+      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden hidden"
+      onclick="toggleSidebar()"
+    ></div>
+
+    <!-- Receptionist Sidebar -->
+    <aside
+      id="sidebar"
+      class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#1a2634] border-r border-slate-200 dark:border-slate-800 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out"
+    >
+      <!-- Logo -->
+      <div
+        class="h-16 flex items-center gap-3 px-5 border-b border-slate-200 dark:border-slate-800 shrink-0"
       >
-        <div class="flex flex-col gap-2 p-4">
-          <!-- Logo -->
-          <div class="flex gap-3 items-center px-2 py-3 mb-4">
-            <div class="bg-emerald-50 text-emerald-600 rounded-lg p-2">
-              <span class="material-symbols-outlined text-3xl"
-                >support_agent</span
-              >
-            </div>
-            <div class="flex flex-col">
-              <h1 class="text-slate-900 text-lg font-bold leading-tight">
-                ABClinic
-              </h1>
-              <p class="text-slate-500 text-xs font-normal">Lễ tân</p>
-            </div>
-          </div>
-
-          <!-- Navigation -->
-          <nav class="flex flex-col gap-1">
-            <a
-              href="/receptionist/dashboard"
-              class="w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors group bg-primary-50 text-primary-600"
-            >
-              <span class="material-symbols-outlined filled">dashboard</span>
-              <span class="font-medium text-sm flex-1 text-left"
-                >Bảng điều khiển</span
-              >
-            </a>
-            <a
-              href="/receptionist/appointments"
-              class="w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors group text-slate-500 hover:bg-slate-50 hover:text-primary-600"
-            >
-              <span class="material-symbols-outlined">calendar_month</span>
-              <span class="font-medium text-sm flex-1 text-left">Lịch hẹn</span>
-            </a>
-            <a
-              href="/receptionist/callbot"
-              class="w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors group text-slate-500 hover:bg-slate-50 hover:text-primary-600"
-            >
-              <span class="material-symbols-outlined">call</span>
-              <span class="font-medium text-sm flex-1 text-left"
-                >Callbot AI</span
-              >
-              <span
-                th:if="${openTickets != null && openTickets > 0}"
-                class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full"
-                th:text="${openTickets}"
-                >3</span
-              >
-            </a>
-            <a
-              href="/receptionist/tickets"
-              class="w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors group text-slate-500 hover:bg-slate-50 hover:text-primary-600"
-            >
-              <span class="material-symbols-outlined">support</span>
-              <span class="font-medium text-sm flex-1 text-left">Tickets</span>
-            </a>
-            <a
-              href="/receptionist/patients"
-              class="w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors group text-slate-500 hover:bg-slate-50 hover:text-primary-600"
-            >
-              <span class="material-symbols-outlined">groups</span>
-              <span class="font-medium text-sm flex-1 text-left"
-                >Bệnh nhân</span
-              >
-            </a>
-            <a
-              href="/doctor/knowledge"
-              class="w-full flex items-center gap-3 px-3 py-3 rounded-lg transition-colors group text-slate-500 hover:bg-slate-50 hover:text-primary-600"
-            >
-              <span class="material-symbols-outlined">menu_book</span>
-              <span class="font-medium text-sm flex-1 text-left"
-                >Tri thức Y tế</span
-              >
-            </a>
-          </nav>
-        </div>
-
-        <!-- User Profile Bottom -->
-        <div class="p-4 border-t border-slate-100">
-          <button
-            onclick="document.getElementById('logoutForm').submit();"
-            class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-red-600 transition-colors w-full"
-          >
-            <span class="material-symbols-outlined">logout</span>
-            <span class="text-sm font-medium">Đăng xuất</span>
-          </button>
-          <form
-            id="logoutForm"
-            th:action="@{/auth/logout}"
-            method="post"
-            style="display: none"
-          ></form>
-
-          <div
-            class="flex items-center gap-3 px-3 py-3 mt-2 rounded-lg bg-slate-50"
-          >
-            <img
-              th:if="${receptionist != null && receptionist.userInfo.avatarUrl != null}"
-              th:src="${receptionist.userInfo.avatarUrl}"
-              alt="Avatar"
-              class="w-8 h-8 rounded-full object-cover"
-            />
-            <div
-              th:if="${receptionist == null || receptionist.userInfo.avatarUrl == null}"
-              class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-semibold text-sm"
-            >
-              <span
-                th:text="${receptionist != null ? receptionist.userInfo.fullName.substring(0,1) : 'R'}"
-                >R</span
-              >
-            </div>
-            <div class="flex-1 min-w-0">
-              <p
-                class="text-slate-900 text-sm font-medium truncate"
-                th:text="${receptionist != null ? receptionist.userInfo.fullName : 'Receptionist'}"
-              >
-                Receptionist
-              </p>
-              <p class="text-slate-500 text-xs truncate">Đang hoạt động</p>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <!-- Main Content -->
-      <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-        <!-- Mobile Header -->
         <div
-          class="lg:hidden h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4"
+          class="flex size-10 items-center justify-center rounded-xl bg-primary text-white font-bold text-lg shadow-md shadow-primary/30"
         >
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-emerald-600"
-              >support_agent</span
+          AB
+        </div>
+        <span
+          class="text-lg font-bold text-slate-900 dark:text-white tracking-tight"
+          >ABClinic</span
+        >
+        <button
+          class="lg:hidden ml-auto p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
+          onclick="toggleSidebar()"
+        >
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 overflow-y-auto p-3 space-y-1">
+        <p
+          class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider"
+        >
+          Menu chính
+        </p>
+
+        <a
+          href="/receptionist/dashboard"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]">dashboard</span>
+          <span>Bảng điều khiển</span>
+        </a>
+
+        <a
+          href="/receptionist/callbot"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]"
+            >phone_in_talk</span
+          >
+          <span>AI Callbot</span>
+          <span
+            class="ml-auto text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-1.5 py-0.5 rounded font-bold"
+            >NEW</span
+          >
+        </a>
+
+        <a
+          href="/receptionist/patients"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]">groups</span>
+          <span>Bệnh nhân</span>
+        </a>
+
+        <a
+          href="/receptionist/appointments"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]"
+            >calendar_month</span
+          >
+          <span>Lịch hẹn</span>
+        </a>
+
+        <p
+          class="px-3 py-2 mt-4 text-xs font-bold text-slate-400 uppercase tracking-wider"
+        >
+          Hỗ trợ
+        </p>
+
+        <a
+          href="/receptionist/reports"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]">assessment</span>
+          <span>Báo cáo</span>
+        </a>
+
+        <a
+          href="/receptionist/settings"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]">settings</span>
+          <span>Cài đặt</span>
+        </a>
+      </nav>
+
+      <!-- User Profile -->
+      <div class="p-3 border-t border-slate-200 dark:border-slate-800">
+        <div
+          class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-all"
+        >
+          <div
+            class="size-10 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white font-bold text-sm shadow-sm"
+          >
+            <span
+              th:text="${receptionist != null ? receptionist.userInfo.fullName?.substring(0,1) : 'R'}"
+              >R</span
             >
-            <span class="font-bold text-slate-900">ABClinic</span>
           </div>
-          <button onclick="toggleMobileSidebar()" class="text-slate-500">
-            <span class="material-symbols-outlined">menu</span>
-          </button>
+          <div class="flex-1 min-w-0">
+            <p
+              class="text-sm font-semibold text-slate-900 dark:text-white truncate"
+              th:text="${receptionist != null ? receptionist.userInfo.fullName : 'Receptionist'}"
+            >
+              Receptionist
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Lễ tân</p>
+          </div>
+          <form th:action="@{/auth/logout}" method="post" class="m-0">
+            <button
+              type="submit"
+              class="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 transition-colors"
+            >
+              <span class="material-symbols-outlined text-[20px]">logout</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main
+      class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark"
+    >
+      <!-- Header -->
+      <header
+        class="h-16 flex items-center justify-between px-6 bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 shrink-0 z-10"
+      >
+        <!-- Mobile Menu Toggle -->
+        <button
+          onclick="toggleSidebar()"
+          class="lg:hidden flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors mr-2"
+        >
+          <span class="material-symbols-outlined text-[24px]">menu</span>
+        </button>
+
+        <!-- Desktop Sidebar Toggle -->
+        <button
+          onclick="toggleDesktopSidebar()"
+          class="hidden lg:flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors mr-2"
+          title="Ctrl+B"
+        >
+          <span class="material-symbols-outlined text-[24px]">menu</span>
+        </button>
+
+        <!-- Search Bar -->
+        <div class="flex-1 max-w-lg">
+          <div class="relative group">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <span class="material-symbols-outlined text-slate-400 text-[20px]"
+                >search</span
+              >
+            </div>
+            <input
+              class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg leading-5 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition-all"
+              placeholder="Tìm nhanh bệnh nhân... (Ctrl+K)"
+              type="text"
+            />
+          </div>
         </div>
 
-        <!-- Content Body -->
-        <div class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-          <div class="max-w-7xl mx-auto">
+        <!-- Right Actions -->
+        <div class="flex items-center gap-3 ml-4">
+          <!-- Connection Status -->
+          <div
+            id="wsStatus"
+            class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg"
+          >
+            <span
+              class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"
+            ></span>
+            <span
+              class="text-xs font-medium text-emerald-700 dark:text-emerald-400"
+              >Đang kết nối</span
+            >
+          </div>
+
+          <button
+            class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors relative"
+          >
+            <span class="material-symbols-outlined text-[24px]"
+              >notifications</span
+            >
+            <span
+              class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-[#1a2634]"
+            ></span>
+          </button>
+          <button
+            onclick="toggleDarkMode()"
+            class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
+          >
+            <span class="material-symbols-outlined text-[24px] dark:hidden"
+              >dark_mode</span
+            >
+            <span
+              class="material-symbols-outlined text-[24px] hidden dark:block"
+              >light_mode</span
+            >
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <div class="flex flex-1 overflow-hidden">
+        <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+          <div class="max-w-6xl mx-auto flex flex-col gap-6">
             <!-- Page Header -->
-            <div class="mb-6">
-              <div class="flex items-center justify-between">
-                <div>
-                  <h2 class="text-2xl font-bold text-slate-900">
-                    Bảng điều phối Lễ tân
-                  </h2>
-                  <p class="text-slate-500 text-sm">
-                    Chào mừng,
-                    <span
-                      th:text="${receptionist != null ? receptionist.userInfo.fullName : 'Receptionist'}"
-                      >Receptionist</span
-                    >
-                  </p>
-                </div>
-                <div class="flex items-center gap-2">
+            <div
+              class="flex flex-col md:flex-row md:items-center justify-between gap-4"
+            >
+              <div>
+                <h2
+                  class="text-3xl font-black tracking-tight text-slate-900 dark:text-white"
+                >
+                  Chào buổi sáng,
                   <span
-                    class="material-symbols-outlined text-emerald-600 animate-pulse"
-                    >wifi</span
+                    th:text="${receptionist != null ? receptionist.userInfo.fullName : 'Receptionist'}"
+                    >Receptionist</span
                   >
-                  <span class="text-xs text-emerald-600 font-medium"
-                    >Đang kết nối</span
+                </h2>
+                <p class="text-slate-500 dark:text-slate-400 mt-1">
+                  Đây là tổng quan hàng đợi bệnh nhân hôm nay
+                </p>
+              </div>
+              <div class="flex gap-3">
+                <button
+                  onclick="refreshQueue()"
+                  class="bg-white dark:bg-[#1a2634] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-[20px]"
+                    >refresh</span
+                  >
+                  Làm mới
+                </button>
+                <a
+                  th:href="@{/receptionist/callbot}"
+                  class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center gap-2 shadow-sm shadow-primary/30"
+                >
+                  <span class="material-symbols-outlined text-[20px]"
+                    >phone_in_talk</span
+                  >
+                  AI Callbot
+                </a>
+              </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div
+                class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div class="flex items-start justify-between">
+                  <div>
+                    <p
+                      class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                    >
+                      Tổng bệnh nhân
+                    </p>
+                    <h3
+                      id="totalPatients"
+                      class="text-2xl font-bold text-slate-900 dark:text-white mt-1"
+                    >
+                      0
+                    </h3>
+                  </div>
+                  <div
+                    class="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-primary"
+                  >
+                    <span class="material-symbols-outlined">groups</span>
+                  </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                  <span class="text-slate-600 dark:text-slate-400 font-medium"
+                    >Trong hệ thống</span
+                  >
+                </div>
+              </div>
+
+              <div
+                class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div class="flex items-start justify-between">
+                  <div>
+                    <p
+                      class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                    >
+                      Chờ gọi
+                    </p>
+                    <h3
+                      id="waitingCount"
+                      class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1 stat-open-tickets"
+                    >
+                      0
+                    </h3>
+                  </div>
+                  <div
+                    class="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400"
+                  >
+                    <span class="material-symbols-outlined">pending</span>
+                  </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                  <span class="text-slate-600 dark:text-slate-400 font-medium"
+                    >Sẵn sàng liên hệ</span
+                  >
+                </div>
+              </div>
+
+              <div
+                class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div class="flex items-start justify-between">
+                  <div>
+                    <p
+                      class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                    >
+                      Cần gọi lại
+                    </p>
+                    <h3
+                      id="callbackCount"
+                      class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1"
+                    >
+                      0
+                    </h3>
+                  </div>
+                  <div
+                    class="p-2 bg-amber-50 dark:bg-amber-900/30 rounded-lg text-amber-600 dark:text-amber-400"
+                  >
+                    <span class="material-symbols-outlined">replay</span>
+                  </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                  <span class="text-slate-600 dark:text-slate-400 font-medium"
+                    >Cần theo dõi</span
+                  >
+                </div>
+              </div>
+
+              <div
+                class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div class="flex items-start justify-between">
+                  <div>
+                    <p
+                      class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                    >
+                      Cuộc gọi hôm nay
+                    </p>
+                    <h3
+                      id="todayCalls"
+                      class="text-2xl font-bold text-slate-900 dark:text-white mt-1"
+                    >
+                      --
+                    </h3>
+                  </div>
+                  <div
+                    class="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400"
+                  >
+                    <span class="material-symbols-outlined">call</span>
+                  </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                  <span class="text-slate-600 dark:text-slate-400 font-medium"
+                    >Tổng số cuộc gọi</span
                   >
                 </div>
               </div>
             </div>
 
-            <!-- Statistics Header -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <!-- Main Patient Table -->
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col"
+            >
               <div
-                class="bg-white rounded-lg shadow-sm border border-slate-200 p-4"
+                class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-col gap-5"
               >
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-xs text-slate-500 mb-1">Tổng hàng đợi</p>
-                    <p
-                      class="text-2xl font-bold text-slate-900"
-                      th:text="${totalTickets ?: 0}"
+                <div
+                  class="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                >
+                  <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary"
+                      >groups</span
                     >
-                      0
-                    </p>
-                  </div>
-                  <div
-                    class="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center"
-                  >
+                    <h3
+                      class="text-lg font-bold text-slate-900 dark:text-white"
+                    >
+                      Danh sách bệnh nhân
+                    </h3>
                     <span
-                      class="material-symbols-outlined text-primary-600 text-xl"
-                      >queue</span
+                      id="patientCount"
+                      class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium"
+                      >0</span
                     >
-                  </div>
-                </div>
-              </div>
-
-              <div
-                class="bg-white rounded-lg shadow-sm border border-slate-200 p-4"
-              >
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-xs text-slate-500 mb-1">Chờ xử lý</p>
-                    <p
-                      class="text-2xl font-bold text-orange-600"
-                      th:text="${openTickets ?: 0}"
-                    >
-                      0
-                    </p>
-                  </div>
-                  <div
-                    class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center"
-                  >
-                    <span
-                      class="material-symbols-outlined text-orange-600 text-xl"
-                      >pending</span
-                    >
-                  </div>
-                </div>
-              </div>
-
-              <div
-                class="bg-white rounded-lg shadow-sm border border-slate-200 p-4"
-              >
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-xs text-slate-500 mb-1">Đang xử lý</p>
-                    <p
-                      class="text-2xl font-bold text-emerald-600"
-                      th:text="${inProgressTickets ?: 0}"
-                    >
-                      0
-                    </p>
-                  </div>
-                  <div
-                    class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center"
-                  >
-                    <span
-                      class="material-symbols-outlined text-emerald-600 text-xl"
-                      >schedule</span
-                    >
-                  </div>
-                </div>
-              </div>
-
-              <div
-                class="bg-white rounded-lg shadow-sm border border-slate-200 p-4"
-              >
-                <div class="flex items-center justify-between">
-                  <div>
-                    <p class="text-xs text-slate-500 mb-1">Thời gian chờ TB</p>
-                    <p class="text-2xl font-bold text-slate-900">
-                      <span id="avgWaitTime">--</span>
-                    </p>
-                  </div>
-                  <div
-                    class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center"
-                  >
-                    <span
-                      class="material-symbols-outlined text-slate-600 text-xl"
-                      >timer</span
-                    >
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 2-Column Queue Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <!-- Queue List - Left Column -->
-              <div
-                class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden"
-              >
-                <div class="bg-slate-100 border-b border-slate-200 p-4">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="material-symbols-outlined text-slate-700"
-                        >list</span
-                      >
-                      <h3 class="font-semibold text-slate-900">Hàng đợi</h3>
-                      <span
-                        class="text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-medium"
-                        th:text="${openTickets ?: 0}"
-                        >0</span
-                      >
-                    </div>
-                    <button
-                      onclick="refreshQueue()"
-                      class="p-1.5 hover:bg-slate-200 rounded-lg transition-colors"
-                    >
-                      <span
-                        class="material-symbols-outlined text-slate-600 text-lg"
-                        >refresh</span
-                      >
-                    </button>
                   </div>
                 </div>
 
                 <div
-                  class="p-4 space-y-3 max-h-[600px] overflow-y-auto"
-                  id="mainQueueList"
+                  class="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center"
                 >
-                  <!-- Queue Item -->
-                  <div
-                    th:if="${recentTickets == null || recentTickets.empty}"
-                    class="text-center py-12 text-slate-400"
-                  >
-                    <span class="material-symbols-outlined text-5xl mb-3 block"
-                      >inbox</span
+                  <div class="relative w-full lg:max-w-xs group">
+                    <div
+                      class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
                     >
-                    <p class="text-sm">Hàng đợi trống</p>
+                      <span
+                        class="material-symbols-outlined text-slate-400 group-focus-within:text-primary transition-colors text-[20px]"
+                        >search</span
+                      >
+                    </div>
+                    <input
+                      id="searchInput"
+                      class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg leading-5 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-all"
+                      placeholder="Tìm kiếm bệnh nhân..."
+                      type="text"
+                      oninput="filterPatients()"
+                    />
                   </div>
-
                   <div
-                    th:each="ticket, iterStat : ${recentTickets}"
-                    th:if="${ticket.status.name() == 'OPEN'}"
-                    th:attr="data-ticket-id=${ticket.id}"
-                    class="group relative bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg p-4 transition-all cursor-pointer"
+                    class="flex flex-wrap items-center gap-3 w-full lg:w-auto"
                   >
-                    <!-- Priority Badge -->
-                    <div class="absolute top-2 right-2">
-                      <span
-                        th:if="${ticket.priority.name() == 'URGENT'}"
-                        class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium"
-                      >
-                        Khẩn cấp
-                      </span>
-                      <span
-                        th:if="${ticket.priority.name() == 'HIGH'}"
-                        class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium"
-                      >
-                        Cao
-                      </span>
-                    </div>
-
-                    <!-- Patient Info -->
-                    <div class="flex items-start gap-3 mb-3">
-                      <div
-                        class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0"
-                      >
-                        <span class="material-symbols-outlined text-primary-600"
-                          >person</span
-                        >
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <h4
-                          class="font-semibold text-slate-900 truncate"
-                          th:text="${ticket.title}"
-                        >
-                          Bệnh nhân #001
-                        </h4>
-                        <p
-                          class="text-sm text-slate-600 line-clamp-2"
-                          th:text="${ticket.description}"
-                        >
-                          Khám định kỳ - Cao huyết áp
-                        </p>
-                      </div>
-                    </div>
-
-                    <!-- Timestamp & Action -->
-                    <div class="flex items-center justify-between">
-                      <div
-                        class="flex items-center gap-2 text-xs text-slate-500"
-                      >
-                        <span class="material-symbols-outlined text-sm"
-                          >schedule</span
-                        >
-                        <span
-                          th:text="${#temporals.format(ticket.createdAt, 'HH:mm')}"
-                          >10:30</span
-                        >
-                        <span>•</span>
-                        <span
-                          class="wait-time"
-                          th:data-created="${ticket.createdAt}"
-                          >5 phút</span
-                        >
-                      </div>
-
-                      <!-- Call Button (shows on hover) -->
+                    <div
+                      class="flex items-center gap-2 overflow-x-auto no-scrollbar"
+                    >
                       <button
-                        onclick="handleCallPatient(this)"
-                        th:attr="data-ticket-id=${ticket.id}"
-                        class="opacity-0 group-hover:opacity-100 flex items-center gap-1 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-all text-xs font-medium"
+                        onclick="setFilter('all')"
+                        id="filterAll"
+                        class="px-3 py-1.5 rounded-full text-xs font-semibold bg-primary text-white shadow-sm ring-1 ring-primary/10 transition-all hover:bg-primary-dark"
                       >
-                        <span class="material-symbols-outlined text-sm"
-                          >call</span
-                        >
-                        <span>Gọi ngay</span>
+                        Tất cả
+                      </button>
+                      <button
+                        onclick="setFilter('waiting')"
+                        id="filterWaiting"
+                        class="px-3 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-all whitespace-nowrap"
+                      >
+                        Chờ gọi
+                      </button>
+                      <button
+                        onclick="setFilter('callback')"
+                        id="filterCallback"
+                        class="px-3 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-all whitespace-nowrap"
+                      >
+                        Cần gọi lại
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Retry List - Right Column -->
-              <div
-                class="bg-white rounded-xl shadow-sm border border-orange-200 overflow-hidden"
-              >
-                <div class="bg-orange-50 border-b border-orange-200 p-4">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                      <span class="material-symbols-outlined text-orange-600"
-                        >replay</span
-                      >
-                      <h3 class="font-semibold text-orange-900">Cần gọi lại</h3>
-                      <span
-                        class="text-xs bg-orange-200 text-orange-800 px-2 py-0.5 rounded-full font-medium"
-                        >3</span
-                      >
-                    </div>
-                    <button
-                      class="p-1.5 hover:bg-orange-100 rounded-lg transition-colors"
+              <div id="patientTableContainer" class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr
+                      class="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800"
                     >
-                      <span
-                        class="material-symbols-outlined text-orange-600 text-lg"
-                        >filter_list</span
+                      <th
+                        class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
                       >
-                    </button>
-                  </div>
-                </div>
-
-                <div
-                  class="p-4 space-y-3 max-h-[600px] overflow-y-auto"
-                  id="retryQueueList"
-                >
-                  <!-- Retry Item 1 -->
-                  <div
-                    class="group relative bg-orange-30 border-2 border-orange-300 rounded-lg p-4 transition-all"
+                        BỆNH NHÂN
+                      </th>
+                      <th
+                        class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                      >
+                        SỐ ĐIỆN THOẠI
+                      </th>
+                      <th
+                        class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                      >
+                        EMAIL
+                      </th>
+                      <th
+                        class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                      >
+                        TRẠNG THÁI
+                      </th>
+                      <th
+                        class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-right"
+                      >
+                        THAO TÁC
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="patientTableBody"
+                    class="divide-y divide-slate-200 dark:divide-slate-800"
                   >
-                    <!-- Animated Border Effect -->
-                    <div
-                      class="absolute inset-0 border-2 border-orange-400 rounded-lg animate-pulse opacity-50"
-                    ></div>
-
-                    <!-- Retry Counter -->
-                    <div class="absolute top-2 right-2">
-                      <span
-                        class="text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded-full font-bold"
-                      >
-                        Lần 2/3
-                      </span>
-                    </div>
-
-                    <!-- Patient Info -->
-                    <div class="relative flex items-start gap-3 mb-3">
-                      <div
-                        class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0"
-                      >
-                        <span class="material-symbols-outlined text-orange-600"
-                          >person</span
-                        >
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <h4 class="font-semibold text-orange-900 truncate">
-                          Nguyễn Văn An
-                        </h4>
-                        <p class="text-sm text-orange-700 line-clamp-2">
-                          Không nghe máy lần 1 - Tái khám
-                        </p>
-                      </div>
-                    </div>
-
-                    <!-- Countdown Timer -->
-                    <div class="relative bg-orange-100 rounded-lg p-3 mb-3">
-                      <div class="flex items-center justify-between">
-                        <span class="text-xs text-orange-700 font-medium"
-                          >Gọi lại sau:</span
-                        >
-                        <div class="flex items-center gap-1">
-                          <span
-                            class="material-symbols-outlined text-orange-600 text-lg"
-                            >timer</span
-                          >
-                          <span
-                            class="text-lg font-bold text-orange-900 countdown"
-                            data-target="2026-01-28T16:30:00"
-                            >02:45</span
-                          >
+                    <!-- Loading State -->
+                    <tr id="loadingRow">
+                      <td colspan="5" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center">
+                          <div
+                            class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-2"
+                          ></div>
+                          <p class="text-slate-500 dark:text-slate-400">
+                            Đang tải danh sách bệnh nhân...
+                          </p>
                         </div>
-                      </div>
-                      <div
-                        class="mt-2 h-1.5 bg-orange-200 rounded-full overflow-hidden"
-                      >
-                        <div
-                          class="h-full bg-orange-500 rounded-full transition-all duration-1000"
-                          style="width: 60%"
-                        ></div>
-                      </div>
-                    </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
-                    <!-- Reason Tags -->
-                    <div class="relative flex flex-wrap gap-2 mb-3">
-                      <span
-                        class="text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded font-medium"
-                      >
-                        Không nghe máy
-                      </span>
-                      <span
-                        class="text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded font-medium"
-                      >
-                        Ưu tiên cao
-                      </span>
-                    </div>
-
-                    <!-- Action Button -->
-                    <button
-                      onclick="handleRetryCall(this)"
-                      data-ticket-id="retry-1"
-                      class="relative w-full flex items-center justify-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all font-medium"
-                    >
-                      <span class="material-symbols-outlined">call</span>
-                      <span>Gọi lại ngay</span>
-                    </button>
-                  </div>
-
-                  <!-- Retry Item 2 -->
-                  <div
-                    class="group bg-orange-50 border border-orange-200 rounded-lg p-4 transition-all hover:bg-orange-100"
+              <div
+                class="p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/20"
+              >
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                  Hiển thị <span id="displayCount">0</span> bệnh nhân
+                </p>
+                <div class="flex gap-2">
+                  <button
+                    onclick="prevPage()"
+                    id="prevBtn"
+                    class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 text-sm disabled:opacity-50 transition-colors"
+                    disabled
                   >
-                    <div class="absolute top-2 right-2">
-                      <span
-                        class="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full font-bold"
-                      >
-                        Lần 1/3
-                      </span>
-                    </div>
-
-                    <div class="flex items-start gap-3 mb-3">
-                      <div
-                        class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0"
-                      >
-                        <span class="material-symbols-outlined text-orange-600"
-                          >person</span
-                        >
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <h4 class="font-semibold text-orange-900 truncate">
-                          Trần Thị Bình
-                        </h4>
-                        <p class="text-sm text-orange-700">
-                          Máy bận - Khám mới
-                        </p>
-                      </div>
-                    </div>
-
-                    <div class="bg-orange-100 rounded-lg p-2 mb-3">
-                      <div class="flex items-center justify-between text-sm">
-                        <span class="text-orange-700">Gọi lại sau:</span>
-                        <span
-                          class="font-bold text-orange-900 countdown"
-                          data-target="2026-01-28T15:45:00"
-                          >08:30</span
-                        >
-                      </div>
-                    </div>
-
-                    <div class="flex gap-2">
-                      <span
-                        class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-medium"
-                      >
-                        Máy bận
-                      </span>
-                    </div>
-                  </div>
-
-                  <!-- Retry Item 3 -->
-                  <div
-                    class="group bg-orange-50 border border-orange-200 rounded-lg p-4 transition-all hover:bg-orange-100"
+                    Trước
+                  </button>
+                  <button
+                    onclick="nextPage()"
+                    id="nextBtn"
+                    class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 text-sm transition-colors"
                   >
-                    <div class="absolute top-2 right-2">
-                      <span
-                        class="text-xs bg-red-200 text-red-800 px-2 py-1 rounded-full font-bold"
-                      >
-                        Lần 3/3
-                      </span>
-                    </div>
-
-                    <div class="flex items-start gap-3 mb-3">
-                      <div
-                        class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0"
-                      >
-                        <span class="material-symbols-outlined text-orange-600"
-                          >person</span
-                        >
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <h4 class="font-semibold text-orange-900 truncate">
-                          Lê Văn Cường
-                        </h4>
-                        <p class="text-sm text-orange-700">
-                          Không nghe máy 2 lần - Khẩn cấp
-                        </p>
-                      </div>
-                    </div>
-
-                    <div class="bg-red-100 rounded-lg p-2 mb-3">
-                      <div class="flex items-center gap-2 text-sm text-red-800">
-                        <span class="material-symbols-outlined text-lg"
-                          >warning</span
-                        >
-                        <span class="font-medium">Lần gọi cuối cùng!</span>
-                      </div>
-                    </div>
-
-                    <div class="flex gap-2 mb-3">
-                      <span
-                        class="text-xs bg-red-200 text-red-800 px-2 py-1 rounded font-medium"
-                      >
-                        Không nghe máy
-                      </span>
-                      <span
-                        class="text-xs bg-red-200 text-red-800 px-2 py-1 rounded font-medium"
-                      >
-                        Khẩn cấp
-                      </span>
-                    </div>
-
-                    <button
-                      onclick="handleRetryCall(this)"
-                      data-ticket-id="retry-3"
-                      class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all font-medium"
-                    >
-                      <span class="material-symbols-outlined">call</span>
-                      <span>Gọi ngay - Cuối cùng</span>
-                    </button>
-                  </div>
+                    Sau
+                  </button>
                 </div>
               </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <a
-                href="/receptionist/callbot"
-                class="bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl shadow-lg p-6 text-white hover:shadow-xl transition-all group"
-              >
-                <span
-                  class="material-symbols-outlined text-4xl mb-3 block group-hover:scale-110 transition-transform"
-                  >phone_in_talk</span
-                >
-                <h3 class="text-xl font-semibold mb-2">AI Callbot Demo</h3>
-                <p class="text-primary-100">
-                  Bắt đầu cuộc gọi web-to-web với ghi âm
-                </p>
-              </a>
-
-              <a
-                href="/receptionist/patients"
-                class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md hover:border-primary-200 transition-all group"
-              >
-                <span
-                  class="material-symbols-outlined text-primary-500 text-4xl mb-3 block group-hover:scale-110 transition-transform"
-                  >groups</span
-                >
-                <h3 class="text-xl font-semibold text-slate-900 mb-2">
-                  Quản lý bệnh nhân
-                </h3>
-                <p class="text-slate-500">Xem và quản lý hồ sơ bệnh nhân</p>
-              </a>
             </div>
           </div>
         </div>
-      </main>
+      </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 z-50 hidden">
+      <div
+        class="flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border"
+        id="toastContent"
+      >
+        <span
+          id="toastIcon"
+          class="material-symbols-outlined text-[20px]"
+        ></span>
+        <span id="toastMessage" class="text-sm font-medium"></span>
+      </div>
     </div>
 
-    <!-- Mobile Sidebar Script -->
-    <!-- External JavaScript Module -->
-    <script type="module">
-      import * as receptionistDashboard from "/static/js/receptionist-dashboard.js";
+    <!-- Scripts -->
+    <script>
+      // ==================== SIDEBAR TOGGLE ====================
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const backdrop = document.getElementById("sidebarBackdrop");
+        sidebar.classList.toggle("-translate-x-full");
+        backdrop.classList.toggle("hidden");
+      }
 
-      // Initialize the module
-      document.addEventListener("DOMContentLoaded", () => {
-        receptionistDashboard.init();
+      function toggleDesktopSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        sidebar.classList.toggle("lg:-translate-x-full");
+        sidebar.classList.toggle("lg:w-0");
+      }
+
+      // ==================== DARK MODE ====================
+      function toggleDarkMode() {
+        document.documentElement.classList.toggle("dark");
+        localStorage.setItem(
+          "darkMode",
+          document.documentElement.classList.contains("dark"),
+        );
+      }
+
+      // Initialize dark mode
+      if (localStorage.getItem("darkMode") === "true") {
+        document.documentElement.classList.add("dark");
+      }
+
+      // ==================== PATIENT MANAGEMENT ====================
+      let allPatients = [];
+      let filteredPatients = [];
+      let callbackPatients = []; // Patients who need callback (from localStorage)
+      let currentFilter = "all";
+      let currentPage = 0;
+      const pageSize = 10;
+
+      document.addEventListener("DOMContentLoaded", function () {
+        loadPatients();
+        loadCallbackList();
+        initWebSocket();
       });
 
-      // Expose functions to window for inline onclick handlers
-      window.receptionistDashboard = {
-        toggleMobileSidebar: receptionistDashboard.toggleMobileSidebar,
-        refreshQueue: receptionistDashboard.refreshQueue,
-        handleCallPatient: receptionistDashboard.handleCallPatient,
-        handleRetryCall: receptionistDashboard.handleRetryCall,
-        sendMessage: receptionistDashboard.sendMessage,
-      };
-    </script>
-    <style>
-        /* Animation styles */
-        @keyframes slideIn {
-          sidebar.classList.toggle("hidden");
-          sidebar.classList.toggle("flex");
-          sidebar.classList.toggle("fixed");
-          sidebar.classList.toggle("inset-0");
-          sidebar.classList.toggle("z-50");
+      // Load patients from API
+      async function loadPatients() {
+        try {
+          const response = await fetch("/api/patients/list");
+          if (!response.ok) throw new Error("Failed to load patients");
+
+          const data = await response.json();
+          allPatients = data.map((p) => ({
+            id: p.id,
+            name: p.fullName || "Chưa có tên",
+            phone: p.phoneNumber || "Chưa có SĐT",
+            email: p.email || "",
+            stringeeUserId: p.stringeeUserId || "user_" + p.id,
+            status: "waiting", // Default status
+          }));
+
+          // Update stats
+          document.querySelector(".stat-open-tickets").textContent =
+            allPatients.length;
+
+          filterPatients();
+          showToast("Đã tải " + allPatients.length + " bệnh nhân", "success");
+        } catch (error) {
+          console.error("Error loading patients:", error);
+          showToast("Không thể tải danh sách bệnh nhân", "error");
+          document.getElementById("loadingRow").innerHTML = `
+            <td colspan="5" class="px-6 py-12 text-center">
+              <span class="material-symbols-outlined text-[48px] text-red-300 dark:text-red-600 mb-2">error</span>
+              <p class="text-slate-500 dark:text-slate-400">Không thể tải danh sách bệnh nhân</p>
+              <button onclick="loadPatients()" class="mt-2 text-primary hover:underline text-sm">Thử lại</button>
+            </td>
+          `;
         }
+      }
 
-        // Calculate wait time
-        function updateWaitTimes() {
-          const waitTimeElements = document.querySelectorAll(".wait-time");
-          waitTimeElements.forEach((element) => {
-            const createdAt = new Date(element.getAttribute("data-created"));
-            const now = new Date();
-            const diffMinutes = Math.floor((now - createdAt) / (1000 * 60));
-
-            if (diffMinutes < 1) {
-              element.textContent = "Vừa xong";
-            } else if (diffMinutes < 60) {
-              element.textContent = diffMinutes + " phút";
-            } else {
-              const hours = Math.floor(diffMinutes / 60);
-              const minutes = diffMinutes % 60;
-              element.textContent = hours + " giờ " + minutes + " phút";
-            }
-          });
+      // Load callback list from localStorage
+      function loadCallbackList() {
+        const saved = localStorage.getItem("callbackPatients");
+        if (saved) {
+          callbackPatients = JSON.parse(saved);
         }
+      }
 
-        // Calculate average wait time
-        function updateAvgWaitTime() {
-          const waitTimeElements = document.querySelectorAll(".wait-time");
-          if (waitTimeElements.length === 0) {
-            document.getElementById("avgWaitTime").textContent = "--";
-            return;
+      // Save callback list to localStorage
+      function saveCallbackList() {
+        localStorage.setItem(
+          "callbackPatients",
+          JSON.stringify(callbackPatients),
+        );
+      }
+
+      // Add patient to callback list
+      function addToCallback(patientId) {
+        if (!callbackPatients.includes(patientId)) {
+          callbackPatients.push(patientId);
+          saveCallbackList();
+          filterPatients();
+          showToast("Đã thêm vào danh sách cần gọi lại", "info");
+        }
+      }
+
+      // Remove patient from callback list
+      function removeFromCallback(patientId) {
+        callbackPatients = callbackPatients.filter((id) => id !== patientId);
+        saveCallbackList();
+        filterPatients();
+        showToast("Đã xóa khỏi danh sách cần gọi lại", "info");
+      }
+
+      // Set filter
+      function setFilter(filter) {
+        currentFilter = filter;
+        currentPage = 0;
+
+        // Update button styles
+        const filters = ["filterAll", "filterWaiting", "filterCallback"];
+        filters.forEach((f) => {
+          const btn = document.getElementById(f);
+          if (
+            f === "filter" + filter.charAt(0).toUpperCase() + filter.slice(1) ||
+            (filter === "all" && f === "filterAll")
+          ) {
+            btn.className =
+              "px-3 py-1.5 rounded-full text-xs font-semibold bg-primary text-white shadow-sm ring-1 ring-primary/10 transition-all hover:bg-primary-dark";
+          } else {
+            btn.className =
+              "px-3 py-1.5 rounded-full text-xs font-medium bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-all whitespace-nowrap";
           }
-
-          let totalMinutes = 0;
-          waitTimeElements.forEach((element) => {
-            const createdAt = new Date(element.getAttribute("data-created"));
-            const now = new Date();
-            const diffMinutes = Math.floor((now - createdAt) / (1000 * 60));
-            totalMinutes += diffMinutes;
-          });
-
-          const avgMinutes = Math.floor(totalMinutes / waitTimeElements.length);
-          document.getElementById("avgWaitTime").textContent =
-            avgMinutes + " phút";
-        }
-
-        // Update countdown timers
-        function updateCountdowns() {
-          const countdownElements = document.querySelectorAll(".countdown");
-          countdownElements.forEach((element) => {
-            const targetTime = new Date(element.getAttribute("data-target"));
-            const now = new Date();
-            const diff = targetTime - now;
-
-            if (diff <= 0) {
-              element.textContent = "00:00";
-              element.classList.add("text-red-600", "animate-pulse");
-              return;
-            }
-
-            const minutes = Math.floor(diff / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-            element.textContent =
-              String(minutes).padStart(2, "0") +
-              ":" +
-              String(seconds).padStart(2, "0");
-          });
-        }
-
-        // Refresh queue data
-        function refreshQueue() {
-          // TODO: Implement WebSocket or AJAX refresh
-          console.log("Refreshing queue...");
-          location.reload();
-        }
-
-        // Handle call patient action
-        function handleCallPatient(button) {
-          const ticketId = button.getAttribute("data-ticket-id");
-          console.log("Calling patient for ticket:", ticketId);
-
-          // TODO: Implement actual call logic
-          alert(
-            "Đang thực hiện cuộc gọi cho ticket #" +
-              ticketId +
-              "\n\nChức năng này sẽ được tích hợp với Stringee trong phase sau.",
-          );
-
-          // Remove from queue (demo)
-          button.closest(".group").style.opacity = "0.5";
-          button.disabled = true;
-          button.innerHTML =
-            '<span class="material-symbols-outlined text-sm">check</span><span>Đang gọi...</span>';
-        }
-
-        // Handle retry call action
-        function handleRetryCall(button) {
-          const ticketId = button.getAttribute("data-ticket-id");
-          console.log("Retrying call for ticket:", ticketId);
-
-          // TODO: Implement actual retry call logic
-          alert(
-            "Đang thực hiện cuộc gọi lại cho " +
-              ticketId +
-              "\n\nChức năng này sẽ được tích hợp với Stringee trong phase sau.",
-          );
-
-          // Update button state (demo)
-          button.disabled = true;
-          button.classList.remove(
-            "bg-orange-500",
-            "hover:bg-orange-600",
-            "bg-red-500",
-            "hover:bg-red-600",
-          );
-          button.classList.add("bg-slate-400");
-          button.innerHTML =
-            '<span class="material-symbols-outlined">check</span><span>Đang gọi...</span>';
-        }
-
-        // Initialize on page load
-        document.addEventListener("DOMContentLoaded", function () {
-          // Update wait times and countdowns immediately
-          updateWaitTimes();
-          updateAvgWaitTime();
-          updateCountdowns();
-
-          // Update every second
-          setInterval(function () {
-            updateWaitTimes();
-            updateAvgWaitTime();
-            updateCountdowns();
-          }, 1000);
-
-          // Initialize WebSocket connection
-          initWebSocket();
-
-          // Auto-refresh queue every 30 seconds (optional)
-          // setInterval(refreshQueue, 30000);
         });
 
-        // ==================== WEBSOCKET REAL-TIME UPDATES ====================
+        filterPatients();
+      }
 
-        let stompClient = null;
-        let reconnectAttempts = 0;
-        const MAX_RECONNECT_ATTEMPTS = 10;
-        const RECONNECT_DELAY = 3000; // 3 seconds
+      // Filter patients based on search and filter
+      function filterPatients() {
+        const searchTerm = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
 
-        /**
-         * Initialize WebSocket connection
-         */
-        function initWebSocket() {
-          console.log("Initializing WebSocket connection...");
+        filteredPatients = allPatients.filter((p) => {
+          // Search filter
+          const matchesSearch =
+            !searchTerm ||
+            p.name.toLowerCase().includes(searchTerm) ||
+            p.phone.includes(searchTerm) ||
+            p.email.toLowerCase().includes(searchTerm);
 
-          const socket = new SockJS("/ws");
-          stompClient = Stomp.over(socket);
-
-          // Disable debug logging in production
-          stompClient.debug = null;
-
-          stompClient.connect({}, onConnected, onError);
-        }
-
-        /**
-         * WebSocket connected callback
-         */
-        function onConnected() {
-          console.log("WebSocket connected successfully");
-          reconnectAttempts = 0;
-          updateConnectionStatus(true);
-
-          // Subscribe to queue updates topic
-          stompClient.subscribe("/topic/queue", onMessageReceived);
-
-          showNotification("Đã kết nối real-time", "success");
-        }
-
-        /**
-         * WebSocket error callback
-         */
-        function onError(error) {
-          console.error("WebSocket connection error:", error);
-          updateConnectionStatus(false);
-
-          // Attempt to reconnect
-          if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-            reconnectAttempts++;
-            console.log(
-              `Reconnecting... Attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`,
-            );
-            setTimeout(initWebSocket, RECONNECT_DELAY);
-          } else {
-            showNotification(
-              "Không thể kết nối real-time. Vui lòng tải lại trang.",
-              "error",
-            );
-          }
-        }
-
-        /**
-         * Handle incoming WebSocket messages
-         */
-        function onMessageReceived(payload) {
-          const message = JSON.parse(payload.body);
-          console.log("Received message:", message);
-
-          switch (message.action) {
-            case "ADD":
-              handleTicketAdded(message);
-              break;
-            case "REMOVE":
-              handleTicketRemoved(message);
-              break;
-            case "UPDATE":
-              handleTicketUpdated(message);
-              break;
-            case "CALL":
-              handleTicketCalled(message);
-              break;
-            case "COMPLETE":
-              handleTicketCompleted(message);
-              break;
-            default:
-              console.warn("Unknown action:", message.action);
-          }
-        }
-
-        /**
-         * Handle ticket added to queue
-         */
-        function handleTicketAdded(message) {
-          console.log("Ticket added:", message.ticketId);
-
-          // Determine target container
-          const containerId =
-            message.queueType === "RETRY" ? "retryQueueList" : "mainQueueList";
-          const container = document.getElementById(containerId);
-
-          if (!container) return;
-
-          // Check if ticket already exists
-          const existingCard = container.querySelector(
-            `[data-ticket-id="${message.ticketId}"]`,
-          );
-          if (existingCard) {
-            console.log("Ticket already exists, skipping");
-            return;
+          // Status filter
+          let matchesFilter = true;
+          if (currentFilter === "waiting") {
+            matchesFilter = !callbackPatients.includes(p.id);
+          } else if (currentFilter === "callback") {
+            matchesFilter = callbackPatients.includes(p.id);
           }
 
-          // Create new ticket card
-          const ticketCard = createTicketCard(message);
+          return matchesSearch && matchesFilter;
+        });
 
-          // Add to top of list (higher priority first)
-          if (container.firstChild) {
-            container.insertBefore(ticketCard, container.firstChild);
-          } else {
-            container.appendChild(ticketCard);
-          }
+        // Update stats
+        const totalCount = allPatients.length;
+        const callbackNum = callbackPatients.filter((id) =>
+          allPatients.some((p) => p.id === id),
+        ).length;
+        const waitingNum = totalCount - callbackNum;
 
-          // Update counters
-          updateQueueCounters();
+        document.getElementById("totalPatients").textContent = totalCount;
+        document.getElementById("waitingCount").textContent = waitingNum;
+        document.getElementById("callbackCount").textContent = callbackNum;
 
-          // Show notification
-          showNotification(
-            `Ticket mới: ${message.patientName || "Bệnh nhân"}`,
-            "info",
-          );
+        renderPatients();
+      }
 
-          // Play notification sound (optional)
-          playNotificationSound();
-        }
+      // Render patients table
+      function renderPatients() {
+        const tbody = document.getElementById("patientTableBody");
+        const start = currentPage * pageSize;
+        const end = start + pageSize;
+        const pagePatients = filteredPatients.slice(start, end);
 
-        /**
-         * Handle ticket removed from queue
-         */
-        function handleTicketRemoved(message) {
-          console.log("Ticket removed:", message.ticketId);
+        // Update counts
+        document.getElementById("patientCount").textContent =
+          filteredPatients.length;
+        document.getElementById("displayCount").textContent =
+          pagePatients.length;
 
-          const ticketCard = document.querySelector(
-            `[data-ticket-id="${message.ticketId}"]`,
-          );
-          if (ticketCard) {
-            ticketCard.classList.add("animate-fade-out");
-            setTimeout(() => {
-              ticketCard.remove();
-              updateQueueCounters();
-            }, 300);
-          }
-        }
+        // Update pagination buttons
+        document.getElementById("prevBtn").disabled = currentPage === 0;
+        document.getElementById("nextBtn").disabled =
+          end >= filteredPatients.length;
 
-        /**
-         * Handle ticket updated
-         */
-        function handleTicketUpdated(message) {
-          console.log("Ticket updated:", message.ticketId);
-
-          const ticketCard = document.querySelector(
-            `[data-ticket-id="${message.ticketId}"]`,
-          );
-          if (ticketCard) {
-            // Update status badge
-            const statusBadge = ticketCard.querySelector(".status-badge");
-            if (statusBadge && message.status) {
-              updateStatusBadge(statusBadge, message.status);
-            }
-
-            // Update retry count if applicable
-            if (message.retryCount > 0) {
-              const retryBadge = ticketCard.querySelector(".retry-badge");
-              if (retryBadge) {
-                retryBadge.textContent = `Lần ${message.retryCount}`;
-              }
-            }
-          }
-        }
-
-        /**
-         * Handle ticket called (receptionist calling patient)
-         */
-        function handleTicketCalled(message) {
-          console.log("Ticket called:", message.ticketId);
-
-          const ticketCard = document.querySelector(
-            `[data-ticket-id="${message.ticketId}"]`,
-          );
-          if (ticketCard) {
-            // Highlight the card
-            ticketCard.classList.add("ring-2", "ring-blue-500", "bg-blue-50");
-
-            // Update button state
-            const callButton = ticketCard.querySelector(".call-button");
-            if (callButton) {
-              callButton.disabled = true;
-              callButton.classList.add("bg-slate-400");
-              callButton.innerHTML =
-                '<span class="material-symbols-outlined">check</span><span>Đang gọi...</span>';
-            }
-          }
-
-          showNotification(`Đang gọi: ${message.patientName}`, "info");
-        }
-
-        /**
-         * Handle ticket completed
-         */
-        function handleTicketCompleted(message) {
-          console.log("Ticket completed:", message.ticketId);
-          handleTicketRemoved(message);
-          showNotification("Ticket đã hoàn thành", "success");
-        }
-
-        /**
-         * Create ticket card HTML element
-         */
-        function createTicketCard(message) {
-          const card = document.createElement("div");
-          card.className =
-            "bg-white rounded-xl border border-slate-200 p-5 hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer animate-slide-in";
-          card.setAttribute("data-ticket-id", message.ticketId);
-
-          const priorityColor =
-            {
-              HIGH: "text-red-600 bg-red-50",
-              MEDIUM: "text-yellow-600 bg-yellow-50",
-              LOW: "text-slate-600 bg-slate-50",
-            }[message.priority] || "text-slate-600 bg-slate-50";
-
-          card.innerHTML = `
-            <div class="flex items-start justify-between mb-3">
-              <div>
-                <div class="flex items-center gap-2 mb-1">
-                  <h3 class="text-base font-semibold text-slate-900">
-                    ${message.patientName || "Bệnh nhân"}
-                  </h3>
-                  <span class="px-2 py-0.5 ${priorityColor} rounded-full text-xs font-medium">
-                    ${message.priority || "MEDIUM"}
-                  </span>
-                </div>
-                <p class="text-sm text-slate-500">ID: #${message.ticketId}</p>
-              </div>
-              <span class="text-xs text-slate-400">Vừa xong</span>
-            </div>
-
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-4 text-sm text-slate-500">
-                <div class="flex items-center gap-1">
-                  <span class="material-symbols-outlined text-lg">schedule</span>
-                  <span class="wait-time" data-created="${new Date().toISOString()}">Vừa xong</span>
-                </div>
-                ${message.queuePosition ? `<span class="text-emerald-600 font-medium">Vị trí: ${message.queuePosition}</span>` : ""}
-              </div>
-              <button
-                onclick="callPatient('${message.ticketId}')"
-                class="call-button flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors text-sm font-medium">
-                <span class="material-symbols-outlined text-lg">call</span>
-                <span>Gọi</span>
-              </button>
-            </div>
+        if (pagePatients.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="px-6 py-12 text-center">
+                <span class="material-symbols-outlined text-[48px] text-slate-300 dark:text-slate-600 mb-2">inbox</span>
+                <p class="text-slate-500 dark:text-slate-400">Không có bệnh nhân nào</p>
+              </td>
+            </tr>
           `;
-
-          return card;
+          return;
         }
 
-        /**
-         * Update connection status indicator
-         */
-        function updateConnectionStatus(connected) {
-          const indicator = document.getElementById("wsConnectionStatus");
-          if (!indicator) {
-            // Create indicator if doesn't exist
-            const statusDiv = document.createElement("div");
-            statusDiv.id = "wsConnectionStatus";
-            statusDiv.className =
-              "fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg text-white text-sm font-medium z-50";
-            document.body.appendChild(statusDiv);
-          }
+        tbody.innerHTML = pagePatients
+          .map((patient) => {
+            const isCallback = callbackPatients.includes(patient.id);
+            const statusBadge = isCallback
+              ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800">
+                <span class="size-1.5 rounded-full bg-amber-500 mr-1.5"></span>
+                Cần gọi lại
+               </span>`
+              : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-600 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-700">
+                Chờ gọi
+               </span>`;
 
-          const statusElement = document.getElementById("wsConnectionStatus");
-          if (connected) {
-            statusElement.className =
-              "fixed bottom-4 right-4 px-4 py-2 bg-green-500 rounded-lg shadow-lg text-white text-sm font-medium z-50 flex items-center gap-2";
-            statusElement.innerHTML =
-              '<span class="w-2 h-2 bg-white rounded-full animate-pulse"></span><span>Kết nối real-time</span>';
-            // Hide after 3 seconds
-            setTimeout(() => (statusElement.style.display = "none"), 3000);
-          } else {
-            statusElement.className =
-              "fixed bottom-4 right-4 px-4 py-2 bg-red-500 rounded-lg shadow-lg text-white text-sm font-medium z-50 flex items-center gap-2";
-            statusElement.innerHTML =
-              '<span class="w-2 h-2 bg-white rounded-full"></span><span>Mất kết nối</span>';
-            statusElement.style.display = "flex";
-          }
-        }
+            const callbackBtn = isCallback
+              ? `<button onclick="removeFromCallback(${patient.id})" class="p-2 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors" title="Xóa khỏi danh sách gọi lại">
+                <span class="material-symbols-outlined text-[18px]">bookmark_remove</span>
+               </button>`
+              : `<button onclick="addToCallback(${patient.id})" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors" title="Thêm vào danh sách gọi lại">
+                <span class="material-symbols-outlined text-[18px]">bookmark_add</span>
+               </button>`;
 
-        /**
-         * Update queue counters
-         */
-        function updateQueueCounters() {
-          const mainQueueCount = document.querySelectorAll(
-            "#mainQueueList > div",
-          ).length;
-          const retryQueueCount = document.querySelectorAll(
-            "#retryQueueList > div",
-          ).length;
-
-          // Update sidebar badge
-          const queueBadge = document.querySelector(
-            '[href="/receptionist/dashboard"] .badge',
-          );
-          if (queueBadge) {
-            queueBadge.textContent = mainQueueCount;
-          }
-
-          // Update stats cards
-          const openTicketsElement = document.querySelector(".stat-open-tickets");
-          if (openTicketsElement) {
-            openTicketsElement.textContent = mainQueueCount;
-          }
-
-          const retryTicketsElement = document.querySelector(
-            ".stat-retry-tickets",
-          );
-          if (retryTicketsElement) {
-            retryTicketsElement.textContent = retryQueueCount;
-          }
-        }
-
-        /**
-         * Show toast notification
-         */
-        function showNotification(message, type = "info") {
-          const toast = document.createElement("div");
-          const colors = {
-            success: "bg-green-500",
-            error: "bg-red-500",
-            info: "bg-blue-500",
-            warning: "bg-yellow-500",
-          };
-
-          toast.className = `fixed top-4 right-4 px-6 py-3 ${colors[type]} text-white rounded-lg shadow-lg z-50 animate-slide-in flex items-center gap-2`;
-          toast.innerHTML = `
-            <span class="material-symbols-outlined">notifications</span>
-            <span>${message}</span>
+            return `
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group" data-patient-id="${patient.id}">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="size-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-primary text-[20px]">person</span>
+                  </div>
+                  <div>
+                    <div class="font-bold text-slate-900 dark:text-white">${patient.name}</div>
+                    <div class="text-xs text-slate-500 dark:text-slate-400">ID: #${patient.id}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <span class="text-slate-600 dark:text-slate-400 text-sm">${patient.phone}</span>
+              </td>
+              <td class="px-6 py-4">
+                <span class="text-slate-600 dark:text-slate-400 text-sm">${patient.email || "-"}</span>
+              </td>
+              <td class="px-6 py-4">
+                ${statusBadge}
+              </td>
+              <td class="px-6 py-4 text-right">
+                <div class="flex items-center justify-end gap-1">
+                  ${callbackBtn}
+                  <a href="/receptionist/callbot?patientId=${patient.id}&phone=${encodeURIComponent(patient.phone)}&name=${encodeURIComponent(patient.name)}" 
+                     class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-all text-sm font-semibold shadow-sm shadow-emerald-500/20">
+                    <span class="material-symbols-outlined text-[18px]">call</span>
+                    <span>Gọi</span>
+                  </a>
+                </div>
+              </td>
+            </tr>
           `;
+          })
+          .join("");
+      }
 
-          document.body.appendChild(toast);
-
-          setTimeout(() => {
-            toast.classList.add("animate-fade-out");
-            setTimeout(() => toast.remove(), 300);
-          }, 3000);
+      // Pagination
+      function prevPage() {
+        if (currentPage > 0) {
+          currentPage--;
+          renderPatients();
         }
+      }
 
-        /**
-         * Update status badge appearance
-         */
-        function updateStatusBadge(badge, status) {
-          const statusClasses = {
-            OPEN: "bg-blue-50 text-blue-600",
-            IN_PROGRESS: "bg-yellow-50 text-yellow-600",
-            CLOSED: "bg-green-50 text-green-600",
-            RESOLVED: "bg-emerald-50 text-emerald-600",
-          };
+      function nextPage() {
+        const maxPage = Math.ceil(filteredPatients.length / pageSize) - 1;
+        if (currentPage < maxPage) {
+          currentPage++;
+          renderPatients();
+        }
+      }
 
-          badge.className = `px-2 py-0.5 rounded-full text-xs font-medium ${statusClasses[status] || "bg-slate-50 text-slate-600"}`;
-          badge.textContent = status;
-        }
+      // Refresh
+      function refreshQueue() {
+        loadPatients();
+      }
 
-        /**
-         * Play notification sound
-         */
-        function playNotificationSound() {
-          // Optional: Add audio notification
-          // const audio = new Audio('/sounds/notification.mp3');
-          // audio.play().catch(e => console.log('Audio play failed:', e));
-        }
+      // ==================== WEBSOCKET ====================
+      let stompClient = null;
+      let reconnectAttempts = 0;
+      const MAX_RECONNECT_ATTEMPTS = 10;
+      const RECONNECT_DELAY = 3000;
 
-        /**
-         * Send message via WebSocket (if needed)
-         */
-        function sendMessage(destination, message) {
-          if (stompClient && stompClient.connected) {
-            stompClient.send(destination, {}, JSON.stringify(message));
-          } else {
-            console.error("WebSocket not connected");
-          }
-        }
-      </script>
-      <style>
-        /* Animation styles */
-        @keyframes slideIn {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
+      function initWebSocket() {
+        console.log("Initializing WebSocket...");
+        const socket = new SockJS("/ws");
+        stompClient = Stomp.over(socket);
+        stompClient.debug = null;
+        stompClient.connect({}, onConnected, onError);
+      }
 
-        @keyframes fadeOut {
-          from {
-            opacity: 1;
-          }
-          to {
-            opacity: 0;
-          }
-        }
+      function onConnected() {
+        console.log("WebSocket connected");
+        reconnectAttempts = 0;
+        updateConnectionStatus(true);
+        stompClient.subscribe("/topic/queue", onMessageReceived);
+      }
 
-        .animate-slide-in {
-          animation: slideIn 0.3s ease-out;
-        }
+      function onError(error) {
+        console.error("WebSocket error:", error);
+        updateConnectionStatus(false);
 
-        .animate-fade-out {
-          animation: fadeOut 0.3s ease-out;
+        if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+          reconnectAttempts++;
+          setTimeout(initWebSocket, RECONNECT_DELAY);
         }
-    </style>
+      }
+
+      function onMessageReceived(payload) {
+        const message = JSON.parse(payload.body);
+        console.log("Received:", message);
+        // Reload patients on any queue change
+        loadPatients();
+      }
+
+      function updateConnectionStatus(connected) {
+        const wsStatus = document.getElementById("wsStatus");
+        if (connected) {
+          wsStatus.className =
+            "hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg";
+          wsStatus.innerHTML =
+            '<span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span><span class="text-xs font-medium text-emerald-700 dark:text-emerald-400">Đang kết nối</span>';
+        } else {
+          wsStatus.className =
+            "hidden sm:flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-900/30 rounded-lg";
+          wsStatus.innerHTML =
+            '<span class="w-2 h-2 bg-red-500 rounded-full"></span><span class="text-xs font-medium text-red-700 dark:text-red-400">Mất kết nối</span>';
+        }
+      }
+
+      // ==================== TOAST NOTIFICATION ====================
+      function showToast(message, type = "info") {
+        const toast = document.getElementById("toast");
+        const content = document.getElementById("toastContent");
+        const icon = document.getElementById("toastIcon");
+        const msg = document.getElementById("toastMessage");
+
+        const config = {
+          success: {
+            icon: "check_circle",
+            bg: "bg-emerald-50 dark:bg-emerald-900/30",
+            text: "text-emerald-700 dark:text-emerald-400",
+            border: "border-emerald-200 dark:border-emerald-800",
+          },
+          error: {
+            icon: "error",
+            bg: "bg-red-50 dark:bg-red-900/30",
+            text: "text-red-700 dark:text-red-400",
+            border: "border-red-200 dark:border-red-800",
+          },
+          warning: {
+            icon: "warning",
+            bg: "bg-amber-50 dark:bg-amber-900/30",
+            text: "text-amber-700 dark:text-amber-400",
+            border: "border-amber-200 dark:border-amber-800",
+          },
+          info: {
+            icon: "info",
+            bg: "bg-blue-50 dark:bg-blue-900/30",
+            text: "text-blue-700 dark:text-blue-400",
+            border: "border-blue-200 dark:border-blue-800",
+          },
+        };
+
+        const c = config[type] || config.info;
+        content.className = `flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border ${c.bg} ${c.border}`;
+        icon.className = `material-symbols-outlined text-[20px] ${c.text}`;
+        icon.textContent = c.icon;
+        msg.className = `text-sm font-medium ${c.text}`;
+        msg.textContent = message;
+
+        toast.classList.remove("hidden");
+        setTimeout(() => toast.classList.add("hidden"), 3000);
+      }
+
+      // Keyboard shortcuts
+      document.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+          e.preventDefault();
+          document.getElementById("searchInput")?.focus();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === "b") {
+          e.preventDefault();
+          toggleDesktopSidebar();
+        }
+      });
+    </script>
   </body>
 </html>

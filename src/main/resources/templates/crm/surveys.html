@@ -1,448 +1,383 @@
-<!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Khảo sát hài lòng - ISSVSG</title>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+<!doctype html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head(title='Khảo sát hài lòng')}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: { 50: '#ECFEFF', 100: '#CFFAFE', 200: '#A5F3FC', 300: '#67E8F9', 400: '#22D3EE', 500: '#0891B2', 600: '#0E7490', 700: '#155E75', 800: '#164E63', 900: '#083344' },
-                        secondary: { 50: '#F0FDF4', 100: '#DCFCE7', 500: '#22C55E', 600: '#059669' },
-                        surface: { 50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1', 400: '#94A3B8', 500: '#64748B', 600: '#475569', 700: '#334155', 800: '#1E293B', 900: '#0F172A' }
-                    },
-                    fontFamily: { heading: ['Poppins', 'sans-serif'], body: ['Open Sans', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
-    <style>
-        body { font-family: 'Open Sans', sans-serif; }
-        h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; }
-        .sidebar-link.active { background-color: rgba(8, 145, 178, 0.1); color: #0891B2; border-right: 3px solid #0891B2; }
-    </style>
-</head>
-<body class="bg-surface-50">
-    <!-- Sidebar -->
-    <nav th:replace="~{fragments/layout :: sidebar}"></nav>
-    
-    <!-- Top Navbar -->
-    <header th:replace="~{fragments/layout :: navbar}"></header>
-    
-    <!-- Main Content -->
-    <main class="ml-64 pt-24 pb-8 px-4 md:px-6 lg:px-8 min-h-screen">
-        <!-- Page Header -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans h-screen flex overflow-hidden"
+  >
+    <div th:replace="~{fragments/layout :: sidebar-backdrop}"></div>
+    <aside th:replace="~{fragments/layout :: admin-sidebar}"></aside>
+
+    <main
+      class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark"
+    >
+      <header
+        th:replace="~{fragments/layout :: header(title='Khảo sát hài lòng')}"
+      ></header>
+
+      <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+          <!-- Page Header -->
+          <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-4"
+          >
             <div>
-                <h1 class="text-2xl font-bold text-surface-900 font-heading">Khảo sát hài lòng</h1>
-                <p class="text-surface-500 mt-1">Quản lý khảo sát và phân tích phản hồi khách hàng</p>
+              <h2
+                class="text-3xl font-black tracking-tight text-slate-900 dark:text-white"
+              >
+                Khảo sát hài lòng
+              </h2>
+              <p class="text-slate-500 dark:text-slate-400 mt-1">
+                Quản lý khảo sát và phân tích phản hồi khách hàng
+              </p>
             </div>
-            <button class="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 text-white font-medium rounded-xl hover:bg-primary-600 transition-colors duration-200 cursor-pointer shadow-lg shadow-primary-500/25">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                </svg>
-                Tạo khảo sát mới
+            <button
+              class="bg-primary text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center gap-2 shadow-sm shadow-primary/30"
+            >
+              <span class="material-symbols-outlined text-[20px]">add</span>
+              Tạo khảo sát mới
             </button>
+          </div>
+
+          <!-- Stats Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p
+                    class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                  >
+                    Khảo sát đang chạy
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-slate-900 dark:text-white mt-1"
+                  >
+                    12
+                  </h3>
+                </div>
+                <div
+                  class="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-primary"
+                >
+                  <span class="material-symbols-outlined">assignment</span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p
+                    class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                  >
+                    Phản hồi tháng này
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1"
+                  >
+                    3,456
+                  </h3>
+                </div>
+                <div
+                  class="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400"
+                >
+                  <span class="material-symbols-outlined">groups</span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p
+                    class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                  >
+                    Điểm hài lòng TB
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1"
+                  >
+                    4.6
+                  </h3>
+                </div>
+                <div
+                  class="p-2 bg-amber-50 dark:bg-amber-900/30 rounded-lg text-amber-600 dark:text-amber-400"
+                >
+                  <span class="material-symbols-outlined">star</span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p
+                    class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                  >
+                    Tỷ lệ phản hồi
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1"
+                  >
+                    68%
+                  </h3>
+                </div>
+                <div
+                  class="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400"
+                >
+                  <span class="material-symbols-outlined">trending_up</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Row -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm"
+            >
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">
+                Điểm hài lòng theo tháng
+              </h3>
+              <canvas id="satisfactionChart" height="200"></canvas>
+            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm"
+            >
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">
+                Phân bố đánh giá
+              </h3>
+              <canvas id="distributionChart" height="200"></canvas>
+            </div>
+          </div>
+
+          <!-- Survey List -->
+          <div
+            class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden"
+          >
+            <div
+              class="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between"
+            >
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+                Danh sách khảo sát
+              </h3>
+              <div class="flex gap-2">
+                <select
+                  class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                >
+                  <option>Tất cả trạng thái</option>
+                  <option>Đang chạy</option>
+                  <option>Đã kết thúc</option>
+                </select>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-slate-50 dark:bg-slate-800/50">
+                  <tr>
+                    <th
+                      class="px-5 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider"
+                    >
+                      Khảo sát
+                    </th>
+                    <th
+                      class="px-5 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider"
+                    >
+                      Phản hồi
+                    </th>
+                    <th
+                      class="px-5 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider"
+                    >
+                      Điểm TB
+                    </th>
+                    <th
+                      class="px-5 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider"
+                    >
+                      Trạng thái
+                    </th>
+                    <th
+                      class="px-5 py-3 text-right text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider"
+                    >
+                      Thao tác
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <td class="px-5 py-4">
+                      <div class="flex items-center gap-3">
+                        <div
+                          class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center"
+                        >
+                          <span class="material-symbols-outlined text-primary"
+                            >assignment</span
+                          >
+                        </div>
+                        <div>
+                          <p class="font-medium text-slate-900 dark:text-white">
+                            Khảo sát dịch vụ khám bệnh
+                          </p>
+                          <p class="text-sm text-slate-500 dark:text-slate-400">
+                            Tạo: 15/01/2026
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-5 py-4 text-slate-600 dark:text-slate-400">
+                      1,234
+                    </td>
+                    <td class="px-5 py-4">
+                      <div class="flex items-center gap-1">
+                        <span
+                          class="material-symbols-outlined text-amber-500 text-[18px]"
+                          >star</span
+                        >
+                        <span class="font-medium text-slate-900 dark:text-white"
+                          >4.7</span
+                        >
+                      </div>
+                    </td>
+                    <td class="px-5 py-4">
+                      <span
+                        class="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-semibold rounded-full"
+                        >Đang chạy</span
+                      >
+                    </td>
+                    <td class="px-5 py-4 text-right">
+                      <button
+                        class="text-primary hover:text-primary-dark font-medium text-sm"
+                      >
+                        Xem chi tiết
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <td class="px-5 py-4">
+                      <div class="flex items-center gap-3">
+                        <div
+                          class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center"
+                        >
+                          <span
+                            class="material-symbols-outlined text-purple-600 dark:text-purple-400"
+                            >assignment</span
+                          >
+                        </div>
+                        <div>
+                          <p class="font-medium text-slate-900 dark:text-white">
+                            Đánh giá chất lượng bác sĩ
+                          </p>
+                          <p class="text-sm text-slate-500 dark:text-slate-400">
+                            Tạo: 10/01/2026
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-5 py-4 text-slate-600 dark:text-slate-400">
+                      856
+                    </td>
+                    <td class="px-5 py-4">
+                      <div class="flex items-center gap-1">
+                        <span
+                          class="material-symbols-outlined text-amber-500 text-[18px]"
+                          >star</span
+                        >
+                        <span class="font-medium text-slate-900 dark:text-white"
+                          >4.8</span
+                        >
+                      </div>
+                    </td>
+                    <td class="px-5 py-4">
+                      <span
+                        class="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-semibold rounded-full"
+                        >Đang chạy</span
+                      >
+                    </td>
+                    <td class="px-5 py-4 text-right">
+                      <button
+                        class="text-primary hover:text-primary-dark font-medium text-sm"
+                      >
+                        Xem chi tiết
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-        
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                        </svg>
-                    </div>
-                </div>
-                <h3 class="text-3xl font-bold text-surface-900">12</h3>
-                <p class="text-surface-500 text-sm mt-1">Khảo sát đang chạy</p>
-            </div>
-            
-            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 bg-secondary-100 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                        </svg>
-                    </div>
-                </div>
-                <h3 class="text-3xl font-bold text-surface-900">3,456</h3>
-                <p class="text-surface-500 text-sm mt-1">Phản hồi tháng này</p>
-            </div>
-            
-            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
-                        </svg>
-                    </div>
-                </div>
-                <h3 class="text-3xl font-bold text-surface-900">4.6</h3>
-                <p class="text-surface-500 text-sm mt-1">Điểm hài lòng TB</p>
-            </div>
-            
-            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-                        </svg>
-                    </div>
-                </div>
-                <h3 class="text-3xl font-bold text-surface-900">68%</h3>
-                <p class="text-surface-500 text-sm mt-1">Tỷ lệ hoàn thành</p>
-            </div>
-        </div>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <!-- Satisfaction Trend Chart -->
-            <div class="lg:col-span-2 bg-white rounded-2xl border border-surface-200 p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="font-semibold text-surface-900">Xu hướng hài lòng</h3>
-                    <select class="text-sm border border-surface-200 rounded-lg px-3 py-1.5 cursor-pointer">
-                        <option>6 tháng gần nhất</option>
-                        <option>12 tháng gần nhất</option>
-                        <option>Năm nay</option>
-                    </select>
-                </div>
-                <canvas id="satisfactionChart" height="200"></canvas>
-            </div>
-            
-            <!-- Rating Distribution -->
-            <div class="bg-white rounded-2xl border border-surface-200 p-6">
-                <h3 class="font-semibold text-surface-900 mb-6">Phân bố đánh giá</h3>
-                
-                <div class="space-y-4">
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm text-surface-600 w-8">5★</span>
-                        <div class="flex-1 h-3 bg-surface-100 rounded-full overflow-hidden">
-                            <div class="h-full w-[65%] bg-secondary-500 rounded-full"></div>
-                        </div>
-                        <span class="text-sm font-medium text-surface-900 w-12">65%</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm text-surface-600 w-8">4★</span>
-                        <div class="flex-1 h-3 bg-surface-100 rounded-full overflow-hidden">
-                            <div class="h-full w-[22%] bg-primary-500 rounded-full"></div>
-                        </div>
-                        <span class="text-sm font-medium text-surface-900 w-12">22%</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm text-surface-600 w-8">3★</span>
-                        <div class="flex-1 h-3 bg-surface-100 rounded-full overflow-hidden">
-                            <div class="h-full w-[8%] bg-amber-500 rounded-full"></div>
-                        </div>
-                        <span class="text-sm font-medium text-surface-900 w-12">8%</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm text-surface-600 w-8">2★</span>
-                        <div class="flex-1 h-3 bg-surface-100 rounded-full overflow-hidden">
-                            <div class="h-full w-[3%] bg-orange-500 rounded-full"></div>
-                        </div>
-                        <span class="text-sm font-medium text-surface-900 w-12">3%</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm text-surface-600 w-8">1★</span>
-                        <div class="flex-1 h-3 bg-surface-100 rounded-full overflow-hidden">
-                            <div class="h-full w-[2%] bg-red-500 rounded-full"></div>
-                        </div>
-                        <span class="text-sm font-medium text-surface-900 w-12">2%</span>
-                    </div>
-                </div>
-                
-                <div class="mt-6 pt-6 border-t border-surface-100 text-center">
-                    <div class="flex items-center justify-center gap-1 text-amber-500 mb-2">
-                        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        <svg class="w-6 h-6 fill-current text-surface-300" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                    </div>
-                    <p class="text-2xl font-bold text-surface-900">4.6/5</p>
-                    <p class="text-sm text-surface-500">Dựa trên 3,456 đánh giá</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Active Surveys -->
-        <div class="bg-white rounded-2xl border border-surface-200 p-6 mb-6">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="font-semibold text-surface-900">Khảo sát đang hoạt động</h3>
-                <button class="text-primary-600 font-medium text-sm hover:text-primary-700 cursor-pointer">Xem tất cả</button>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Survey Card 1 -->
-                <div class="bg-surface-50 rounded-xl p-5 border border-surface-100 hover:border-primary-200 transition-colors duration-200 cursor-pointer">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="px-2 py-1 bg-secondary-100 text-secondary-700 text-xs font-medium rounded-full">Đang chạy</span>
-                        <button class="p-1 text-surface-400 hover:text-surface-600 cursor-pointer">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <h4 class="font-semibold text-surface-900 mb-2">Khảo sát sau khám</h4>
-                    <p class="text-sm text-surface-500 mb-4">Đánh giá chất lượng dịch vụ khám bệnh</p>
-                    
-                    <div class="space-y-2 mb-4">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-surface-600">Phản hồi</span>
-                            <span class="font-medium text-surface-900">1,245</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-surface-600">Tỷ lệ hoàn thành</span>
-                            <span class="font-medium text-secondary-600">72%</span>
-                        </div>
-                    </div>
-                    
-                    <div class="w-full h-2 bg-surface-100 rounded-full overflow-hidden">
-                        <div class="h-full w-[72%] bg-secondary-500 rounded-full"></div>
-                    </div>
-                </div>
-                
-                <!-- Survey Card 2 -->
-                <div class="bg-surface-50 rounded-xl p-5 border border-surface-100 hover:border-primary-200 transition-colors duration-200 cursor-pointer">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="px-2 py-1 bg-secondary-100 text-secondary-700 text-xs font-medium rounded-full">Đang chạy</span>
-                        <button class="p-1 text-surface-400 hover:text-surface-600 cursor-pointer">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <h4 class="font-semibold text-surface-900 mb-2">Đánh giá cuộc gọi AI</h4>
-                    <p class="text-sm text-surface-500 mb-4">Chất lượng cuộc gọi tự động nhắc tái khám</p>
-                    
-                    <div class="space-y-2 mb-4">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-surface-600">Phản hồi</span>
-                            <span class="font-medium text-surface-900">856</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-surface-600">Tỷ lệ hoàn thành</span>
-                            <span class="font-medium text-secondary-600">65%</span>
-                        </div>
-                    </div>
-                    
-                    <div class="w-full h-2 bg-surface-100 rounded-full overflow-hidden">
-                        <div class="h-full w-[65%] bg-secondary-500 rounded-full"></div>
-                    </div>
-                </div>
-                
-                <!-- Survey Card 3 -->
-                <div class="bg-surface-50 rounded-xl p-5 border border-surface-100 hover:border-primary-200 transition-colors duration-200 cursor-pointer">
-                    <div class="flex items-center justify-between mb-4">
-                        <span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">Sắp kết thúc</span>
-                        <button class="p-1 text-surface-400 hover:text-surface-600 cursor-pointer">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <h4 class="font-semibold text-surface-900 mb-2">NPS Quý 1/2026</h4>
-                    <p class="text-sm text-surface-500 mb-4">Khảo sát chỉ số Net Promoter Score</p>
-                    
-                    <div class="space-y-2 mb-4">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-surface-600">Phản hồi</span>
-                            <span class="font-medium text-surface-900">1,355</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-surface-600">Còn lại</span>
-                            <span class="font-medium text-amber-600">3 ngày</span>
-                        </div>
-                    </div>
-                    
-                    <div class="w-full h-2 bg-surface-100 rounded-full overflow-hidden">
-                        <div class="h-full w-[85%] bg-amber-500 rounded-full"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Recent Responses -->
-        <div class="bg-white rounded-2xl border border-surface-200 overflow-hidden">
-            <div class="p-6 border-b border-surface-100">
-                <div class="flex items-center justify-between">
-                    <h3 class="font-semibold text-surface-900">Phản hồi gần đây</h3>
-                    <div class="flex items-center gap-3">
-                        <select class="text-sm border border-surface-200 rounded-lg px-3 py-2 cursor-pointer">
-                            <option>Tất cả khảo sát</option>
-                            <option>Khảo sát sau khám</option>
-                            <option>Đánh giá cuộc gọi AI</option>
-                            <option>NPS Quý 1/2026</option>
-                        </select>
-                        <select class="text-sm border border-surface-200 rounded-lg px-3 py-2 cursor-pointer">
-                            <option>Tất cả đánh giá</option>
-                            <option>5 sao</option>
-                            <option>4 sao</option>
-                            <option>3 sao trở xuống</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="divide-y divide-surface-100">
-                <!-- Response 1 -->
-                <div class="p-6 hover:bg-surface-50 transition-colors duration-200">
-                    <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span class="text-white font-bold text-sm">NH</span>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between mb-2">
-                                <div>
-                                    <span class="font-medium text-surface-900">Nguyễn Văn Hùng</span>
-                                    <span class="text-surface-400 mx-2">•</span>
-                                    <span class="text-sm text-surface-500">Khảo sát sau khám</span>
-                                </div>
-                                <div class="flex items-center gap-1 text-amber-500">
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                </div>
-                            </div>
-                            <p class="text-surface-600 mb-2">Dịch vụ rất tốt, bác sĩ tận tình và chu đáo. Tôi rất hài lòng với chất lượng khám bệnh tại phòng khám.</p>
-                            <span class="text-xs text-surface-400">2 giờ trước</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Response 2 -->
-                <div class="p-6 hover:bg-surface-50 transition-colors duration-200">
-                    <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span class="text-white font-bold text-sm">TM</span>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between mb-2">
-                                <div>
-                                    <span class="font-medium text-surface-900">Trần Thị Mai</span>
-                                    <span class="text-surface-400 mx-2">•</span>
-                                    <span class="text-sm text-surface-500">Đánh giá cuộc gọi AI</span>
-                                </div>
-                                <div class="flex items-center gap-1 text-amber-500">
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <svg class="w-4 h-4 fill-current text-surface-300" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                </div>
-                            </div>
-                            <p class="text-surface-600 mb-2">Cuộc gọi tự động rõ ràng và dễ hiểu. Tính năng nhắc lịch rất hữu ích, giúp tôi không quên lịch tái khám.</p>
-                            <span class="text-xs text-surface-400">5 giờ trước</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Response 3 -->
-                <div class="p-6 hover:bg-surface-50 transition-colors duration-200 bg-red-50/50">
-                    <div class="flex items-start gap-4">
-                        <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span class="text-white font-bold text-sm">PD</span>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between mb-2">
-                                <div>
-                                    <span class="font-medium text-surface-900">Phạm Văn Đức</span>
-                                    <span class="text-surface-400 mx-2">•</span>
-                                    <span class="text-sm text-surface-500">Khảo sát sau khám</span>
-                                    <span class="ml-2 px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">Cần chú ý</span>
-                                </div>
-                                <div class="flex items-center gap-1 text-amber-500">
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <svg class="w-4 h-4 fill-current text-surface-300" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <svg class="w-4 h-4 fill-current text-surface-300" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                    <svg class="w-4 h-4 fill-current text-surface-300" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                                </div>
-                            </div>
-                            <p class="text-surface-600 mb-2">Thời gian chờ khám khá lâu, phải đợi gần 1 tiếng. Nên cải thiện quy trình để giảm thời gian chờ đợi.</p>
-                            <div class="flex items-center gap-3 mt-3">
-                                <button class="text-sm text-primary-600 font-medium hover:text-primary-700 cursor-pointer">Tạo ticket</button>
-                                <button class="text-sm text-surface-600 font-medium hover:text-surface-700 cursor-pointer">Ghi nhận</button>
-                            </div>
-                            <span class="text-xs text-surface-400 block mt-2">1 ngày trước</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Pagination -->
-            <div class="px-6 py-4 border-t border-surface-100 flex items-center justify-between">
-                <span class="text-sm text-surface-500">Hiển thị 1-10 trong 3,456 phản hồi</span>
-                <div class="flex items-center gap-2">
-                    <button class="p-2 text-surface-400 hover:text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                        </svg>
-                    </button>
-                    <button class="w-10 h-10 bg-primary-500 text-white font-medium rounded-lg cursor-pointer">1</button>
-                    <button class="w-10 h-10 text-surface-600 hover:bg-surface-100 font-medium rounded-lg transition-colors duration-200 cursor-pointer">2</button>
-                    <button class="w-10 h-10 text-surface-600 hover:bg-surface-100 font-medium rounded-lg transition-colors duration-200 cursor-pointer">3</button>
-                    <span class="text-surface-400">...</span>
-                    <button class="w-10 h-10 text-surface-600 hover:bg-surface-100 font-medium rounded-lg transition-colors duration-200 cursor-pointer">346</button>
-                    <button class="p-2 text-surface-600 hover:bg-surface-100 rounded-lg transition-colors duration-200 cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
+      </div>
     </main>
-    
+
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
     <script>
-        // Satisfaction Trend Chart
-        new Chart(document.getElementById('satisfactionChart'), {
-            type: 'line',
-            data: {
-                labels: ['T8/25', 'T9/25', 'T10/25', 'T11/25', 'T12/25', 'T1/26'],
-                datasets: [
-                    {
-                        label: 'Điểm hài lòng',
-                        data: [4.2, 4.3, 4.4, 4.5, 4.5, 4.6],
-                        borderColor: '#0891B2',
-                        backgroundColor: 'rgba(8, 145, 178, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Tỷ lệ hoàn thành (%)',
-                        data: [58, 62, 65, 68, 70, 68],
-                        borderColor: '#059669',
-                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        yAxisID: 'y1'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'top' } },
-                scales: {
-                    y: { type: 'linear', position: 'left', min: 1, max: 5, title: { display: true, text: 'Điểm' } },
-                    y1: { type: 'linear', position: 'right', min: 0, max: 100, title: { display: true, text: '%' }, grid: { drawOnChartArea: false } }
-                }
-            }
+      document.addEventListener("DOMContentLoaded", function () {
+        // Satisfaction Chart
+        new Chart(document.getElementById("satisfactionChart"), {
+          type: "line",
+          data: {
+            labels: [
+              "T1",
+              "T2",
+              "T3",
+              "T4",
+              "T5",
+              "T6",
+              "T7",
+              "T8",
+              "T9",
+              "T10",
+              "T11",
+              "T12",
+            ],
+            datasets: [
+              {
+                label: "Điểm hài lòng",
+                data: [
+                  4.2, 4.3, 4.1, 4.4, 4.5, 4.3, 4.6, 4.5, 4.7, 4.6, 4.5, 4.6,
+                ],
+                borderColor: "#0d7cf2",
+                backgroundColor: "rgba(13, 124, 242, 0.1)",
+                fill: true,
+                tension: 0.4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { min: 1, max: 5 } },
+          },
         });
+
+        // Distribution Chart
+        new Chart(document.getElementById("distributionChart"), {
+          type: "doughnut",
+          data: {
+            labels: ["5 sao", "4 sao", "3 sao", "2 sao", "1 sao"],
+            datasets: [
+              {
+                data: [45, 30, 15, 7, 3],
+                backgroundColor: [
+                  "#22c55e",
+                  "#84cc16",
+                  "#eab308",
+                  "#f97316",
+                  "#ef4444",
+                ],
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { position: "bottom" } },
+          },
+        });
+      });
     </script>
-</body>
+  </body>
 </html>

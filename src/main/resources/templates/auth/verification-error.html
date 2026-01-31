@@ -1,78 +1,111 @@
-<!DOCTYPE html>
+<!doctype html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lỗi xác thực Email - ISSVSG Medical System</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lỗi xác thực Email - ABClinic</title>
     <script th:src="@{/js/tailwind-config.js}"></script>
-    <link rel="stylesheet" th:href="@{/css/app.css}">
-</head>
-<body class="bg-surface-50 min-h-screen flex items-center justify-center p-4">
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link rel="stylesheet" th:href="@{/css/app.css}" />
+  </head>
+  <body
+    class="bg-surface-50 min-h-screen flex items-center justify-center p-4 font-sans"
+  >
     <div class="max-w-md w-full">
-        <div class="bg-white rounded-2xl shadow-xl p-8">
-            <!-- Icon -->
-            <div class="flex justify-center mb-6">
-                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-                    <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </div>
-            </div>
-
-            <!-- Title -->
-            <h1 class="text-2xl font-bold text-center text-surface-900 mb-4">
-                Xác thực thất bại
-            </h1>
-
-            <!-- Error Message -->
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <p class="text-red-800 text-center" th:text="${message}">
-                    Link xác thực không hợp lệ hoặc đã hết hạn.
-                </p>
-            </div>
-
-            <!-- Help Text -->
-            <div class="bg-surface-50 rounded-lg p-4 mb-6">
-                <h3 class="font-semibold text-surface-900 mb-2 flex items-center gap-2">
-                    <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    Gợi ý
-                </h3>
-                <ul class="text-sm text-surface-600 space-y-2">
-                    <li>• Link xác thực có hiệu lực trong 24 giờ</li>
-                    <li>• Bạn có thể yêu cầu gửi lại email xác thực</li>
-                    <li>• Kiểm tra xem bạn đã sử dụng đúng link mới nhất chưa</li>
-                </ul>
-            </div>
-
-            <!-- Actions -->
-            <div class="space-y-3">
-                <a href="/auth/resend-verification" 
-                   class="block w-full py-3 px-4 bg-primary-500 text-white text-center rounded-xl font-semibold hover:bg-primary-600 transition-colors duration-200">
-                    Gửi lại email xác thực
-                </a>
-                
-                <a href="/auth/login" 
-                   class="block w-full py-3 px-4 bg-surface-100 text-surface-700 text-center rounded-xl font-semibold hover:bg-surface-200 transition-colors duration-200">
-                    Quay lại đăng nhập
-                </a>
-            </div>
-
-            <!-- Support Link -->
-            <div class="text-center mt-6 text-sm text-surface-500">
-                Cần hỗ trợ? 
-                <a href="#" class="text-primary-500 hover:text-primary-600 font-medium">
-                    Liên hệ với chúng tôi
-                </a>
-            </div>
+      <div class="bg-white rounded-2xl shadow-xl p-8">
+        <!-- Icon -->
+        <div class="flex justify-center mb-6">
+          <div
+            class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center"
+          >
+            <svg
+              class="w-10 h-10 text-red-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </div>
         </div>
 
-        <!-- Logo -->
-        <div class="text-center mt-8">
-            <p class="text-surface-400 text-sm">ISSVSG Medical System</p>
+        <!-- Title -->
+        <h1 class="text-2xl font-bold text-center text-surface-900 mb-4">
+          Xác thực thất bại
+        </h1>
+
+        <!-- Error Message -->
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <p class="text-red-800 text-center" th:text="${message}">
+            Link xác thực không hợp lệ hoặc đã hết hạn.
+          </p>
         </div>
+
+        <!-- Help Text -->
+        <div class="bg-surface-50 rounded-lg p-4 mb-6">
+          <h3
+            class="font-semibold text-surface-900 mb-2 flex items-center gap-2"
+          >
+            <svg
+              class="w-5 h-5 text-primary-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            Gợi ý
+          </h3>
+          <ul class="text-sm text-surface-600 space-y-2">
+            <li>• Link xác thực có hiệu lực trong 24 giờ</li>
+            <li>• Bạn có thể yêu cầu gửi lại email xác thực</li>
+            <li>• Kiểm tra xem bạn đã sử dụng đúng link mới nhất chưa</li>
+          </ul>
+        </div>
+
+        <!-- Actions -->
+        <div class="space-y-3">
+          <a
+            href="/auth/resend-verification"
+            class="block w-full py-3 px-4 bg-primary-500 text-white text-center rounded-xl font-semibold hover:bg-primary-600 transition-colors duration-200"
+          >
+            Gửi lại email xác thực
+          </a>
+
+          <a
+            href="/auth/login"
+            class="block w-full py-3 px-4 bg-surface-100 text-surface-700 text-center rounded-xl font-semibold hover:bg-surface-200 transition-colors duration-200"
+          >
+            Quay lại đăng nhập
+          </a>
+        </div>
+
+        <!-- Support Link -->
+        <div class="text-center mt-6 text-sm text-surface-500">
+          Cần hỗ trợ?
+          <a
+            href="#"
+            class="text-primary-500 hover:text-primary-600 font-medium"
+          >
+            Liên hệ với chúng tôi
+          </a>
+        </div>
+      </div>
+
+      <!-- Logo -->
+      <div class="text-center mt-8">
+        <p class="text-surface-400 text-sm">ABClinic Medical System</p>
+      </div>
     </div>
-</body>
+  </body>
 </html>

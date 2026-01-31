@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chỉnh sửa Đơn Thuốc - ABClinic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script th:src="@{/js/tailwind-config.js}"></script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap"
+    />
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+      .material-symbols-outlined.fill {
+        font-variation-settings: "FILL" 1;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #475569;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-slate-50 dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-sans"
+  >
+    <div class="flex h-screen overflow-hidden">
+      <!-- Sidebar -->
+      <aside th:replace="~{fragments/doctor-layout :: doctor-sidebar}"></aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Header -->
+        <header
+          class="bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 px-6 py-4"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <a
+                href="/doctor/prescriptions"
+                class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+              >
+                <span class="material-symbols-outlined">arrow_back</span>
+              </a>
+              <div>
+                <h1 class="text-xl font-bold text-slate-900 dark:text-white">
+                  Chỉnh Sửa Đơn Thuốc
+                </h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                  Cập nhật thông tin đơn thuốc
+                </p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Content Area -->
+        <main class="flex-1 overflow-y-auto p-6">
+          <div class="max-w-5xl mx-auto">
+            <div class="grid lg:grid-cols-3 gap-6">
+              <!-- Left Column - Patient Info -->
+              <div class="lg:col-span-1 space-y-6">
+                <!-- Patient Info Card -->
+                <div
+                  class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-6"
+                >
+                  <h3
+                    class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2"
+                  >
+                    <span
+                      class="material-symbols-outlined text-primary text-[20px]"
+                      >person</span
+                    >
+                    Thông tin bệnh nhân
+                  </h3>
+                  <div class="space-y-4">
+                    <div class="flex items-center gap-4">
+                      <div
+                        class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center"
+                      >
+                        <span
+                          class="material-symbols-outlined text-slate-400 text-3xl"
+                          >person</span
+                        >
+                      </div>
+                      <div>
+                        <p
+                          class="font-medium text-slate-900 dark:text-white"
+                          id="patientName"
+                          th:text="${patient != null ? patient.fullName : 'N/A'}"
+                        >
+                          -
+                        </p>
+                        <p
+                          class="text-sm text-slate-500 dark:text-slate-400"
+                          id="patientEmail"
+                          th:text="${patient != null ? patient.email : ''}"
+                        >
+                          -
+                        </p>
+                      </div>
+                    </div>
+                    <div
+                      class="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-2"
+                    >
+                      <div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">
+                          Số điện thoại
+                        </p>
+                        <p
+                          class="text-slate-700 dark:text-slate-300"
+                          id="patientPhone"
+                          th:text="${patient != null ? patient.phoneNumber : '-'}"
+                        >
+                          -
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Prescription Status -->
+                <div
+                  class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-6"
+                >
+                  <h3
+                    class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2"
+                  >
+                    <span
+                      class="material-symbols-outlined text-primary text-[20px]"
+                      >info</span
+                    >
+                    Trạng thái đơn thuốc
+                  </h3>
+                  <div class="space-y-4">
+                    <div>
+                      <label
+                        class="block text-sm text-slate-500 dark:text-slate-400 mb-2"
+                        >Trạng thái</label
+                      >
+                      <select
+                        id="prescriptionStatus"
+                        class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+                      >
+                        <option value="ACTIVE">Đang sử dụng</option>
+                        <option value="COMPLETED">Hoàn thành</option>
+                        <option value="CANCELLED">Đã hủy</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Usage History Info -->
+                <div
+                  class="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 p-4"
+                >
+                  <div class="flex items-start gap-3">
+                    <span
+                      class="material-symbols-outlined text-amber-600 dark:text-amber-400"
+                      >lightbulb</span
+                    >
+                    <div>
+                      <p
+                        class="font-medium text-amber-800 dark:text-amber-300 mb-1"
+                      >
+                        Lưu ý
+                      </p>
+                      <p class="text-sm text-amber-700 dark:text-amber-400">
+                        Nhấn vào biểu tượng
+                        <span
+                          class="material-symbols-outlined text-[14px] align-middle"
+                          >history</span
+                        >
+                        bên cạnh mỗi thuốc để kiểm tra lịch sử sử dụng và xem
+                        thuốc thay thế.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Column - Prescription Form -->
+              <div class="lg:col-span-2 space-y-6">
+                <!-- Diagnosis -->
+                <div
+                  class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-6"
+                >
+                  <h3
+                    class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2"
+                  >
+                    <span
+                      class="material-symbols-outlined text-primary text-[20px]"
+                      >stethoscope</span
+                    >
+                    Chẩn đoán
+                  </h3>
+                  <textarea
+                    id="diagnosis"
+                    rows="3"
+                    placeholder="Nhập chẩn đoán bệnh..."
+                    class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary resize-none"
+                    th:text="${prescription != null ? prescription.diagnosis : ''}"
+                  ></textarea>
+                </div>
+
+                <!-- Medications -->
+                <div
+                  class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-6"
+                >
+                  <div class="flex items-center justify-between mb-4">
+                    <h3
+                      class="font-semibold text-slate-900 dark:text-white flex items-center gap-2"
+                    >
+                      <span
+                        class="material-symbols-outlined text-primary text-[20px]"
+                        >medication</span
+                      >
+                      Danh sách thuốc
+                    </h3>
+                    <button
+                      onclick="addMedication()"
+                      class="flex items-center gap-2 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors text-sm"
+                    >
+                      <span class="material-symbols-outlined text-[18px]"
+                        >add</span
+                      >
+                      Thêm thuốc
+                    </button>
+                  </div>
+
+                  <div id="medicationsList" class="space-y-4">
+                    <!-- Medications will be loaded here -->
+                  </div>
+
+                  <!-- Empty state -->
+                  <div
+                    id="emptyMedicationsState"
+                    class="hidden text-center py-8"
+                  >
+                    <span
+                      class="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2"
+                      >medication</span
+                    >
+                    <p class="text-slate-500 dark:text-slate-400">
+                      Chưa có thuốc nào. Nhấn "Thêm thuốc" để bắt đầu.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Notes -->
+                <div
+                  class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-6"
+                >
+                  <h3
+                    class="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2"
+                  >
+                    <span
+                      class="material-symbols-outlined text-primary text-[20px]"
+                      >sticky_note_2</span
+                    >
+                    Ghi chú
+                  </h3>
+                  <textarea
+                    id="notes"
+                    rows="3"
+                    placeholder="Ghi chú thêm về đơn thuốc (không bắt buộc)..."
+                    class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary resize-none"
+                    th:text="${prescription != null ? prescription.notes : ''}"
+                  ></textarea>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end gap-4">
+                  <a
+                    href="/doctor/prescriptions"
+                    class="px-6 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors text-slate-700 dark:text-slate-300"
+                  >
+                    Hủy
+                  </a>
+                  <button
+                    onclick="savePrescription()"
+                    class="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
+                  >
+                    <span class="material-symbols-outlined text-[20px]"
+                      >save</span
+                    >
+                    Lưu thay đổi
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Medication Usage Modal -->
+    <div id="medicationUsageModal" class="fixed inset-0 z-50 hidden">
+      <div
+        class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onclick="closeMedicationUsageModal()"
+      ></div>
+      <div
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white dark:bg-[#1a2634] rounded-2xl shadow-2xl overflow-hidden"
+      >
+        <div
+          class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between"
+        >
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white">
+            Lịch sử sử dụng thuốc
+          </h2>
+          <button
+            onclick="closeMedicationUsageModal()"
+            class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="p-6">
+          <div class="text-center mb-6">
+            <div
+              class="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4"
+            >
+              <span class="material-symbols-outlined text-primary text-3xl"
+                >medication</span
+              >
+            </div>
+            <h3
+              class="text-xl font-bold text-slate-900 dark:text-white"
+              id="usageMedicineName"
+            >
+              -
+            </h3>
+          </div>
+
+          <div class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
+            <div class="text-center">
+              <p class="text-4xl font-bold text-primary mb-2" id="usageCount">
+                0
+              </p>
+              <p class="text-sm text-slate-500 dark:text-slate-400">
+                lần đã kê đơn
+              </p>
+            </div>
+            <div
+              class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700"
+            >
+              <div
+                class="flex items-center justify-center gap-2"
+                id="usageStatusBadge"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Alternative Suggestions -->
+          <div class="mt-6" id="alternativeSuggestionsSection">
+            <h4
+              class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined text-amber-500 text-[18px]"
+                >lightbulb</span
+              >
+              Thuốc thay thế gợi ý
+            </h4>
+            <div id="alternativeSuggestionsList" class="space-y-2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div
+      id="toastContainer"
+      class="fixed bottom-4 right-4 z-50 space-y-2"
+    ></div>
+
+    <!-- Scripts -->
+    <script th:src="@{/js/doctor-sidebar-controller.js}"></script>
+    <script th:inline="javascript">
+      // Global state
+      const prescriptionId = [[${prescriptionId}]];
+      const patientId = [[${patient != null ? patient.id : null}]];
+      let medications = [];
+
+      // Alternative medicines database
+      const alternativeMedicines = {
+        'paracetamol': ['Acetaminophen', 'Tylenol', 'Panadol', 'Efferalgan'],
+        'ibuprofen': ['Advil', 'Motrin', 'Nurofen', 'Brufen'],
+        'amoxicillin': ['Augmentin', 'Clavamox', 'Amoxil', 'Trimox'],
+        'omeprazole': ['Prilosec', 'Nexium', 'Losec', 'Pantoprazole'],
+        'metformin': ['Glucophage', 'Fortamet', 'Glumetza', 'Riomet'],
+        'atorvastatin': ['Lipitor', 'Torvast', 'Rosuvastatin', 'Simvastatin'],
+        'amlodipine': ['Norvasc', 'Istin', 'Amlopress', 'Nifedipine'],
+        'losartan': ['Cozaar', 'Lorzaar', 'Valsartan', 'Irbesartan'],
+        'aspirin': ['Bayer', 'Bufferin', 'Disprin', 'Anacin'],
+        'cetirizine': ['Zyrtec', 'Allertin', 'Loratadine', 'Fexofenadine']
+      };
+
+      // Load prescription data on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        if (prescriptionId) {
+          loadPrescriptionData();
+        }
+      });
+
+      // Load prescription data from API
+      async function loadPrescriptionData() {
+        try {
+          const response = await fetch(`/api/doctor/prescriptions/${prescriptionId}`);
+          if (!response.ok) throw new Error('Failed to load prescription');
+
+          const prescription = await response.json();
+
+          // Set form values
+          document.getElementById('diagnosis').value = prescription.diagnosis || '';
+          document.getElementById('notes').value = prescription.notes || '';
+          document.getElementById('prescriptionStatus').value = prescription.status || 'ACTIVE';
+
+          // Load medications
+          medications = prescription.medications || [];
+          renderMedications();
+        } catch (error) {
+          console.error('Error loading prescription:', error);
+          showToast('Lỗi khi tải thông tin đơn thuốc', 'error');
+        }
+      }
+
+      // Render medications list
+      function renderMedications() {
+        const container = document.getElementById('medicationsList');
+        const emptyState = document.getElementById('emptyMedicationsState');
+
+        if (medications.length === 0) {
+          container.innerHTML = '';
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        emptyState.classList.add('hidden');
+
+        container.innerHTML = medications.map((med, index) => `
+          <div class="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700" id="medication-${index}">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <span class="material-symbols-outlined text-primary">medication</span>
+                </div>
+                <div>
+                  <p class="font-medium text-slate-900 dark:text-white">Thuốc #${index + 1}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="checkMedicationUsageByIndex(${index})" class="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors" title="Kiểm tra lịch sử sử dụng">
+                  <span class="material-symbols-outlined text-slate-500 text-[20px]">history</span>
+                </button>
+                <button onclick="removeMedication(${index})" class="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-600 dark:text-red-400" title="Xóa thuốc">
+                  <span class="material-symbols-outlined text-[20px]">delete</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="md:col-span-2">
+                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Tên thuốc *</label>
+                <input
+                  type="text"
+                  value="${med.medicineName || ''}"
+                  onchange="updateMedication(${index}, 'medicineName', this.value)"
+                  placeholder="Nhập tên thuốc"
+                  class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Liều lượng</label>
+                <input
+                  type="text"
+                  value="${med.dosage || ''}"
+                  onchange="updateMedication(${index}, 'dosage', this.value)"
+                  placeholder="VD: 500mg"
+                  class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Tần suất</label>
+                <input
+                  type="text"
+                  value="${med.frequency || ''}"
+                  onchange="updateMedication(${index}, 'frequency', this.value)"
+                  placeholder="VD: 3 lần/ngày"
+                  class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Thời gian sử dụng</label>
+                <input
+                  type="text"
+                  value="${med.duration || ''}"
+                  onchange="updateMedication(${index}, 'duration', this.value)"
+                  placeholder="VD: 7 ngày"
+                  class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Số lượng</label>
+                <input
+                  type="number"
+                  value="${med.quantity || ''}"
+                  onchange="updateMedication(${index}, 'quantity', parseInt(this.value) || null)"
+                  placeholder="VD: 21"
+                  min="1"
+                  class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs text-slate-500 dark:text-slate-400 mb-1">Hướng dẫn sử dụng</label>
+                <textarea
+                  rows="2"
+                  onchange="updateMedication(${index}, 'instructions', this.value)"
+                  placeholder="Uống sau ăn, tránh dùng chung với sữa..."
+                  class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                >${med.instructions || ''}</textarea>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Add new medication
+      function addMedication() {
+        medications.push({
+          medicineName: '',
+          dosage: '',
+          frequency: '',
+          duration: '',
+          quantity: null,
+          instructions: ''
+        });
+        renderMedications();
+
+        // Scroll to new medication
+        const newMedElement = document.getElementById(`medication-${medications.length - 1}`);
+        if (newMedElement) {
+          newMedElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+
+      // Update medication
+      function updateMedication(index, field, value) {
+        medications[index][field] = value;
+      }
+
+      // Remove medication
+      function removeMedication(index) {
+        if (confirm('Bạn có chắc chắn muốn xóa thuốc này?')) {
+          medications.splice(index, 1);
+          renderMedications();
+        }
+      }
+
+      // Check medication usage by index
+      function checkMedicationUsageByIndex(index) {
+        const med = medications[index];
+        if (med && med.medicineName) {
+          checkMedicationUsage(med.medicineName);
+        } else {
+          showToast('Vui lòng nhập tên thuốc trước', 'warning');
+        }
+      }
+
+      // Check medication usage
+      async function checkMedicationUsage(medicineName) {
+        try {
+          const response = await fetch(`/api/doctor/prescriptions/patient/${patientId}/medication/${encodeURIComponent(medicineName)}/usage`);
+          if (!response.ok) throw new Error('Failed to check usage');
+
+          const data = await response.json();
+
+          document.getElementById('usageMedicineName').textContent = data.medicineName;
+          document.getElementById('usageCount').textContent = data.usageCount;
+
+          // Status badge
+          const usageStatusBadge = document.getElementById('usageStatusBadge');
+          if (data.usageCount === 0) {
+            usageStatusBadge.innerHTML = `
+              <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm font-medium">
+                <span class="material-symbols-outlined text-[16px]">new_releases</span>
+                Lần đầu kê đơn
+              </span>
+            `;
+          } else if (data.usageCount >= 3) {
+            usageStatusBadge.innerHTML = `
+              <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-sm font-medium">
+                <span class="material-symbols-outlined text-[16px]">warning</span>
+                Đã kê ${data.usageCount} lần - Cân nhắc thuốc thay thế
+              </span>
+            `;
+          } else {
+            usageStatusBadge.innerHTML = `
+              <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-sm font-medium">
+                <span class="material-symbols-outlined text-[16px]">repeat</span>
+                Đã kê ${data.usageCount} lần
+              </span>
+            `;
+          }
+
+          // Load alternatives
+          loadAlternativeSuggestions(medicineName);
+
+          document.getElementById('medicationUsageModal').classList.remove('hidden');
+        } catch (error) {
+          console.error('Error:', error);
+          showToast('Lỗi khi kiểm tra lịch sử sử dụng', 'error');
+        }
+      }
+
+      // Load alternative suggestions
+      function loadAlternativeSuggestions(medicineName) {
+        const suggestionsList = document.getElementById('alternativeSuggestionsList');
+        const lowerName = medicineName.toLowerCase();
+
+        let alternatives = [];
+        for (const [key, values] of Object.entries(alternativeMedicines)) {
+          if (lowerName.includes(key) || values.some(v => lowerName.includes(v.toLowerCase()))) {
+            alternatives = values.filter(v => !lowerName.includes(v.toLowerCase()));
+            break;
+          }
+        }
+
+        if (alternatives.length === 0) {
+          suggestionsList.innerHTML = `
+            <p class="text-sm text-slate-500 dark:text-slate-400 italic">
+              Không tìm thấy thuốc thay thế phù hợp. Vui lòng tham khảo ý kiến chuyên gia.
+            </p>
+          `;
+        } else {
+          suggestionsList.innerHTML = alternatives.slice(0, 4).map(alt => `
+            <div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-[18px]">medication</span>
+                <span class="text-slate-700 dark:text-slate-300">${alt}</span>
+              </div>
+              <button onclick="useSuggestedMedicine('${alt}')" class="px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm transition-colors">
+                Sử dụng
+              </button>
+            </div>
+          `).join('');
+        }
+      }
+
+      // Use suggested medicine
+      function useSuggestedMedicine(name) {
+        // Add new medication with this name
+        medications.push({
+          medicineName: name,
+          dosage: '',
+          frequency: '',
+          duration: '',
+          quantity: null,
+          instructions: ''
+        });
+        renderMedications();
+        closeMedicationUsageModal();
+        showToast(`Đã thêm "${name}" vào danh sách thuốc`, 'success');
+      }
+
+      // Close modal
+      function closeMedicationUsageModal() {
+        document.getElementById('medicationUsageModal').classList.add('hidden');
+      }
+
+      // Save prescription
+      async function savePrescription() {
+        // Validate
+        const diagnosis = document.getElementById('diagnosis').value.trim();
+        if (!diagnosis) {
+          showToast('Vui lòng nhập chẩn đoán', 'warning');
+          return;
+        }
+
+        // Filter out empty medications
+        const validMedications = medications.filter(m => m.medicineName && m.medicineName.trim());
+        if (validMedications.length === 0) {
+          showToast('Vui lòng thêm ít nhất một loại thuốc', 'warning');
+          return;
+        }
+
+        const data = {
+          patientId: patientId,
+          diagnosis: diagnosis,
+          notes: document.getElementById('notes').value.trim(),
+          status: document.getElementById('prescriptionStatus').value,
+          medications: validMedications
+        };
+
+        try {
+          const response = await fetch(`/api/doctor/prescriptions/${prescriptionId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+
+          if (!response.ok) throw new Error('Failed to update prescription');
+
+          const result = await response.json();
+
+          if (result.success) {
+            showToast('Cập nhật đơn thuốc thành công', 'success');
+            setTimeout(() => {
+              window.location.href = '/doctor/prescriptions';
+            }, 1500);
+          } else {
+            throw new Error(result.message || 'Unknown error');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          showToast('Lỗi khi cập nhật đơn thuốc: ' + error.message, 'error');
+        }
+      }
+
+      // Toast helper
+      function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+
+        const colors = {
+          success: 'bg-green-500',
+          error: 'bg-red-500',
+          info: 'bg-blue-500',
+          warning: 'bg-amber-500'
+        };
+
+        const icons = {
+          success: 'check_circle',
+          error: 'error',
+          info: 'info',
+          warning: 'warning'
+        };
+
+        toast.className = `flex items-center gap-3 px-4 py-3 ${colors[type]} text-white rounded-lg shadow-lg min-w-[300px] animate-slide-in`;
+        toast.innerHTML = `
+          <span class="material-symbols-outlined">${icons[type]}</span>
+          <span class="flex-1">${message}</span>
+          <button onclick="this.parentElement.remove()" class="p-1 hover:bg-white/20 rounded">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        `;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+          toast.remove();
+        }, 3000);
+      }
+    </script>
+  </body>
+</html>

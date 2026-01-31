@@ -190,4 +190,9 @@ public class PageController {
     public String patientHome() {
         return "patient/index";
     }
+
+    @GetMapping("/patient/call")
+    public String patientCall() {
+        return "patient/call";
+    }
 }

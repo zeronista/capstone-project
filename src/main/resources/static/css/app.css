@@ -159,7 +159,96 @@ h6 { font-size: 1rem; }     /* 16px */
     color: #0F172A; /* surface-900 */
 }
 
-/* Mobile menu toggle (for future responsive implementation) */
+/* Doctor Sidebar Toggle Functionality */
+/* Base sidebar transitions */
+[data-sidebar] {
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+}
+
+/* Mobile: Sidebar hidden by default */
+.sidebar-hidden {
+    transform: translateX(-100%);
+}
+
+/* Mobile: Sidebar open */
+@media (max-width: 1023px) {
+    [data-sidebar]:not(.sidebar-hidden) {
+        transform: translateX(0);
+    }
+}
+
+/* Desktop: Sidebar always visible */
+@media (min-width: 1024px) {
+    [data-sidebar] {
+        transform: translateX(0) !important;
+    }
+    
+    /* Desktop collapsed state - icon only (4rem width) */
+    .sidebar-collapsed {
+        width: 4rem !important;
+    }
+    
+    /* Hide text when collapsed */
+    .sidebar-collapsed .sidebar-text {
+        opacity: 0;
+        visibility: hidden;
+        width: 0;
+        overflow: hidden;
+        transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+    }
+    
+    /* Center icons when collapsed */
+    .sidebar-collapsed .doctor-menu-item {
+        justify-content: center;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    
+    /* Show tooltip on hover when collapsed */
+    .sidebar-collapsed .doctor-menu-item {
+        position: relative;
+    }
+    
+    .sidebar-collapsed .doctor-menu-item:hover::after {
+        content: attr(title);
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background-color: #1e293b;
+        color: white;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        white-space: nowrap;
+        z-index: 50;
+        pointer-events: none;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    /* Hide sidebar header text when collapsed */
+    .sidebar-collapsed .h-16 > div {
+        justify-content: center;
+    }
+    
+    /* Hide sidebar hidden class on desktop */
+    .sidebar-hidden {
+        transform: translateX(0);
+    }
+}
+
+/* Sidebar backdrop for mobile */
+[data-sidebar-backdrop] {
+    transition: opacity 0.3s ease-in-out;
+}
+
+[data-sidebar-backdrop].hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Mobile menu toggle (legacy support) */
 .mobile-menu {
     transition: transform 0.3s ease-in-out;
 }

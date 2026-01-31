@@ -47,13 +47,70 @@ public class ProfileController {
             return "redirect:/auth/login";
         }
 
-        // Phân quyền theo role
-        if (user.getRole() == User.UserRole.PATIENT) {
-            return "profile/patient";
-        } else {
-            // Các role khác (DOCTOR, RECEPTIONIST, ADMIN) dùng profile chung
-            return "profile/index";
+        // Phân quyền theo role - redirect đến profile riêng của từng role
+        switch (user.getRole()) {
+            case PATIENT:
+                return "profile/patient";
+            case DOCTOR:
+                return "redirect:/doctor/profile";
+            case RECEPTIONIST:
+                return "redirect:/receptionist/profile";
+            case ADMIN:
+                return "redirect:/admin/profile";
+            default:
+                return "profile/index";
         }
+    }
+
+    /**
+     * GET /doctor/profile - Hiển thị trang profile cho Bác sĩ
+     */
+    @GetMapping("/doctor/profile")
+    public String doctorProfile(HttpSession session, Model model) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return "redirect:/auth/login";
+        }
+        User user = userRepository.findByIdWithUserInfo(userId).orElse(null);
+        if (user == null || user.getRole() != User.UserRole.DOCTOR) {
+            return "redirect:/auth/login";
+        }
+        model.addAttribute("doctor", user);
+        return "doctor/profile";
+    }
+
+    /**
+     * GET /receptionist/profile - Hiển thị trang profile cho Lễ tân
+     */
+    @GetMapping("/receptionist/profile")
+    public String receptionistProfile(HttpSession session, Model model) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return "redirect:/auth/login";
+        }
+        User user = userRepository.findByIdWithUserInfo(userId).orElse(null);
+        if (user == null || user.getRole() != User.UserRole.RECEPTIONIST) {
+            return "redirect:/auth/login";
+        }
+        model.addAttribute("receptionist", user);
+        return "receptionist/profile";
+    }
+
+    /**
+     * GET /admin/profile - Hiển thị trang profile cho Admin
+     */
+    @GetMapping("/admin/profile")
+    public String adminProfile(HttpSession session, Model model) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return "redirect:/auth/login";
+        }
+        User user = userRepository.findByIdWithUserInfo(userId).orElse(null);
+        if (user == null || user.getRole() != User.UserRole.ADMIN) {
+            return "redirect:/auth/login";
+        }
+        model.addAttribute("admin", user);
+        return "admin/profile";
     }
 
     /**

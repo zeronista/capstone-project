@@ -1,0 +1,1248 @@
+<!doctype html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Chi tiết Bệnh nhân - ABClinic</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0d7cf2",
+              "primary-dark": "#0a62bf",
+              "background-light": "#f5f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              display: ["Roboto", "sans-serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 24px;
+      }
+      .material-symbols-outlined.fill {
+        font-variation-settings: "FILL" 1;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      .tab-active {
+        border-bottom: 2px solid #0d7cf2;
+        color: #0d7cf2;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display h-screen flex overflow-hidden"
+  >
+    <!-- Mobile Sidebar Backdrop -->
+    <div
+      th:replace="~{fragments/doctor-layout :: doctor-sidebar-backdrop}"
+    ></div>
+
+    <!-- Doctor Sidebar -->
+    <aside th:replace="~{fragments/doctor-layout :: doctor-sidebar}"></aside>
+
+    <main
+      class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark"
+    >
+      <!-- Header -->
+      <header
+        class="h-16 flex items-center justify-between px-6 bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 shrink-0 z-10"
+      >
+        <button
+          data-sidebar-toggle
+          class="lg:hidden flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors mr-2"
+        >
+          <span class="material-symbols-outlined text-[24px]">menu</span>
+        </button>
+
+        <button
+          data-sidebar-desktop-toggle
+          class="hidden lg:flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors mr-2"
+        >
+          <span class="material-symbols-outlined text-[24px]">menu</span>
+        </button>
+
+        <!-- Breadcrumb -->
+        <nav class="flex-1 flex items-center gap-2 text-sm">
+          <a
+            href="/doctor/dashboard"
+            class="text-slate-500 hover:text-primary transition-colors"
+          >
+            Bảng điều khiển
+          </a>
+          <span class="material-symbols-outlined text-[16px] text-slate-400"
+            >chevron_right</span
+          >
+          <a
+            href="/doctor/patients"
+            class="text-slate-500 hover:text-primary transition-colors"
+          >
+            Bệnh nhân
+          </a>
+          <span class="material-symbols-outlined text-[16px] text-slate-400"
+            >chevron_right</span
+          >
+          <span
+            id="breadcrumbName"
+            class="text-slate-900 dark:text-white font-medium"
+            >Chi tiết</span
+          >
+        </nav>
+
+        <div class="flex items-center gap-3 ml-4">
+          <button
+            onclick="toggleDarkMode()"
+            class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
+          >
+            <span class="material-symbols-outlined text-[24px] dark:hidden"
+              >dark_mode</span
+            >
+            <span
+              class="material-symbols-outlined text-[24px] hidden dark:block"
+              >light_mode</span
+            >
+          </button>
+          <form th:action="@{/auth/logout}" method="post" class="m-0">
+            <button
+              type="submit"
+              class="flex items-center justify-center size-10 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 transition-colors"
+              title="Đăng xuất"
+            >
+              <span class="material-symbols-outlined text-[24px]">logout</span>
+            </button>
+          </form>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+        <div class="max-w-6xl mx-auto">
+          <!-- Loading State -->
+          <div
+            id="loadingState"
+            class="flex flex-col items-center justify-center py-20"
+          >
+            <div
+              class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"
+            ></div>
+            <p class="text-slate-500 dark:text-slate-400">
+              Đang tải thông tin bệnh nhân...
+            </p>
+          </div>
+
+          <!-- Content Container -->
+          <div id="contentContainer" class="hidden">
+            <!-- Back Button & Actions -->
+            <div
+              class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6"
+            >
+              <div class="flex items-center gap-4">
+                <a
+                  href="/doctor/dashboard"
+                  class="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+                >
+                  <span class="material-symbols-outlined text-[20px]"
+                    >arrow_back</span
+                  >
+                  <span class="text-sm font-medium">Quay lại</span>
+                </a>
+              </div>
+              <div class="flex gap-3">
+                <a
+                  id="createPrescriptionBtn"
+                  href="#"
+                  class="bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-600 transition-colors flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-[20px]"
+                    >medication</span
+                  >
+                  Kê đơn thuốc
+                </a>
+                <a
+                  id="createTreatmentBtn"
+                  href="#"
+                  class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-[20px]"
+                    >add_chart</span
+                  >
+                  Tạo kế hoạch
+                </a>
+              </div>
+            </div>
+
+            <!-- Patient Info Card -->
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mb-6"
+            >
+              <div class="p-6">
+                <div class="flex flex-col md:flex-row gap-6">
+                  <!-- Avatar -->
+                  <div class="flex-shrink-0">
+                    <div
+                      id="patientAvatar"
+                      class="size-24 rounded-full bg-primary/10 flex items-center justify-center"
+                    >
+                      <span
+                        class="material-symbols-outlined text-primary text-[48px]"
+                        >person</span
+                      >
+                    </div>
+                  </div>
+
+                  <!-- Basic Info -->
+                  <div class="flex-1">
+                    <div
+                      class="flex flex-col md:flex-row md:items-start md:justify-between gap-4"
+                    >
+                      <div>
+                        <h1
+                          id="patientName"
+                          class="text-2xl font-bold text-slate-900 dark:text-white"
+                        >
+                          --
+                        </h1>
+                        <p
+                          id="patientId"
+                          class="text-slate-500 dark:text-slate-400 text-sm mt-1"
+                        >
+                          ID: #--
+                        </p>
+                      </div>
+                      <div id="patientStatus" class="hidden">
+                        <!-- Dynamic status badge will be inserted here -->
+                      </div>
+                    </div>
+
+                    <div
+                      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6"
+                    >
+                      <div class="flex items-center gap-3">
+                        <div
+                          class="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg"
+                        >
+                          <span
+                            class="material-symbols-outlined text-primary text-[20px]"
+                            >phone</span
+                          >
+                        </div>
+                        <div>
+                          <p class="text-xs text-slate-500 dark:text-slate-400">
+                            Điện thoại
+                          </p>
+                          <p
+                            id="patientPhone"
+                            class="text-sm font-medium text-slate-900 dark:text-white"
+                          >
+                            --
+                          </p>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-3">
+                        <div
+                          class="p-2 bg-purple-50 dark:bg-purple-900/30 rounded-lg"
+                        >
+                          <span
+                            class="material-symbols-outlined text-purple-500 text-[20px]"
+                            >mail</span
+                          >
+                        </div>
+                        <div>
+                          <p class="text-xs text-slate-500 dark:text-slate-400">
+                            Email
+                          </p>
+                          <p
+                            id="patientEmail"
+                            class="text-sm font-medium text-slate-900 dark:text-white truncate max-w-[180px]"
+                          >
+                            --
+                          </p>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-3">
+                        <div
+                          class="p-2 bg-pink-50 dark:bg-pink-900/30 rounded-lg"
+                        >
+                          <span
+                            class="material-symbols-outlined text-pink-500 text-[20px]"
+                            >cake</span
+                          >
+                        </div>
+                        <div>
+                          <p class="text-xs text-slate-500 dark:text-slate-400">
+                            Ngày sinh
+                          </p>
+                          <p
+                            id="patientDob"
+                            class="text-sm font-medium text-slate-900 dark:text-white"
+                          >
+                            --
+                          </p>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-3">
+                        <div
+                          class="p-2 bg-amber-50 dark:bg-amber-900/30 rounded-lg"
+                        >
+                          <span
+                            class="material-symbols-outlined text-amber-500 text-[20px]"
+                            >wc</span
+                          >
+                        </div>
+                        <div>
+                          <p class="text-xs text-slate-500 dark:text-slate-400">
+                            Giới tính
+                          </p>
+                          <p
+                            id="patientGender"
+                            class="text-sm font-medium text-slate-900 dark:text-white"
+                          >
+                            --
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="mt-4 flex items-start gap-3">
+                      <div
+                        class="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg"
+                      >
+                        <span
+                          class="material-symbols-outlined text-emerald-500 text-[20px]"
+                          >location_on</span
+                        >
+                      </div>
+                      <div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">
+                          Địa chỉ
+                        </p>
+                        <p
+                          id="patientAddress"
+                          class="text-sm font-medium text-slate-900 dark:text-white"
+                        >
+                          --
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Stats Bar -->
+              <div
+                class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800 rounded-b-xl"
+              >
+                <div class="text-center">
+                  <p
+                    id="statTreatments"
+                    class="text-2xl font-bold text-primary"
+                  >
+                    0
+                  </p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">
+                    Kế hoạch điều trị
+                  </p>
+                </div>
+                <div class="text-center">
+                  <p
+                    id="statPrescriptions"
+                    class="text-2xl font-bold text-emerald-500"
+                  >
+                    0
+                  </p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">
+                    Đơn thuốc
+                  </p>
+                </div>
+                <div class="text-center">
+                  <p id="statVitals" class="text-2xl font-bold text-purple-500">
+                    0
+                  </p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">
+                    Lần đo sinh hiệu
+                  </p>
+                </div>
+                <div class="text-center">
+                  <p id="statTickets" class="text-2xl font-bold text-amber-500">
+                    0
+                  </p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">
+                    Yêu cầu hỗ trợ
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabs -->
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm"
+            >
+              <div class="border-b border-slate-200 dark:border-slate-800">
+                <nav class="flex overflow-x-auto no-scrollbar">
+                  <button
+                    onclick="switchTab('vitals')"
+                    id="tabVitals"
+                    class="tab-active px-6 py-4 text-sm font-semibold whitespace-nowrap transition-colors"
+                  >
+                    <span
+                      class="material-symbols-outlined text-[18px] align-middle mr-1"
+                      >favorite</span
+                    >
+                    Sinh hiệu
+                  </button>
+                  <button
+                    onclick="switchTab('treatments')"
+                    id="tabTreatments"
+                    class="px-6 py-4 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white whitespace-nowrap transition-colors"
+                  >
+                    <span
+                      class="material-symbols-outlined text-[18px] align-middle mr-1"
+                      >clinical_notes</span
+                    >
+                    Kế hoạch điều trị
+                  </button>
+                  <button
+                    onclick="switchTab('prescriptions')"
+                    id="tabPrescriptions"
+                    class="px-6 py-4 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white whitespace-nowrap transition-colors"
+                  >
+                    <span
+                      class="material-symbols-outlined text-[18px] align-middle mr-1"
+                      >medication</span
+                    >
+                    Đơn thuốc
+                  </button>
+                  <button
+                    onclick="switchTab('tickets')"
+                    id="tabTickets"
+                    class="px-6 py-4 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white whitespace-nowrap transition-colors"
+                  >
+                    <span
+                      class="material-symbols-outlined text-[18px] align-middle mr-1"
+                      >support_agent</span
+                    >
+                    Yêu cầu hỗ trợ
+                  </button>
+                </nav>
+              </div>
+
+              <!-- Tab Content: Vitals -->
+              <div id="contentVitals" class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+                    Chỉ số sinh hiệu gần đây
+                  </h3>
+                  <button
+                    onclick="openVitalsModal()"
+                    class="bg-primary/10 text-primary px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-primary/20 transition-colors flex items-center gap-1"
+                  >
+                    <span class="material-symbols-outlined text-[18px]"
+                      >add</span
+                    >
+                    Ghi nhận
+                  </button>
+                </div>
+                <div id="vitalsContent" class="overflow-x-auto">
+                  <!-- Dynamic content -->
+                </div>
+              </div>
+
+              <!-- Tab Content: Treatments -->
+              <div id="contentTreatments" class="p-6 hidden">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+                    Kế hoạch điều trị
+                  </h3>
+                </div>
+                <div id="treatmentsContent">
+                  <!-- Dynamic content -->
+                </div>
+              </div>
+
+              <!-- Tab Content: Prescriptions -->
+              <div id="contentPrescriptions" class="p-6 hidden">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+                    Lịch sử đơn thuốc
+                  </h3>
+                </div>
+                <div id="prescriptionsContent">
+                  <!-- Dynamic content -->
+                </div>
+              </div>
+
+              <!-- Tab Content: Tickets -->
+              <div id="contentTickets" class="p-6 hidden">
+                <div class="flex items-center justify-between mb-4">
+                  <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+                    Yêu cầu hỗ trợ
+                  </h3>
+                </div>
+                <div id="ticketsContent">
+                  <!-- Dynamic content -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Vitals Modal -->
+    <div
+      id="vitalsModal"
+      class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white dark:bg-[#1a2634] rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+      >
+        <div
+          class="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between"
+        >
+          <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+            Ghi nhận chỉ số sinh hiệu
+          </h3>
+          <button
+            onclick="closeVitalsModal()"
+            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form id="vitalsForm" class="p-6 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Huyết áp tâm thu (mmHg)
+              </label>
+              <input
+                type="number"
+                name="systolicPressure"
+                class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="120"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Huyết áp tâm trương (mmHg)
+              </label>
+              <input
+                type="number"
+                name="diastolicPressure"
+                class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="80"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Nhịp tim (bpm)
+              </label>
+              <input
+                type="number"
+                name="heartRate"
+                class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="72"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Nhiệt độ (°C)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                name="temperature"
+                class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="36.5"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Cân nặng (kg)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                name="weight"
+                class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="60"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Chiều cao (cm)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                name="height"
+                class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="165"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                SpO2 (%)
+              </label>
+              <input
+                type="number"
+                name="oxygenSaturation"
+                class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="98"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Đường huyết (mg/dL)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                name="bloodSugar"
+                class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="100"
+              />
+            </div>
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+            >
+              Ghi chú
+            </label>
+            <textarea
+              name="notes"
+              rows="2"
+              class="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+              placeholder="Ghi chú thêm..."
+            ></textarea>
+          </div>
+          <div class="flex gap-3 pt-4">
+            <button
+              type="button"
+              onclick="closeVitalsModal()"
+              class="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              class="flex-1 px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors"
+            >
+              Lưu
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 z-50 hidden">
+      <div
+        class="flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border"
+        id="toastContent"
+      >
+        <span
+          id="toastIcon"
+          class="material-symbols-outlined text-[20px]"
+        ></span>
+        <span id="toastMessage" class="text-sm font-medium"></span>
+      </div>
+    </div>
+
+    <!-- Sidebar Controller Script -->
+    <script type="module" th:src="@{/js/doctor-sidebar-controller.js}"></script>
+
+    <script th:inline="javascript">
+      // Get patient ID from server
+      const patientId = /*[[${patientId}]]*/ 0;
+      let patientData = null;
+
+      // ==================== INITIALIZATION ====================
+      document.addEventListener("DOMContentLoaded", function () {
+        initDarkMode();
+        loadPatientData();
+        initVitalsForm();
+      });
+
+      // ==================== DATA LOADING ====================
+      async function loadPatientData() {
+        try {
+          const response = await fetch(`/doctor/api/patients/${patientId}`);
+          if (!response.ok) {
+            throw new Error("Failed to load patient data");
+          }
+
+          patientData = await response.json();
+          renderPatientInfo();
+          renderStats();
+          renderVitals();
+          renderTreatments();
+          renderPrescriptions();
+          renderTickets();
+
+          document.getElementById("loadingState").classList.add("hidden");
+          document
+            .getElementById("contentContainer")
+            .classList.remove("hidden");
+        } catch (error) {
+          console.error("Error loading patient data:", error);
+          showToast("Không thể tải thông tin bệnh nhân", "error");
+        }
+      }
+
+      // ==================== RENDERING ====================
+      function renderPatientInfo() {
+        const patient = patientData.patient;
+
+        document.getElementById("breadcrumbName").textContent =
+          patient.fullName || "Bệnh nhân";
+        document.getElementById("patientName").textContent =
+          patient.fullName || "Chưa có tên";
+        document.getElementById("patientId").textContent = `ID: #${patient.id}`;
+        document.getElementById("patientPhone").textContent =
+          patient.phone || "--";
+        document.getElementById("patientEmail").textContent =
+          patient.email || "--";
+        document.getElementById("patientDob").textContent = patient.dateOfBirth
+          ? formatDate(patient.dateOfBirth)
+          : "--";
+        document.getElementById("patientGender").textContent = formatGender(
+          patient.gender,
+        );
+        document.getElementById("patientAddress").textContent =
+          patient.address || "Chưa cập nhật";
+
+        // Update action buttons
+        document.getElementById("createPrescriptionBtn").href =
+          `/doctor/prescriptions/create?patientId=${patient.id}`;
+        document.getElementById("createTreatmentBtn").href =
+          `/doctor/treatments/create?patientId=${patient.id}`;
+
+        // Avatar with initials if no avatar URL
+        if (patient.avatarUrl) {
+          document.getElementById("patientAvatar").innerHTML = `
+            <img src="${patient.avatarUrl}" alt="${patient.fullName}" class="size-24 rounded-full object-cover">
+          `;
+        }
+      }
+
+      function renderStats() {
+        const stats = patientData.stats;
+        document.getElementById("statTreatments").textContent =
+          stats.totalTreatmentPlans;
+        document.getElementById("statPrescriptions").textContent =
+          stats.totalPrescriptions;
+        document.getElementById("statVitals").textContent =
+          stats.totalVitalRecords;
+        document.getElementById("statTickets").textContent = stats.openTickets;
+      }
+
+      function renderVitals() {
+        const vitals = patientData.vitalSigns;
+        const container = document.getElementById("vitalsContent");
+
+        if (!vitals || vitals.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-8">
+              <span class="material-symbols-outlined text-[48px] text-slate-300 dark:text-slate-600 mb-2">monitoring</span>
+              <p class="text-slate-500 dark:text-slate-400">Chưa có dữ liệu sinh hiệu</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = `
+          <table class="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+              <tr class="bg-slate-50 dark:bg-slate-900/50">
+                <th class="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Thời gian</th>
+                <th class="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Huyết áp</th>
+                <th class="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Nhịp tim</th>
+                <th class="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Nhiệt độ</th>
+                <th class="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">SpO2</th>
+                <th class="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">BMI</th>
+                <th class="px-4 py-3 text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+              ${vitals
+                .map(
+                  (v) => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                  <td class="px-4 py-3 text-sm font-medium text-slate-900 dark:text-white">${formatDateTime(v.recordDate)}</td>
+                  <td class="px-4 py-3 text-sm">
+                    ${v.systolicPressure && v.diastolicPressure ? `<span class="${getBPClass(v.systolicPressure)}">${v.systolicPressure}/${v.diastolicPressure}</span> mmHg` : "--"}
+                  </td>
+                  <td class="px-4 py-3 text-sm">
+                    ${v.heartRate ? `<span class="${getHRClass(v.heartRate)}">${v.heartRate}</span> bpm` : "--"}
+                  </td>
+                  <td class="px-4 py-3 text-sm">
+                    ${v.temperature ? `<span class="${getTempClass(v.temperature)}">${v.temperature}</span> °C` : "--"}
+                  </td>
+                  <td class="px-4 py-3 text-sm">
+                    ${v.oxygenSaturation ? `<span class="${getSpO2Class(v.oxygenSaturation)}">${v.oxygenSaturation}</span>%` : "--"}
+                  </td>
+                  <td class="px-4 py-3 text-sm">${v.bmi ? v.bmi.toFixed(1) : "--"}</td>
+                  <td class="px-4 py-3 text-sm text-slate-500 dark:text-slate-400 max-w-[150px] truncate">${v.notes || "--"}</td>
+                </tr>
+              `,
+                )
+                .join("")}
+            </tbody>
+          </table>
+        `;
+      }
+
+      function renderTreatments() {
+        const treatments = patientData.treatmentPlans;
+        const container = document.getElementById("treatmentsContent");
+
+        if (!treatments || treatments.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-8">
+              <span class="material-symbols-outlined text-[48px] text-slate-300 dark:text-slate-600 mb-2">clinical_notes</span>
+              <p class="text-slate-500 dark:text-slate-400">Chưa có kế hoạch điều trị</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = treatments
+          .map(
+            (t) => `
+          <div class="border border-slate-200 dark:border-slate-700 rounded-lg p-4 mb-3 hover:border-primary/50 transition-colors">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <h4 class="font-semibold text-slate-900 dark:text-white">${t.diagnosis || "Chưa có chẩn đoán"}</h4>
+                  ${getStatusBadge(t.status)}
+                </div>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-2">${t.treatmentGoal || "Chưa có mục tiêu điều trị"}</p>
+                <div class="flex items-center gap-4 text-xs text-slate-400">
+                  <span><span class="material-symbols-outlined text-[14px] align-middle mr-1">calendar_today</span> ${formatDate(t.startDate)} - ${formatDate(t.expectedEndDate)}</span>
+                  <span><span class="material-symbols-outlined text-[14px] align-middle mr-1">person</span> ${t.doctorName || "Bác sĩ"}</span>
+                </div>
+              </div>
+              <a href="/doctor/treatments/${t.id}" class="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-[20px]">visibility</span>
+              </a>
+            </div>
+          </div>
+        `,
+          )
+          .join("");
+      }
+
+      function renderPrescriptions() {
+        const prescriptions = patientData.prescriptions;
+        const container = document.getElementById("prescriptionsContent");
+
+        if (!prescriptions || prescriptions.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-8">
+              <span class="material-symbols-outlined text-[48px] text-slate-300 dark:text-slate-600 mb-2">medication</span>
+              <p class="text-slate-500 dark:text-slate-400">Chưa có đơn thuốc</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = prescriptions
+          .map(
+            (rx) => `
+          <div class="border border-slate-200 dark:border-slate-700 rounded-lg p-4 mb-3 hover:border-emerald-500/50 transition-colors">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <h4 class="font-semibold text-slate-900 dark:text-white">${rx.prescriptionCode || "Đơn thuốc"}</h4>
+                  ${getPrescriptionStatusBadge(rx.status)}
+                </div>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-2">${rx.diagnosis || "Chưa có chẩn đoán"}</p>
+                <div class="flex items-center gap-4 text-xs text-slate-400">
+                  <span><span class="material-symbols-outlined text-[14px] align-middle mr-1">schedule</span> ${formatDateTime(rx.prescribedAt)}</span>
+                  <span><span class="material-symbols-outlined text-[14px] align-middle mr-1">person</span> ${rx.doctorName || "Bác sĩ"}</span>
+                </div>
+              </div>
+              <a href="/doctor/prescriptions/${rx.id}" class="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-[20px]">visibility</span>
+              </a>
+            </div>
+          </div>
+        `,
+          )
+          .join("");
+      }
+
+      function renderTickets() {
+        const tickets = patientData.tickets;
+        const container = document.getElementById("ticketsContent");
+
+        if (!tickets || tickets.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-8">
+              <span class="material-symbols-outlined text-[48px] text-slate-300 dark:text-slate-600 mb-2">support_agent</span>
+              <p class="text-slate-500 dark:text-slate-400">Chưa có yêu cầu hỗ trợ</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = tickets
+          .map(
+            (ticket) => `
+          <div class="border border-slate-200 dark:border-slate-700 rounded-lg p-4 mb-3 hover:border-amber-500/50 transition-colors">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                  <h4 class="font-semibold text-slate-900 dark:text-white">${ticket.subject}</h4>
+                  ${getTicketStatusBadge(ticket.status)}
+                  ${getTicketPriorityBadge(ticket.priority)}
+                </div>
+                <div class="flex items-center gap-4 text-xs text-slate-400">
+                  <span><span class="material-symbols-outlined text-[14px] align-middle mr-1">schedule</span> ${formatDateTime(ticket.createdAt)}</span>
+                  <span><span class="material-symbols-outlined text-[14px] align-middle mr-1">category</span> ${formatCategory(ticket.category)}</span>
+                </div>
+              </div>
+              <a href="/doctor/tickets/${ticket.id}" class="p-2 text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-[20px]">visibility</span>
+              </a>
+            </div>
+          </div>
+        `,
+          )
+          .join("");
+      }
+
+      // ==================== TAB SWITCHING ====================
+      function switchTab(tabName) {
+        // Hide all content
+        document.getElementById("contentVitals").classList.add("hidden");
+        document.getElementById("contentTreatments").classList.add("hidden");
+        document.getElementById("contentPrescriptions").classList.add("hidden");
+        document.getElementById("contentTickets").classList.add("hidden");
+
+        // Reset all tabs
+        const tabs = [
+          "tabVitals",
+          "tabTreatments",
+          "tabPrescriptions",
+          "tabTickets",
+        ];
+        tabs.forEach((tabId) => {
+          const tab = document.getElementById(tabId);
+          tab.classList.remove("tab-active");
+          tab.classList.add(
+            "text-slate-500",
+            "dark:text-slate-400",
+            "hover:text-slate-900",
+            "dark:hover:text-white",
+          );
+        });
+
+        // Show selected content and activate tab
+        document
+          .getElementById(
+            `content${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`,
+          )
+          .classList.remove("hidden");
+        const activeTab = document.getElementById(
+          `tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`,
+        );
+        activeTab.classList.add("tab-active");
+        activeTab.classList.remove(
+          "text-slate-500",
+          "dark:text-slate-400",
+          "hover:text-slate-900",
+          "dark:hover:text-white",
+        );
+      }
+
+      // ==================== VITALS MODAL ====================
+      function openVitalsModal() {
+        document.getElementById("vitalsModal").classList.remove("hidden");
+      }
+
+      function closeVitalsModal() {
+        document.getElementById("vitalsModal").classList.add("hidden");
+        document.getElementById("vitalsForm").reset();
+      }
+
+      function initVitalsForm() {
+        document
+          .getElementById("vitalsForm")
+          .addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = {
+              recordDate: new Date().toISOString(),
+            };
+
+            formData.forEach((value, key) => {
+              if (value) {
+                if (key === "notes") {
+                  data[key] = value;
+                } else {
+                  data[key] = parseFloat(value);
+                }
+              }
+            });
+
+            try {
+              const response = await fetch(
+                `/api/patients/${patientId}/vitals`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(data),
+                },
+              );
+
+              if (!response.ok) throw new Error("Failed to save vitals");
+
+              showToast("Đã lưu chỉ số sinh hiệu", "success");
+              closeVitalsModal();
+              loadPatientData();
+            } catch (error) {
+              console.error("Error saving vitals:", error);
+              showToast("Không thể lưu chỉ số sinh hiệu", "error");
+            }
+          });
+      }
+
+      // ==================== HELPER FUNCTIONS ====================
+      function formatDate(dateString) {
+        if (!dateString) return "--";
+        const date = new Date(dateString);
+        return date.toLocaleDateString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+      }
+
+      function formatDateTime(dateString) {
+        if (!dateString) return "--";
+        const date = new Date(dateString);
+        return date.toLocaleString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      function formatGender(gender) {
+        const genders = { MALE: "Nam", FEMALE: "Nữ", OTHER: "Khác" };
+        return genders[gender] || "--";
+      }
+
+      function formatCategory(category) {
+        const categories = {
+          MEDICAL: "Y tế",
+          APPOINTMENT: "Lịch hẹn",
+          BILLING: "Thanh toán",
+          TECHNICAL: "Kỹ thuật",
+          OTHER: "Khác",
+        };
+        return categories[category] || category;
+      }
+
+      function getStatusBadge(status) {
+        const badges = {
+          ACTIVE: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-primary text-white">Đang điều trị</span>`,
+          DRAFT: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">Nháp</span>`,
+          COMPLETED: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">Hoàn thành</span>`,
+          CANCELLED: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">Đã hủy</span>`,
+        };
+        return (
+          badges[status] ||
+          `<span class="text-slate-400 text-xs">${status}</span>`
+        );
+      }
+
+      function getPrescriptionStatusBadge(status) {
+        const badges = {
+          ACTIVE: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">Đang sử dụng</span>`,
+          COMPLETED: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">Hoàn thành</span>`,
+          CANCELLED: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">Đã hủy</span>`,
+        };
+        return (
+          badges[status] ||
+          `<span class="text-slate-400 text-xs">${status}</span>`
+        );
+      }
+
+      function getTicketStatusBadge(status) {
+        const badges = {
+          OPEN: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">Đang mở</span>`,
+          IN_PROGRESS: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">Đang xử lý</span>`,
+          RESOLVED: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">Đã giải quyết</span>`,
+          CLOSED: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">Đã đóng</span>`,
+        };
+        return (
+          badges[status] ||
+          `<span class="text-slate-400 text-xs">${status}</span>`
+        );
+      }
+
+      function getTicketPriorityBadge(priority) {
+        const badges = {
+          URGENT: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">Khẩn cấp</span>`,
+          HIGH: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">Cao</span>`,
+          MEDIUM: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 border border-yellow-200">Trung bình</span>`,
+          LOW: `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">Thấp</span>`,
+        };
+        return badges[priority] || "";
+      }
+
+      // Vital signs class helpers
+      function getBPClass(systolic) {
+        if (systolic < 90) return "text-blue-500 font-semibold";
+        if (systolic > 140) return "text-red-500 font-semibold";
+        return "text-emerald-500 font-semibold";
+      }
+
+      function getHRClass(hr) {
+        if (hr < 60) return "text-blue-500 font-semibold";
+        if (hr > 100) return "text-red-500 font-semibold";
+        return "text-emerald-500 font-semibold";
+      }
+
+      function getTempClass(temp) {
+        if (temp < 36) return "text-blue-500 font-semibold";
+        if (temp > 37.5) return "text-red-500 font-semibold";
+        return "text-emerald-500 font-semibold";
+      }
+
+      function getSpO2Class(spo2) {
+        if (spo2 < 95) return "text-red-500 font-semibold";
+        return "text-emerald-500 font-semibold";
+      }
+
+      // ==================== DARK MODE ====================
+      function toggleDarkMode() {
+        document.documentElement.classList.toggle("dark");
+        localStorage.setItem(
+          "darkMode",
+          document.documentElement.classList.contains("dark"),
+        );
+      }
+
+      function initDarkMode() {
+        if (localStorage.getItem("darkMode") === "true") {
+          document.documentElement.classList.add("dark");
+        }
+      }
+
+      // ==================== TOAST ====================
+      function showToast(message, type = "info") {
+        const toast = document.getElementById("toast");
+        const content = document.getElementById("toastContent");
+        const icon = document.getElementById("toastIcon");
+        const msg = document.getElementById("toastMessage");
+
+        const config = {
+          success: {
+            icon: "check_circle",
+            bg: "bg-emerald-50 dark:bg-emerald-900/30",
+            text: "text-emerald-700 dark:text-emerald-400",
+            border: "border-emerald-200 dark:border-emerald-800",
+          },
+          error: {
+            icon: "error",
+            bg: "bg-red-50 dark:bg-red-900/30",
+            text: "text-red-700 dark:text-red-400",
+            border: "border-red-200 dark:border-red-800",
+          },
+          warning: {
+            icon: "warning",
+            bg: "bg-amber-50 dark:bg-amber-900/30",
+            text: "text-amber-700 dark:text-amber-400",
+            border: "border-amber-200 dark:border-amber-800",
+          },
+          info: {
+            icon: "info",
+            bg: "bg-blue-50 dark:bg-blue-900/30",
+            text: "text-blue-700 dark:text-blue-400",
+            border: "border-blue-200 dark:border-blue-800",
+          },
+        };
+
+        const c = config[type] || config.info;
+        content.className = `flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border ${c.bg} ${c.border}`;
+        icon.className = `material-symbols-outlined text-[20px] ${c.text}`;
+        icon.textContent = c.icon;
+        msg.className = `text-sm font-medium ${c.text}`;
+        msg.textContent = message;
+
+        toast.classList.remove("hidden");
+        setTimeout(() => toast.classList.add("hidden"), 3000);
+      }
+    </script>
+  </body>
+</html>

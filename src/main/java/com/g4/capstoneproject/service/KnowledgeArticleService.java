@@ -44,7 +44,7 @@ public class KnowledgeArticleService {
      * Get articles by status
      */
     public Page<KnowledgeArticleResponse> getArticlesByStatus(ArticleStatus status, Pageable pageable) {
-        return articleRepository.findByStatusOrderByCreatedAtDesc(status, pageable)
+        return articleRepository.findByStatus(status, pageable)
                 .map(KnowledgeArticleResponse::fromEntity);
     }
 
@@ -54,7 +54,7 @@ public class KnowledgeArticleService {
      */
     @Cacheable(value = "knowledgeArticles", key = "'category-' + #categoryId + '-' + #pageable.pageNumber")
     public Page<KnowledgeArticleResponse> getArticlesByCategory(Long categoryId, Pageable pageable) {
-        return articleRepository.findByCategoryIdOrderByCreatedAtDesc(categoryId, pageable)
+        return articleRepository.findByCategoryId(categoryId, pageable)
                 .map(KnowledgeArticleResponse::fromEntity);
     }
 
@@ -63,7 +63,7 @@ public class KnowledgeArticleService {
      */
     public Page<KnowledgeArticleResponse> getArticlesByCategoryAndStatus(
             Long categoryId, ArticleStatus status, Pageable pageable) {
-        return articleRepository.findByCategoryIdAndStatusOrderByCreatedAtDesc(categoryId, status, pageable)
+        return articleRepository.findByCategoryIdAndStatus(categoryId, status, pageable)
                 .map(KnowledgeArticleResponse::fromEntity);
     }
 
@@ -121,7 +121,7 @@ public class KnowledgeArticleService {
      */
     public Page<KnowledgeArticleResponse> searchArticles(
             String keyword, ArticleStatus status, Pageable pageable) {
-        return articleRepository.searchByKeyword(keyword, status.name(), pageable)
+        return articleRepository.searchByKeyword(keyword, status, pageable)
                 .map(KnowledgeArticleResponse::fromEntity);
     }
 
@@ -130,7 +130,7 @@ public class KnowledgeArticleService {
      */
     public Page<KnowledgeArticleResponse> searchArticlesByCategory(
             Long categoryId, String keyword, ArticleStatus status, Pageable pageable) {
-        return articleRepository.searchByCategoryAndKeyword(categoryId, keyword, status.name(), pageable)
+        return articleRepository.searchByCategoryAndKeyword(categoryId, keyword, status, pageable)
                 .map(KnowledgeArticleResponse::fromEntity);
     }
 

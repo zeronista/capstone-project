@@ -160,7 +160,7 @@
               ></div>
             </div>
           </div>
-          <form action="/logout" method="post" class="w-full">
+          <form th:action="@{/auth/logout}" method="post" class="w-full">
             <button
               type="submit"
               class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors text-sm font-medium"

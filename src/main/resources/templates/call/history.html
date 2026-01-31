@@ -1,263 +1,343 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lịch sử cuộc gọi | ABClinic</title>
-    
-    <!-- Google Fonts & Material Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
-    
-    <!-- Tailwind CSS Configuration -->
-    <script th:src="@{/js/tailwind-config.js}"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- App Styles -->
-    <link th:href="@{/css/app.css}" rel="stylesheet">
-</head>
-<body class="bg-background-light dark:bg-background-dark font-sans">
-    
+  <head
+    th:replace="~{fragments/layout :: head(title='Lịch sử cuộc gọi')}"
+  ></head>
+  <body class="bg-background-light dark:bg-background-dark font-sans">
     <!-- Sidebar -->
     <nav th:replace="~{fragments/layout :: sidebar}"></nav>
-    
+
     <!-- Top Navbar -->
     <header th:replace="~{fragments/layout :: navbar}"></header>
-    
+
     <!-- Main Content -->
     <main class="ml-64 pt-24 pb-8 px-4 md:px-6 lg:px-8 min-h-screen">
-        <div class="max-w-7xl mx-auto">
-            
-            <!-- Page Header -->
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-                <div>
-                    <h1 class="text-2xl font-bold text-surface-900 dark:text-white">Lịch sử cuộc gọi</h1>
-                    <p class="text-surface-500 mt-1">Xem lại các cuộc gọi đã thực hiện</p>
-                </div>
-                
-                <div class="flex items-center gap-3 mt-4 md:mt-0">
-                    <a href="/call" class="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors">
-                        <span class="material-symbols-outlined">call</span>
-                        Gọi điện
-                    </a>
-                </div>
-            </div>
-            
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-white dark:bg-card-dark rounded-xl shadow-card p-4">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-primary-50 rounded-lg flex items-center justify-center mr-4">
-                            <span class="material-symbols-outlined text-primary-500 text-2xl">phone</span>
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold text-surface-900" id="statTotalCalls">-</p>
-                            <p class="text-sm text-surface-500">Tổng cuộc gọi</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white dark:bg-card-dark rounded-xl shadow-card p-4">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-error-50 rounded-lg flex items-center justify-center mr-4">
-                            <span class="material-symbols-outlined text-error-500 text-2xl">phone_missed</span>
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold text-surface-900" id="statMissedCalls">-</p>
-                            <p class="text-sm text-surface-500">Cuộc gọi nhỡ</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white dark:bg-card-dark rounded-xl shadow-card p-4">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-success-50 rounded-lg flex items-center justify-center mr-4">
-                            <span class="material-symbols-outlined text-success-500 text-2xl">schedule</span>
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold text-surface-900" id="statTotalDuration">-</p>
-                            <p class="text-sm text-surface-500">Tổng thời gian</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white dark:bg-card-dark rounded-xl shadow-card p-4">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-warning-50 rounded-lg flex items-center justify-center mr-4">
-                            <span class="material-symbols-outlined text-warning-500 text-2xl">mic</span>
-                        </div>
-                        <div>
-                            <p class="text-2xl font-bold text-surface-900" id="statRecordings">-</p>
-                            <p class="text-sm text-surface-500">Có ghi âm</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Filter Tabs -->
-            <div class="bg-white dark:bg-card-dark rounded-xl shadow-card mb-6">
-                <div class="border-b border-surface-200 dark:border-surface-700">
-                    <div class="flex gap-0">
-                        <button onclick="filterCalls('all')" id="tabAll" class="filter-tab px-6 py-3 text-sm font-medium border-b-2 border-primary-500 text-primary-600">
-                            Tất cả
-                        </button>
-                        <button onclick="filterCalls('outgoing')" id="tabOutgoing" class="filter-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-surface-500 hover:text-surface-700">
-                            Gọi đi
-                        </button>
-                        <button onclick="filterCalls('incoming')" id="tabIncoming" class="filter-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-surface-500 hover:text-surface-700">
-                            Gọi đến
-                        </button>
-                        <button onclick="filterCalls('missed')" id="tabMissed" class="filter-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-surface-500 hover:text-surface-700">
-                            Nhỡ
-                        </button>
-                        <button onclick="filterCalls('recordings')" id="tabRecordings" class="filter-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-surface-500 hover:text-surface-700">
-                            Có ghi âm
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Call History List -->
-            <div class="bg-white dark:bg-card-dark rounded-xl shadow-card">
-                <div id="callHistoryList" class="divide-y divide-surface-100">
-                    <div class="p-8 text-center text-surface-400">
-                        <span class="material-symbols-outlined text-5xl mb-3">hourglass_empty</span>
-                        <p>Đang tải lịch sử cuộc gọi...</p>
-                    </div>
-                </div>
-            </div>
-            
+      <div class="max-w-7xl mx-auto">
+        <!-- Page Header -->
+        <div
+          class="flex flex-col md:flex-row md:items-center md:justify-between mb-8"
+        >
+          <div>
+            <h1 class="text-2xl font-bold text-surface-900 dark:text-white">
+              Lịch sử cuộc gọi
+            </h1>
+            <p class="text-surface-500 mt-1">
+              Xem lại các cuộc gọi đã thực hiện
+            </p>
+          </div>
+
+          <div class="flex items-center gap-3 mt-4 md:mt-0">
+            <a
+              href="/call"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white font-medium rounded-xl transition-colors"
+            >
+              <span class="material-symbols-outlined">call</span>
+              Gọi điện
+            </a>
+          </div>
         </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white dark:bg-card-dark rounded-xl shadow-card p-4">
+            <div class="flex items-center">
+              <div
+                class="w-12 h-12 bg-primary-50 rounded-lg flex items-center justify-center mr-4"
+              >
+                <span
+                  class="material-symbols-outlined text-primary-500 text-2xl"
+                  >phone</span
+                >
+              </div>
+              <div>
+                <p
+                  class="text-2xl font-bold text-surface-900"
+                  id="statTotalCalls"
+                >
+                  -
+                </p>
+                <p class="text-sm text-surface-500">Tổng cuộc gọi</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-card-dark rounded-xl shadow-card p-4">
+            <div class="flex items-center">
+              <div
+                class="w-12 h-12 bg-error-50 rounded-lg flex items-center justify-center mr-4"
+              >
+                <span class="material-symbols-outlined text-error-500 text-2xl"
+                  >phone_missed</span
+                >
+              </div>
+              <div>
+                <p
+                  class="text-2xl font-bold text-surface-900"
+                  id="statMissedCalls"
+                >
+                  -
+                </p>
+                <p class="text-sm text-surface-500">Cuộc gọi nhỡ</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-card-dark rounded-xl shadow-card p-4">
+            <div class="flex items-center">
+              <div
+                class="w-12 h-12 bg-success-50 rounded-lg flex items-center justify-center mr-4"
+              >
+                <span
+                  class="material-symbols-outlined text-success-500 text-2xl"
+                  >schedule</span
+                >
+              </div>
+              <div>
+                <p
+                  class="text-2xl font-bold text-surface-900"
+                  id="statTotalDuration"
+                >
+                  -
+                </p>
+                <p class="text-sm text-surface-500">Tổng thời gian</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-card-dark rounded-xl shadow-card p-4">
+            <div class="flex items-center">
+              <div
+                class="w-12 h-12 bg-warning-50 rounded-lg flex items-center justify-center mr-4"
+              >
+                <span
+                  class="material-symbols-outlined text-warning-500 text-2xl"
+                  >mic</span
+                >
+              </div>
+              <div>
+                <p
+                  class="text-2xl font-bold text-surface-900"
+                  id="statRecordings"
+                >
+                  -
+                </p>
+                <p class="text-sm text-surface-500">Có ghi âm</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="bg-white dark:bg-card-dark rounded-xl shadow-card mb-6">
+          <div class="border-b border-surface-200 dark:border-surface-700">
+            <div class="flex gap-0">
+              <button
+                onclick="filterCalls('all')"
+                id="tabAll"
+                class="filter-tab px-6 py-3 text-sm font-medium border-b-2 border-primary-500 text-primary-600"
+              >
+                Tất cả
+              </button>
+              <button
+                onclick="filterCalls('outgoing')"
+                id="tabOutgoing"
+                class="filter-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-surface-500 hover:text-surface-700"
+              >
+                Gọi đi
+              </button>
+              <button
+                onclick="filterCalls('incoming')"
+                id="tabIncoming"
+                class="filter-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-surface-500 hover:text-surface-700"
+              >
+                Gọi đến
+              </button>
+              <button
+                onclick="filterCalls('missed')"
+                id="tabMissed"
+                class="filter-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-surface-500 hover:text-surface-700"
+              >
+                Nhỡ
+              </button>
+              <button
+                onclick="filterCalls('recordings')"
+                id="tabRecordings"
+                class="filter-tab px-6 py-3 text-sm font-medium border-b-2 border-transparent text-surface-500 hover:text-surface-700"
+              >
+                Có ghi âm
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Call History List -->
+        <div class="bg-white dark:bg-card-dark rounded-xl shadow-card">
+          <div id="callHistoryList" class="divide-y divide-surface-100">
+            <div class="p-8 text-center text-surface-400">
+              <span class="material-symbols-outlined text-5xl mb-3"
+                >hourglass_empty</span
+              >
+              <p>Đang tải lịch sử cuộc gọi...</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
-    
+
     <!-- Audio Player Modal -->
-    <div id="audioPlayerModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white dark:bg-card-dark rounded-2xl shadow-xl p-6 w-full max-w-md mx-4">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-surface-900">Nghe lại ghi âm</h3>
-                <button onclick="closeAudioPlayer()" class="p-2 hover:bg-surface-100 rounded-lg transition-colors">
-                    <span class="material-symbols-outlined">close</span>
-                </button>
-            </div>
-            
-            <div id="audioPlayerInfo" class="mb-4">
-                <p class="text-sm text-surface-500">Cuộc gọi với <span id="audioPlayerName" class="font-medium text-surface-900">-</span></p>
-                <p class="text-xs text-surface-400" id="audioPlayerTime">-</p>
-            </div>
-            
-            <audio id="audioPlayer" controls class="w-full"></audio>
-            
-            <div class="mt-4 flex justify-end">
-                <a id="audioDownloadLink" href="#" download class="inline-flex items-center gap-2 px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
-                    <span class="material-symbols-outlined">download</span>
-                    Tải xuống
-                </a>
-            </div>
+    <div
+      id="audioPlayerModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden"
+    >
+      <div
+        class="bg-white dark:bg-card-dark rounded-2xl shadow-xl p-6 w-full max-w-md mx-4"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-surface-900">
+            Nghe lại ghi âm
+          </h3>
+          <button
+            onclick="closeAudioPlayer()"
+            class="p-2 hover:bg-surface-100 rounded-lg transition-colors"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
         </div>
+
+        <div id="audioPlayerInfo" class="mb-4">
+          <p class="text-sm text-surface-500">
+            Cuộc gọi với
+            <span id="audioPlayerName" class="font-medium text-surface-900"
+              >-</span
+            >
+          </p>
+          <p class="text-xs text-surface-400" id="audioPlayerTime">-</p>
+        </div>
+
+        <audio id="audioPlayer" controls class="w-full"></audio>
+
+        <div class="mt-4 flex justify-end">
+          <a
+            id="audioDownloadLink"
+            href="#"
+            download
+            class="inline-flex items-center gap-2 px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+          >
+            <span class="material-symbols-outlined">download</span>
+            Tải xuống
+          </a>
+        </div>
+      </div>
     </div>
-    
+
     <script>
-        let allCalls = [];
-        let currentFilter = 'all';
-        
-        // Load on page ready
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadStatistics();
-            await loadCallHistory();
-        });
-        
-        // Load statistics
-        async function loadStatistics() {
-            try {
-                const res = await fetch('/api/web-call/statistics');
-                const stats = await res.json();
-                
-                document.getElementById('statTotalCalls').textContent = stats.totalCalls || 0;
-                document.getElementById('statMissedCalls').textContent = stats.missedCalls || 0;
-                document.getElementById('statTotalDuration').textContent = formatMinutes(stats.totalDurationMinutes || 0);
-                
-                // Count recordings
-                const recordingsRes = await fetch('/api/web-call/recordings');
-                const recordings = await recordingsRes.json();
-                document.getElementById('statRecordings').textContent = recordings.length || 0;
-                
-            } catch (err) {
-                console.error('Error loading statistics:', err);
-            }
+      let allCalls = [];
+      let currentFilter = "all";
+
+      // Load on page ready
+      document.addEventListener("DOMContentLoaded", async () => {
+        await loadStatistics();
+        await loadCallHistory();
+      });
+
+      // Load statistics
+      async function loadStatistics() {
+        try {
+          const res = await fetch("/api/web-call/statistics");
+          const stats = await res.json();
+
+          document.getElementById("statTotalCalls").textContent =
+            stats.totalCalls || 0;
+          document.getElementById("statMissedCalls").textContent =
+            stats.missedCalls || 0;
+          document.getElementById("statTotalDuration").textContent =
+            formatMinutes(stats.totalDurationMinutes || 0);
+
+          // Count recordings
+          const recordingsRes = await fetch("/api/web-call/recordings");
+          const recordings = await recordingsRes.json();
+          document.getElementById("statRecordings").textContent =
+            recordings.length || 0;
+        } catch (err) {
+          console.error("Error loading statistics:", err);
         }
-        
-        // Load call history
-        async function loadCallHistory() {
-            try {
-                const res = await fetch('/api/web-call/history?page=0&size=50');
-                const data = await res.json();
-                
-                allCalls = data.calls || [];
-                renderCallList(allCalls);
-                
-            } catch (err) {
-                console.error('Error loading call history:', err);
-                document.getElementById('callHistoryList').innerHTML = `
+      }
+
+      // Load call history
+      async function loadCallHistory() {
+        try {
+          const res = await fetch("/api/web-call/history?page=0&size=50");
+          const data = await res.json();
+
+          allCalls = data.calls || [];
+          renderCallList(allCalls);
+        } catch (err) {
+          console.error("Error loading call history:", err);
+          document.getElementById("callHistoryList").innerHTML = `
                     <div class="p-8 text-center text-error-500">
                         <span class="material-symbols-outlined text-5xl mb-3">error</span>
                         <p>Lỗi tải dữ liệu</p>
                     </div>
                 `;
-            }
         }
-        
-        // Filter calls
-        function filterCalls(filter) {
-            currentFilter = filter;
-            
-            // Update tab styles
-            document.querySelectorAll('.filter-tab').forEach(tab => {
-                tab.classList.remove('border-primary-500', 'text-primary-600');
-                tab.classList.add('border-transparent', 'text-surface-500');
-            });
-            
-            const activeTab = document.getElementById('tab' + filter.charAt(0).toUpperCase() + filter.slice(1));
-            if (activeTab) {
-                activeTab.classList.add('border-primary-500', 'text-primary-600');
-                activeTab.classList.remove('border-transparent', 'text-surface-500');
-            }
-            
-            // Filter data
-            let filteredCalls = allCalls;
-            
-            switch (filter) {
-                case 'outgoing':
-                    filteredCalls = allCalls.filter(c => c.isOutgoing);
-                    break;
-                case 'incoming':
-                    filteredCalls = allCalls.filter(c => !c.isOutgoing);
-                    break;
-                case 'missed':
-                    filteredCalls = allCalls.filter(c => c.callStatus === 'MISSED');
-                    break;
-                case 'recordings':
-                    filteredCalls = allCalls.filter(c => c.hasRecording);
-                    break;
-            }
-            
-            renderCallList(filteredCalls);
+      }
+
+      // Filter calls
+      function filterCalls(filter) {
+        currentFilter = filter;
+
+        // Update tab styles
+        document.querySelectorAll(".filter-tab").forEach((tab) => {
+          tab.classList.remove("border-primary-500", "text-primary-600");
+          tab.classList.add("border-transparent", "text-surface-500");
+        });
+
+        const activeTab = document.getElementById(
+          "tab" + filter.charAt(0).toUpperCase() + filter.slice(1),
+        );
+        if (activeTab) {
+          activeTab.classList.add("border-primary-500", "text-primary-600");
+          activeTab.classList.remove("border-transparent", "text-surface-500");
         }
-        
-        // Render call list
-        function renderCallList(calls) {
-            const container = document.getElementById('callHistoryList');
-            
-            if (!calls || calls.length === 0) {
-                container.innerHTML = `
+
+        // Filter data
+        let filteredCalls = allCalls;
+
+        switch (filter) {
+          case "outgoing":
+            filteredCalls = allCalls.filter((c) => c.isOutgoing);
+            break;
+          case "incoming":
+            filteredCalls = allCalls.filter((c) => !c.isOutgoing);
+            break;
+          case "missed":
+            filteredCalls = allCalls.filter((c) => c.callStatus === "MISSED");
+            break;
+          case "recordings":
+            filteredCalls = allCalls.filter((c) => c.hasRecording);
+            break;
+        }
+
+        renderCallList(filteredCalls);
+      }
+
+      // Render call list
+      function renderCallList(calls) {
+        const container = document.getElementById("callHistoryList");
+
+        if (!calls || calls.length === 0) {
+          container.innerHTML = `
                     <div class="p-8 text-center text-surface-400">
                         <span class="material-symbols-outlined text-5xl mb-3">phone_disabled</span>
                         <p>Không có cuộc gọi nào</p>
                     </div>
                 `;
-                return;
-            }
-            
-            container.innerHTML = calls.map(call => `
+          return;
+        }
+
+        container.innerHTML = calls
+          .map(
+            (call) => `
                 <div class="p-4 hover:bg-surface-50 transition-colors">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
@@ -272,9 +352,9 @@
                                     ${getInitials(call.otherUserName)}
                                 </div>
                                 <div>
-                                    <p class="font-medium text-surface-900">${escapeHtml(call.otherUserName || 'Người dùng')}</p>
+                                    <p class="font-medium text-surface-900">${escapeHtml(call.otherUserName || "Người dùng")}</p>
                                     <p class="text-sm text-surface-500">
-                                        ${call.isOutgoing ? 'Gọi đi' : 'Gọi đến'} • ${formatDateTime(call.startTime)}
+                                        ${call.isOutgoing ? "Gọi đi" : "Gọi đến"} • ${formatDateTime(call.startTime)}
                                     </p>
                                 </div>
                             </div>
@@ -283,27 +363,40 @@
                         <div class="flex items-center gap-4">
                             <!-- Duration -->
                             <div class="text-right">
-                                <p class="font-medium text-surface-900">${call.durationFormatted || '0:00'}</p>
+                                <p class="font-medium text-surface-900">${call.durationFormatted || "0:00"}</p>
                                 <p class="text-xs ${getStatusClass(call.callStatus)}">${getStatusLabel(call.callStatus)}</p>
                             </div>
                             
                             <!-- Rating -->
-                            ${call.rating ? `
+                            ${
+                              call.rating
+                                ? `
                                 <div class="flex items-center">
-                                    ${Array(5).fill(0).map((_, i) => `
-                                        <span class="material-symbols-outlined text-sm ${i < call.rating ? 'text-warning-500' : 'text-surface-300'}">star</span>
-                                    `).join('')}
+                                    ${Array(5)
+                                      .fill(0)
+                                      .map(
+                                        (_, i) => `
+                                        <span class="material-symbols-outlined text-sm ${i < call.rating ? "text-warning-500" : "text-surface-300"}">star</span>
+                                    `,
+                                      )
+                                      .join("")}
                                 </div>
-                            ` : ''}
+                            `
+                                : ""
+                            }
                             
                             <!-- Actions -->
                             <div class="flex items-center gap-2">
-                                ${call.hasRecording ? `
+                                ${
+                                  call.hasRecording
+                                    ? `
                                     <button onclick="playRecording(${call.id}, '${escapeHtml(call.otherUserName)}', '${call.startTime}', '${call.recordingUrl}')"
                                             class="p-2 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors" title="Nghe ghi âm">
                                         <span class="material-symbols-outlined text-primary-600">play_circle</span>
                                     </button>
-                                ` : ''}
+                                `
+                                    : ""
+                                }
                                 <button onclick="callUser(${call.otherUserId}, '${escapeHtml(call.otherUserName)}')"
                                         class="p-2 bg-success-50 hover:bg-success-100 rounded-lg transition-colors" title="Gọi lại">
                                     <span class="material-symbols-outlined text-success-600">call</span>
@@ -312,109 +405,120 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `,
+          )
+          .join("");
+      }
+
+      // Play recording
+      function playRecording(callId, userName, time, url) {
+        if (!url) {
+          alert("Không tìm thấy file ghi âm");
+          return;
         }
-        
-        // Play recording
-        function playRecording(callId, userName, time, url) {
-            if (!url) {
-                alert('Không tìm thấy file ghi âm');
-                return;
-            }
-            
-            document.getElementById('audioPlayerName').textContent = userName;
-            document.getElementById('audioPlayerTime').textContent = formatDateTime(time);
-            document.getElementById('audioPlayer').src = url;
-            document.getElementById('audioDownloadLink').href = url;
-            document.getElementById('audioPlayerModal').classList.remove('hidden');
+
+        document.getElementById("audioPlayerName").textContent = userName;
+        document.getElementById("audioPlayerTime").textContent =
+          formatDateTime(time);
+        document.getElementById("audioPlayer").src = url;
+        document.getElementById("audioDownloadLink").href = url;
+        document.getElementById("audioPlayerModal").classList.remove("hidden");
+      }
+
+      function closeAudioPlayer() {
+        document.getElementById("audioPlayerModal").classList.add("hidden");
+        document.getElementById("audioPlayer").pause();
+        document.getElementById("audioPlayer").src = "";
+      }
+
+      // Call user (redirect to call page)
+      function callUser(userId, userName) {
+        // Could implement direct calling here, but for simplicity redirect to call page
+        window.location.href = "/call?callTo=" + userId;
+      }
+
+      // Helper functions
+      function getCallIcon(call) {
+        if (call.callStatus === "MISSED") return "phone_missed";
+        if (call.callStatus === "REJECTED") return "phone_disabled";
+        if (call.isOutgoing) return "call_made";
+        return "call_received";
+      }
+
+      function getCallIconClass(call) {
+        if (call.callStatus === "MISSED" || call.callStatus === "REJECTED") {
+          return "bg-error-50 text-error-500";
         }
-        
-        function closeAudioPlayer() {
-            document.getElementById('audioPlayerModal').classList.add('hidden');
-            document.getElementById('audioPlayer').pause();
-            document.getElementById('audioPlayer').src = '';
+        if (call.isOutgoing) {
+          return "bg-primary-50 text-primary-500";
         }
-        
-        // Call user (redirect to call page)
-        function callUser(userId, userName) {
-            // Could implement direct calling here, but for simplicity redirect to call page
-            window.location.href = '/call?callTo=' + userId;
-        }
-        
-        // Helper functions
-        function getCallIcon(call) {
-            if (call.callStatus === 'MISSED') return 'phone_missed';
-            if (call.callStatus === 'REJECTED') return 'phone_disabled';
-            if (call.isOutgoing) return 'call_made';
-            return 'call_received';
-        }
-        
-        function getCallIconClass(call) {
-            if (call.callStatus === 'MISSED' || call.callStatus === 'REJECTED') {
-                return 'bg-error-50 text-error-500';
-            }
-            if (call.isOutgoing) {
-                return 'bg-primary-50 text-primary-500';
-            }
-            return 'bg-success-50 text-success-500';
-        }
-        
-        function getStatusLabel(status) {
-            const labels = {
-                'INITIATED': 'Khởi tạo',
-                'RINGING': 'Đổ chuông',
-                'ANSWERED': 'Đã nghe',
-                'COMPLETED': 'Hoàn thành',
-                'MISSED': 'Nhỡ',
-                'REJECTED': 'Từ chối',
-                'CANCELLED': 'Đã hủy',
-                'FAILED': 'Thất bại'
-            };
-            return labels[status] || status;
-        }
-        
-        function getStatusClass(status) {
-            if (status === 'COMPLETED' || status === 'ANSWERED') return 'text-success-600';
-            if (status === 'MISSED' || status === 'REJECTED' || status === 'FAILED') return 'text-error-600';
-            return 'text-surface-500';
-        }
-        
-        function getInitials(name) {
-            if (!name) return '?';
-            return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-        }
-        
-        function formatDateTime(dateStr) {
-            if (!dateStr) return '-';
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('vi-VN', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-        
-        function formatMinutes(mins) {
-            if (mins < 60) return mins + ' phút';
-            const hours = Math.floor(mins / 60);
-            const remaining = mins % 60;
-            return `${hours}h ${remaining}p`;
-        }
-        
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-        
-        // Close modal on backdrop click
-        document.getElementById('audioPlayerModal').addEventListener('click', function(e) {
-            if (e.target === this) closeAudioPlayer();
+        return "bg-success-50 text-success-500";
+      }
+
+      function getStatusLabel(status) {
+        const labels = {
+          INITIATED: "Khởi tạo",
+          RINGING: "Đổ chuông",
+          ANSWERED: "Đã nghe",
+          COMPLETED: "Hoàn thành",
+          MISSED: "Nhỡ",
+          REJECTED: "Từ chối",
+          CANCELLED: "Đã hủy",
+          FAILED: "Thất bại",
+        };
+        return labels[status] || status;
+      }
+
+      function getStatusClass(status) {
+        if (status === "COMPLETED" || status === "ANSWERED")
+          return "text-success-600";
+        if (status === "MISSED" || status === "REJECTED" || status === "FAILED")
+          return "text-error-600";
+        return "text-surface-500";
+      }
+
+      function getInitials(name) {
+        if (!name) return "?";
+        return name
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .substring(0, 2)
+          .toUpperCase();
+      }
+
+      function formatDateTime(dateStr) {
+        if (!dateStr) return "-";
+        const date = new Date(dateStr);
+        return date.toLocaleDateString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      function formatMinutes(mins) {
+        if (mins < 60) return mins + " phút";
+        const hours = Math.floor(mins / 60);
+        const remaining = mins % 60;
+        return `${hours}h ${remaining}p`;
+      }
+
+      function escapeHtml(text) {
+        if (!text) return "";
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // Close modal on backdrop click
+      document
+        .getElementById("audioPlayerModal")
+        .addEventListener("click", function (e) {
+          if (e.target === this) closeAudioPlayer();
         });
     </script>
-    
-</body>
+  </body>
 </html>

@@ -12,52 +12,58 @@ import java.util.Optional;
 @Repository
 public interface KnowledgeCategoryRepository extends JpaRepository<KnowledgeCategory, Long> {
 
-    // Find root categories (no parent)
-    List<KnowledgeCategory> findByParentIsNullAndActiveTrue();
+        // Find root categories (no parent)
+        List<KnowledgeCategory> findByParentIsNullAndActiveTrue();
 
-    // Find children of a category
-    List<KnowledgeCategory> findByParentIdAndActiveTrue(Long parentId);
+        // Find children of a category
+        List<KnowledgeCategory> findByParentIdAndActiveTrue(Long parentId);
 
-    // Find all active categories ordered
-    List<KnowledgeCategory> findByActiveTrueOrderByDisplayOrderAscNameAsc();
+        // Find all active categories ordered
+        List<KnowledgeCategory> findByActiveTrueOrderByDisplayOrderAscNameAsc();
 
-    // Find category by name
-    Optional<KnowledgeCategory> findByNameAndActiveTrue(String name);
+        // Find all active categories ordered by displayOrder
+        List<KnowledgeCategory> findByActiveTrueOrderByDisplayOrderAsc();
 
-    // Check if name exists (for validation)
-    boolean existsByNameAndIdNot(String name, Long id);
+        // Count active categories
+        long countByActiveTrue();
 
-    // Get category with all children (recursive)
-    @Query("SELECT c FROM KnowledgeCategory c " +
-            "LEFT JOIN FETCH c.children " +
-            "WHERE c.id = :id AND c.active = true")
-    Optional<KnowledgeCategory> findByIdWithChildren(@Param("id") Long id);
+        // Find category by name
+        Optional<KnowledgeCategory> findByNameAndActiveTrue(String name);
 
-    // Get full category tree
-    @Query("SELECT c FROM KnowledgeCategory c " +
-            "LEFT JOIN FETCH c.parent " +
-            "WHERE c.active = true " +
-            "ORDER BY c.displayOrder ASC, c.name ASC")
-    List<KnowledgeCategory> findAllWithParent();
+        // Check if name exists (for validation)
+        boolean existsByNameAndIdNot(String name, Long id);
 
-    // Count articles in category (including subcategories)
-    @Query("SELECT COUNT(a) FROM KnowledgeArticle a " +
-            "WHERE a.category.id = :categoryId " +
-            "OR a.category.parent.id = :categoryId")
-    long countArticlesInCategoryTree(@Param("categoryId") Long categoryId);
+        // Get category with all children (recursive)
+        @Query("SELECT c FROM KnowledgeCategory c " +
+                        "LEFT JOIN FETCH c.children " +
+                        "WHERE c.id = :id AND c.active = true")
+        Optional<KnowledgeCategory> findByIdWithChildren(@Param("id") Long id);
 
-    // Find categories with article count
-    @Query("SELECT c, COUNT(a) as articleCount FROM KnowledgeCategory c " +
-            "LEFT JOIN c.articles a " +
-            "WHERE c.active = true " +
-            "GROUP BY c " +
-            "ORDER BY c.displayOrder ASC, c.name ASC")
-    List<Object[]> findAllWithArticleCount();
+        // Get full category tree
+        @Query("SELECT c FROM KnowledgeCategory c " +
+                        "LEFT JOIN FETCH c.parent " +
+                        "WHERE c.active = true " +
+                        "ORDER BY c.displayOrder ASC, c.name ASC")
+        List<KnowledgeCategory> findAllWithParent();
 
-    // Search categories by name
-    @Query("SELECT c FROM KnowledgeCategory c " +
-            "WHERE c.active = true " +
-            "AND LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
-            "ORDER BY c.displayOrder ASC")
-    List<KnowledgeCategory> searchByName(@Param("keyword") String keyword);
+        // Count articles in category (including subcategories)
+        @Query("SELECT COUNT(a) FROM KnowledgeArticle a " +
+                        "WHERE a.category.id = :categoryId " +
+                        "OR a.category.parent.id = :categoryId")
+        long countArticlesInCategoryTree(@Param("categoryId") Long categoryId);
+
+        // Find categories with article count
+        @Query("SELECT c, COUNT(a) as articleCount FROM KnowledgeCategory c " +
+                        "LEFT JOIN c.articles a " +
+                        "WHERE c.active = true " +
+                        "GROUP BY c " +
+                        "ORDER BY c.displayOrder ASC, c.name ASC")
+        List<Object[]> findAllWithArticleCount();
+
+        // Search categories by name
+        @Query("SELECT c FROM KnowledgeCategory c " +
+                        "WHERE c.active = true " +
+                        "AND LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+                        "ORDER BY c.displayOrder ASC")
+        List<KnowledgeCategory> searchByName(@Param("keyword") String keyword);
 }

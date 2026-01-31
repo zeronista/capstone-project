@@ -1,770 +1,767 @@
 <!doctype html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-  <head th:fragment="head(title)">
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title th:text="${title}">ISSVSG - Healthcare Management</title>
-
-    <!-- Google Fonts - Poppins + Open Sans -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-
-    <!-- Centralized Tailwind Configuration -->
-    <script th:src="@{/static/js/tailwind-config.js}"></script>
-
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Consolidated Application Styles -->
-    <link rel="stylesheet" th:href="@{/static/css/app.css}" />
+    <!-- 
+    ABClinic Unified Layout System
+    
+    This file contains shared layout fragments for the entire application.
+    All templates should use these fragments to maintain consistency.
+    
+    Usage:
+      - Sidebar: th:replace="~{fragments/layout :: sidebar(role='admin', activeMenu='dashboard')}"
+      - Header:  th:replace="~{fragments/layout :: header}"
+      - Scripts: th:replace="~{fragments/layout :: scripts}"
+    
+    @version 2.0.0 - Unified Design System
+    @date January 31, 2026
+    -->
   </head>
+  <body>
+    <!-- ==================================================================================
+         HEAD FRAGMENT - Common head elements
+         ================================================================================== -->
+    <th:block th:fragment="head(title)">
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title th:text="${title} + ' - ABClinic'">ABClinic</title>
 
-  <!-- Mobile Overlay (backdrop for mobile menu) -->
-  <div
-    th:fragment="mobile-overlay"
-    id="mobile-sidebar-overlay"
-    class="fixed inset-0 bg-surface-900/50 z-30 lg:hidden hidden"
-    onclick="toggleMobileMenu()"
-  ></div>
+      <!-- Google Fonts - Roboto (Primary) -->
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&amp;display=swap"
+        rel="stylesheet"
+      />
 
-  <!-- Sidebar Fragment -->
-  <nav
-    th:fragment="sidebar"
-    id="sidebar"
-    class="fixed left-0 top-0 h-full w-64 bg-white border-r border-surface-200 z-40 flex flex-col transform transition-transform duration-300 ease-in-out lg:translate-x-0 -translate-x-full"
-  >
-    <!-- Logo -->
-    <div
-      class="h-16 flex items-center justify-between px-6 border-b border-surface-200"
-    >
-      <div class="flex items-center gap-3">
-        <div
-          class="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-xl flex items-center justify-center"
-        >
-          <svg
-            class="w-6 h-6 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-            />
-          </svg>
-        </div>
-        <span class="font-heading font-bold text-xl text-surface-900"
-          >ISSVSG</span
-        >
-      </div>
-      <!-- Close button for mobile -->
-      <button
-        onclick="toggleMobileMenu()"
-        class="lg:hidden p-1 text-surface-500 hover:text-surface-900 hover:bg-surface-100 rounded-lg transition-smooth"
-        aria-label="Đóng menu"
-      >
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
-    </div>
+      <!-- Material Symbols Outlined -->
+      <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet"
+      />
 
-    <!-- Navigation -->
-    <div class="flex-1 overflow-y-auto py-4">
-      <!-- Dashboard -->
-      <div class="px-4 mb-6">
-        <p
-          class="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3 px-2"
-        >
-          Tổng quan
-        </p>
-        <a
-          href="/dashboard"
-          class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-        >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-            />
-          </svg>
-          <span class="font-medium">Dashboard</span>
-        </a>
-      </div>
+      <!-- Tailwind CSS with ABClinic Config -->
+      <script th:src="@{/js/tailwind-config.js}"></script>
+      <script
+        src="https://cdn.tailwindcss.com?plugins=forms,container-queries"
+      ></script>
 
-      <!-- Quản trị hệ thống -->
-      <div class="px-4 mb-6">
-        <p
-          class="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3 px-2"
-        >
-          Quản trị
-        </p>
-        <div class="space-y-1">
-          <a
-            href="/admin/accounts"
-            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <span>Quản lý tài khoản</span>
-          </a>
-          <a
-            href="/admin/users"
-            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-              />
-            </svg>
-            <span>Quản lý người dùng</span>
-          </a>
-        </div>
-      </div>
+      <!-- ABClinic Styles -->
+      <link th:href="@{/css/app.css}" rel="stylesheet" />
 
-      <!-- Y tế & Lâm sàng -->
-      <div class="px-4 mb-6">
-        <p
-          class="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3 px-2"
-        >
-          Y tế & Lâm sàng
-        </p>
-        <div class="space-y-1">
-          <a
-            href="/medical/prescriptions"
-            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <span>Kê đơn thuốc</span>
-          </a>
-          <a
-            href="/medical/treatments"
-            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-              />
-            </svg>
-            <span>Kế hoạch điều trị</span>
-          </a>
-          <a
-            href="/medical/forecast"
-            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
-            </svg>
-            <span>Dự báo sức khỏe</span>
-          </a>
-          <a
-            href="/medical/knowledge"
-            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-              />
-            </svg>
-            <span>Cơ sở tri thức</span>
-          </a>
-        </div>
-      </div>
+      <style>
+        /* Material Symbols Default Settings */
+        .material-symbols-outlined {
+          font-variation-settings:
+            "FILL" 0,
+            "wght" 400,
+            "GRAD" 0,
+            "opsz" 24;
+          font-size: 24px;
+        }
+        .material-symbols-outlined.fill {
+          font-variation-settings: "FILL" 1;
+        }
 
-      <!-- AI & Call Center -->
-      <div class="px-4 mb-6">
-        <p
-          class="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3 px-2"
-        >
-          AI & Thoại
-        </p>
-        <div class="space-y-1">
-          <!-- Web Call - Gọi điện trực tiếp -->
-          <a
-            href="/call"
-            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer group"
-          >
-            <div class="relative">
-              <svg
-                class="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                />
-              </svg>
-              <!-- Online indicator badge -->
-              <span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-success-500 border border-white rounded-full animate-pulse"></span>
-            </div>
-            <span class="font-medium">Gọi điện</span>
-            <span class="ml-auto px-2 py-0.5 bg-primary-50 text-primary-600 text-xs font-semibold rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-              NEW
-            </span>
-          </a>
-          
-          <a
-            href="/ai/calls"
-            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
-            </svg>
-            <span>Quản lý cuộc gọi AI</span>
-          </a>
-          <a
-            href="/ai/voice"
-            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-              />
-            </svg>
-            <span>Xử lý giọng nói</span>
-          </a>
-          <a
-            href="/ai/config"
-            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-            <span>Cấu hình AI Call</span>
-          </a>
-        </div>
-      </div>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
 
-      <!-- CRM -->
-      <div class="px-4 mb-6">
-        <p
-          class="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3 px-2"
-        >
-          Chăm sóc khách hàng
-        </p>
-        <div class="space-y-1">
-          <a
-            href="/crm/tickets"
-            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-              />
-            </svg>
-            <span>Quản lý Ticket</span>
-          </a>
-          <a
-            href="/crm/surveys"
-            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-              />
-            </svg>
-            <span>Khảo sát</span>
-          </a>
-          <a
-            href="/crm/social"
-            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"
-              />
-            </svg>
-            <span>Mạng xã hội</span>
-          </a>
-          <a
-            href="/crm/notifications"
-            class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-              />
-            </svg>
-            <span>Thông báo & Nhắc nhở</span>
-          </a>
-        </div>
-      </div>
-
-      <!-- Báo cáo -->
-      <div class="px-4 mb-6">
-        <p
-          class="text-xs font-semibold text-surface-400 uppercase tracking-wider mb-3 px-2"
-        >
-          Báo cáo
-        </p>
-        <a
-          href="/reports"
-          class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-600 hover:bg-surface-100 hover:text-surface-900 transition-smooth cursor-pointer"
-        >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          <span>Kho báo cáo</span>
-        </a>
-      </div>
-    </div>
-
-    <!-- User Profile at Bottom -->
-    <div class="border-t border-surface-200 p-4">
-      <a
-        href="/profile"
-        class="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-100 transition-smooth cursor-pointer"
-      >
-        <div
-          class="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center"
-        >
-          <span class="text-white font-semibold text-sm">NV</span>
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-surface-900 truncate">
-            Nguyễn Văn A
-          </p>
-          <p class="text-xs text-surface-500 truncate">Bác sĩ</p>
-        </div>
-        <svg
-          class="w-5 h-5 text-surface-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
-      </a>
-    </div>
-  </nav>
-
-  <!-- Top Navbar Fragment -->
-  <header
-    th:fragment="navbar"
-    class="fixed top-0 lg:top-4 left-0 lg:left-72 right-0 lg:right-4 h-16 lg:h-14 bg-white lg:bg-white/90 lg:backdrop-blur-sm border-b lg:border lg:border-surface-200 lg:rounded-2xl z-30 flex items-center justify-between px-4 lg:px-6 shadow-sm"
-  >
-    <!-- Mobile Menu Button -->
-    <button
-      onclick="toggleMobileMenu()"
-      class="lg:hidden p-2 text-surface-500 hover:text-surface-900 hover:bg-surface-100 rounded-xl transition-smooth"
-      aria-label="Mở menu"
-    >
-      <svg
-        class="w-6 h-6"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M4 6h16M4 12h16M4 18h16"
-        />
-      </svg>
-    </button>
-
-    <!-- Search -->
-    <div class="flex-1 max-w-md hidden sm:block">
-      <div class="relative">
-        <svg
-          class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
-        <input
-          type="text"
-          placeholder="Tìm kiếm bệnh nhân, đơn thuốc..."
-          class="w-full pl-10 pr-4 py-2 bg-surface-50 border border-surface-200 rounded-xl text-sm text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-smooth"
-        />
-      </div>
-    </div>
-
-    <!-- Logo for mobile (centered) -->
-    <div
-      class="lg:hidden flex items-center gap-2 absolute left-1/2 -translate-x-1/2"
-    >
-      <div
-        class="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-lg flex items-center justify-center"
-      >
-        <svg
-          class="w-5 h-5 text-white"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-          />
-        </svg>
-      </div>
-      <span class="font-heading font-bold text-lg text-surface-900"
-        >ISSVSG</span
-      >
-    </div>
-
-    <!-- Right Actions -->
-    <div class="flex items-center gap-2 sm:gap-4">
-      <!-- Call Button - Featured -->
-      <a
-        href="/call"
-        class="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-success-500 to-success-600 hover:from-success-600 hover:to-success-700 text-white font-medium rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer"
-        title="Gọi điện"
-      >
-        <svg
-          class="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-          />
-        </svg>
-        <span class="hidden md:inline">Gọi điện</span>
-      </a>
-      
-      <!-- Call Button for Mobile -->
-      <a
-        href="/call"
-        class="sm:hidden p-2 bg-success-500 hover:bg-success-600 text-white rounded-xl transition-smooth shadow-sm"
-        aria-label="Gọi điện"
-      >
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-          />
-        </svg>
-      </a>
-      
-      <!-- Search button for mobile -->
-      <button
-        class="sm:hidden p-2 text-surface-500 hover:text-surface-900 hover:bg-surface-100 rounded-xl transition-smooth"
-        aria-label="Tìm kiếm"
-      >
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
-      </button>
-
-      <!-- Notifications -->
-      <button
-        class="relative p-2 text-surface-500 hover:text-surface-900 hover:bg-surface-100 rounded-xl transition-smooth cursor-pointer"
-        aria-label="Thông báo"
-      >
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-          />
-        </svg>
-        <span
-          class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"
-        ></span>
-      </button>
-
-      <!-- Settings (hidden on mobile) -->
-      <button
-        class="hidden sm:block p-2 text-surface-500 hover:text-surface-900 hover:bg-surface-100 rounded-xl transition-smooth cursor-pointer"
-        aria-label="Cài đặt"
-      >
-        <svg
-          class="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-          />
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-          />
-        </svg>
-      </button>
-
-      <!-- Divider (hidden on mobile) -->
-      <div class="hidden sm:block h-8 w-px bg-surface-200"></div>
-
-      <!-- User Quick Menu -->
-      <button class="flex items-center gap-2 cursor-pointer">
-        <div
-          class="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center"
-        >
-          <span class="text-white font-semibold text-xs sm:text-sm">NV</span>
-        </div>
-        <svg
-          class="hidden sm:block w-4 h-4 text-surface-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M19 9l-7 7-7-7"
-          />
-        </svg>
-      </button>
-    </div>
-  </header>
-
-  <!-- Mobile Menu Toggle Script -->
-  <script th:fragment="mobile-menu-script">
-    function toggleMobileMenu() {
-      const sidebar = document.getElementById("sidebar");
-      const overlay = document.getElementById("mobile-sidebar-overlay");
-
-      if (sidebar && overlay) {
-        sidebar.classList.toggle("-translate-x-full");
-        sidebar.classList.toggle("translate-x-0");
-        overlay.classList.toggle("hidden");
-      }
-    }
-
-    // Close mobile menu when clicking outside (on overlay)
-    document.addEventListener("DOMContentLoaded", function () {
-      const overlay = document.getElementById("mobile-sidebar-overlay");
-      if (overlay) {
-        overlay.addEventListener("click", toggleMobileMenu);
-      }
-
-      // Close mobile menu on window resize to desktop
-      let resizeTimer;
-      window.addEventListener("resize", function () {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function () {
-          if (window.innerWidth >= 1024) {
-            // lg breakpoint
-            const sidebar = document.getElementById("sidebar");
-            const overlay = document.getElementById("mobile-sidebar-overlay");
-            if (sidebar && overlay) {
-              sidebar.classList.remove("-translate-x-full");
-              sidebar.classList.add("translate-x-0");
-              overlay.classList.add("hidden");
-            }
+        /* Sidebar Transition States */
+        .sidebar-hidden {
+          transform: translateX(-100%);
+        }
+        .sidebar-open {
+          transform: translateX(0);
+        }
+        @media (min-width: 1024px) {
+          .sidebar-hidden {
+            transform: translateX(0);
           }
-        }, 250);
-      });
-    });
-  </script>
+          .sidebar-collapsed {
+            width: 4.5rem !important;
+          }
+          .sidebar-collapsed .sidebar-text {
+            display: none;
+          }
+          .sidebar-collapsed .sidebar-logo-text {
+            display: none;
+          }
+        }
+      </style>
+    </th:block>
 
-  <!-- Main Content Wrapper -->
-  <main
-    th:fragment="content-wrapper"
-    class="lg:ml-64 pt-20 lg:pt-24 pb-8 px-4 md:px-6 lg:px-8 min-h-screen bg-surface-50"
-  >
-    <!-- Content goes here -->
-  </main>
+    <!-- ==================================================================================
+         SIDEBAR BACKDROP (Mobile)
+         ================================================================================== -->
+    <div
+      th:fragment="sidebar-backdrop"
+      data-sidebar-backdrop
+      class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"
+      aria-hidden="true"
+    ></div>
+
+    <!-- ==================================================================================
+         ADMIN SIDEBAR
+         ================================================================================== -->
+    <aside
+      th:fragment="admin-sidebar"
+      data-sidebar
+      aria-label="Menu điều hướng chính"
+      class="w-64 bg-white dark:bg-[#1a2634] border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 transition-all duration-300 fixed lg:relative inset-y-0 left-0 z-40 sidebar-hidden lg:sidebar-open"
+    >
+      <!-- Logo Section -->
+      <div
+        class="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800"
+      >
+        <a
+          th:href="@{/admin/dashboard}"
+          class="flex items-center gap-2 text-primary"
+        >
+          <span class="material-symbols-outlined fill text-[28px]"
+            >admin_panel_settings</span
+          >
+          <h1
+            class="sidebar-text sidebar-logo-text text-xl font-bold tracking-tight text-slate-900 dark:text-white"
+          >
+            ABClinic
+          </h1>
+        </a>
+      </div>
+
+      <!-- Navigation Menu -->
+      <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/admin/dashboard"
+          th:href="@{/admin/dashboard}"
+          title="Bảng điều khiển"
+        >
+          <span class="material-symbols-outlined text-[20px]">dashboard</span>
+          <span class="sidebar-text text-sm font-medium">Bảng điều khiển</span>
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/admin/accounts"
+          th:href="@{/admin/accounts}"
+          title="Quản lý tài khoản"
+        >
+          <span class="material-symbols-outlined text-[20px]"
+            >manage_accounts</span
+          >
+          <span class="sidebar-text text-sm font-medium"
+            >Quản lý tài khoản</span
+          >
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/admin/users"
+          th:href="@{/admin/users}"
+          title="Quản lý người dùng"
+        >
+          <span class="material-symbols-outlined text-[20px]">groups</span>
+          <span class="sidebar-text text-sm font-medium"
+            >Quản lý người dùng</span
+          >
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/admin/reports"
+          th:href="@{/reports}"
+          title="Báo cáo"
+        >
+          <span class="material-symbols-outlined text-[20px]">assessment</span>
+          <span class="sidebar-text text-sm font-medium"
+            >Báo cáo & Thống kê</span
+          >
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/crm"
+          th:href="@{/crm/tickets}"
+          title="CRM"
+        >
+          <span class="material-symbols-outlined text-[20px]"
+            >support_agent</span
+          >
+          <span class="sidebar-text text-sm font-medium">CRM & Hỗ trợ</span>
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/ai"
+          th:href="@{/ai/calls}"
+          title="AI & Tích hợp"
+        >
+          <span class="material-symbols-outlined text-[20px]">smart_toy</span>
+          <span class="sidebar-text text-sm font-medium">AI & Tích hợp</span>
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/admin/settings"
+          th:href="@{/admin/settings}"
+          title="Cài đặt"
+        >
+          <span class="material-symbols-outlined text-[20px]">settings</span>
+          <span class="sidebar-text text-sm font-medium">Cài đặt hệ thống</span>
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/admin/profile"
+          th:href="@{/admin/profile}"
+          title="Hồ sơ cá nhân"
+        >
+          <span class="material-symbols-outlined text-[20px]">person</span>
+          <span class="sidebar-text text-sm font-medium">Hồ sơ cá nhân</span>
+        </a>
+      </div>
+
+      <!-- User Profile Section -->
+      <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+        <a
+          th:href="@{/admin/profile}"
+          class="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+        >
+          <div
+            class="bg-primary rounded-full size-10 shrink-0 flex items-center justify-center text-white font-semibold"
+          >
+            <span
+              th:if="${admin != null}"
+              th:text="${admin.userInfo != null && admin.userInfo.fullName != null} ? ${admin.userInfo.fullName.substring(0,1)} : 'A'"
+              >A</span
+            >
+            <span th:unless="${admin != null}">A</span>
+          </div>
+          <div class="overflow-hidden sidebar-text">
+            <p
+              class="text-sm font-bold text-slate-900 dark:text-white truncate"
+              th:text="${admin != null && admin.userInfo != null} ? ${admin.userInfo.fullName} : 'Admin'"
+            >
+              Admin
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+              Quản trị viên
+            </p>
+          </div>
+        </a>
+        <form th:action="@{/auth/logout}" method="post" class="mt-3">
+          <button
+            type="submit"
+            class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+          >
+            <span class="material-symbols-outlined text-[20px]">logout</span>
+            <span class="sidebar-text">Đăng xuất</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Active menu highlight script -->
+      <script>
+        (function () {
+          const currentPath = window.location.pathname;
+          const menuItems = document.querySelectorAll(".menu-item");
+          menuItems.forEach((item) => {
+            const itemPath = item.getAttribute("data-path");
+            if (itemPath && currentPath.startsWith(itemPath)) {
+              item.classList.add(
+                "bg-primary/10",
+                "text-primary",
+                "dark:text-primary",
+              );
+              item.classList.remove("text-slate-600", "dark:text-slate-400");
+              const icon = item.querySelector(".material-symbols-outlined");
+              if (icon) {
+                icon.style.fontVariationSettings =
+                  '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24';
+              }
+            }
+          });
+        })();
+      </script>
+    </aside>
+
+    <!-- ==================================================================================
+         RECEPTIONIST SIDEBAR
+         ================================================================================== -->
+    <aside
+      th:fragment="receptionist-sidebar"
+      data-sidebar
+      aria-label="Menu điều hướng chính"
+      class="w-64 bg-white dark:bg-[#1a2634] border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 transition-all duration-300 fixed lg:relative inset-y-0 left-0 z-40 sidebar-hidden lg:sidebar-open"
+    >
+      <!-- Logo Section -->
+      <div
+        class="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800"
+      >
+        <a
+          th:href="@{/receptionist/dashboard}"
+          class="flex items-center gap-2 text-primary"
+        >
+          <span class="material-symbols-outlined fill text-[28px]"
+            >support_agent</span
+          >
+          <h1
+            class="sidebar-text sidebar-logo-text text-xl font-bold tracking-tight text-slate-900 dark:text-white"
+          >
+            ABClinic
+          </h1>
+        </a>
+      </div>
+
+      <!-- Navigation Menu -->
+      <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/receptionist/dashboard"
+          th:href="@{/receptionist/dashboard}"
+          title="Bảng điều khiển"
+        >
+          <span class="material-symbols-outlined text-[20px]">dashboard</span>
+          <span class="sidebar-text text-sm font-medium">Bảng điều khiển</span>
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/receptionist/appointments"
+          th:href="@{/receptionist/appointments}"
+          title="Lịch hẹn"
+        >
+          <span class="material-symbols-outlined text-[20px]"
+            >calendar_month</span
+          >
+          <span class="sidebar-text text-sm font-medium">Lịch hẹn</span>
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/receptionist/callbot"
+          th:href="@{/receptionist/callbot}"
+          title="Callbot AI"
+        >
+          <span class="material-symbols-outlined text-[20px]">call</span>
+          <span class="sidebar-text text-sm font-medium">Callbot AI</span>
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/receptionist/tickets"
+          th:href="@{/receptionist/tickets}"
+          title="Tickets"
+        >
+          <span class="material-symbols-outlined text-[20px]"
+            >confirmation_number</span
+          >
+          <span class="sidebar-text text-sm font-medium">Ticket hỗ trợ</span>
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/receptionist/patients"
+          th:href="@{/receptionist/patients}"
+          title="Bệnh nhân"
+        >
+          <span class="material-symbols-outlined text-[20px]">groups</span>
+          <span class="sidebar-text text-sm font-medium">Bệnh nhân</span>
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/doctor/knowledge"
+          th:href="@{/doctor/knowledge}"
+          title="Tri thức Y tế"
+        >
+          <span class="material-symbols-outlined text-[20px]">menu_book</span>
+          <span class="sidebar-text text-sm font-medium">Tri thức Y tế</span>
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/receptionist/profile"
+          th:href="@{/receptionist/profile}"
+          title="Hồ sơ cá nhân"
+        >
+          <span class="material-symbols-outlined text-[20px]">person</span>
+          <span class="sidebar-text text-sm font-medium">Hồ sơ cá nhân</span>
+        </a>
+      </div>
+
+      <!-- User Profile Section -->
+      <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+        <a
+          th:href="@{/receptionist/profile}"
+          class="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+        >
+          <div
+            class="bg-primary rounded-full size-10 shrink-0 flex items-center justify-center text-white font-semibold"
+          >
+            <span
+              th:if="${receptionist != null}"
+              th:text="${receptionist.userInfo != null && receptionist.userInfo.fullName != null} ? ${receptionist.userInfo.fullName.substring(0,1)} : 'R'"
+              >R</span
+            >
+            <span th:unless="${receptionist != null}">R</span>
+          </div>
+          <div class="overflow-hidden sidebar-text">
+            <p
+              class="text-sm font-bold text-slate-900 dark:text-white truncate"
+              th:text="${receptionist != null && receptionist.userInfo != null} ? ${receptionist.userInfo.fullName} : 'Lễ tân'"
+            >
+              Lễ tân
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+              Lễ tân
+            </p>
+          </div>
+        </a>
+        <form th:action="@{/auth/logout}" method="post" class="mt-3">
+          <button
+            type="submit"
+            class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+          >
+            <span class="material-symbols-outlined text-[20px]">logout</span>
+            <span class="sidebar-text">Đăng xuất</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Active menu highlight script -->
+      <script>
+        (function () {
+          const currentPath = window.location.pathname;
+          const menuItems = document.querySelectorAll(".menu-item");
+          menuItems.forEach((item) => {
+            const itemPath = item.getAttribute("data-path");
+            if (itemPath && currentPath.startsWith(itemPath)) {
+              item.classList.add(
+                "bg-primary/10",
+                "text-primary",
+                "dark:text-primary",
+              );
+              item.classList.remove("text-slate-600", "dark:text-slate-400");
+              const icon = item.querySelector(".material-symbols-outlined");
+              if (icon) {
+                icon.style.fontVariationSettings =
+                  '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24';
+              }
+            }
+          });
+        })();
+      </script>
+    </aside>
+
+    <!-- ==================================================================================
+         PATIENT SIDEBAR
+         ================================================================================== -->
+    <aside
+      th:fragment="patient-sidebar"
+      data-sidebar
+      aria-label="Menu điều hướng chính"
+      class="w-64 bg-white dark:bg-[#1a2634] border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 transition-all duration-300 fixed lg:relative inset-y-0 left-0 z-40 sidebar-hidden lg:sidebar-open"
+    >
+      <!-- Logo Section -->
+      <div
+        class="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800"
+      >
+        <a th:href="@{/patient}" class="flex items-center gap-2 text-primary">
+          <span class="material-symbols-outlined fill text-[28px]"
+            >local_hospital</span
+          >
+          <h1
+            class="sidebar-text sidebar-logo-text text-xl font-bold tracking-tight text-slate-900 dark:text-white"
+          >
+            ABClinic
+          </h1>
+        </a>
+      </div>
+
+      <!-- Navigation Menu -->
+      <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/patient"
+          th:href="@{/patient}"
+          title="Tổng quan"
+        >
+          <span class="material-symbols-outlined text-[20px]">dashboard</span>
+          <span class="sidebar-text text-sm font-medium">Tổng quan</span>
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/patient/prescriptions"
+          th:href="@{/patient/prescriptions}"
+          title="Đơn thuốc"
+        >
+          <span class="material-symbols-outlined text-[20px]"
+            >prescriptions</span
+          >
+          <span class="sidebar-text text-sm font-medium">Đơn thuốc</span>
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/patient/treatments"
+          th:href="@{/patient/treatments}"
+          title="Kế hoạch điều trị"
+        >
+          <span class="material-symbols-outlined text-[20px]"
+            >medical_services</span
+          >
+          <span class="sidebar-text text-sm font-medium"
+            >Kế hoạch điều trị</span
+          >
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/patient/appointments"
+          th:href="@{/patient/appointments}"
+          title="Lịch hẹn"
+        >
+          <span class="material-symbols-outlined text-[20px]"
+            >calendar_month</span
+          >
+          <span class="sidebar-text text-sm font-medium">Lịch hẹn</span>
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/patient/tickets"
+          th:href="@{/patient/tickets}"
+          title="Yêu cầu hỗ trợ"
+        >
+          <span class="material-symbols-outlined text-[20px]"
+            >confirmation_number</span
+          >
+          <span class="sidebar-text text-sm font-medium">Yêu cầu hỗ trợ</span>
+        </a>
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/patient/documents"
+          th:href="@{/patient/documents}"
+          title="Tài liệu"
+        >
+          <span class="material-symbols-outlined text-[20px]">folder_open</span>
+          <span class="sidebar-text text-sm font-medium">Tài liệu</span>
+        </a>
+
+        <!-- Divider -->
+        <div class="border-t border-slate-200 dark:border-slate-700 my-3"></div>
+        <p
+          class="px-3 py-1 text-xs font-semibold text-slate-400 uppercase tracking-wider"
+        >
+          Hỗ trợ
+        </p>
+
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/patient/call"
+          th:href="@{/patient/call}"
+          title="Gọi tư vấn"
+        >
+          <span class="material-symbols-outlined text-[20px]">call</span>
+          <span class="sidebar-text text-sm font-medium">Gọi tư vấn</span>
+        </a>
+
+        <a
+          class="menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/profile"
+          th:href="@{/profile}"
+          title="Hồ sơ cá nhân"
+        >
+          <span class="material-symbols-outlined text-[20px]">person</span>
+          <span class="sidebar-text text-sm font-medium">Hồ sơ cá nhân</span>
+        </a>
+      </div>
+
+      <!-- User Profile Section -->
+      <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+        <a
+          th:href="@{/profile}"
+          class="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+        >
+          <div
+            class="bg-primary rounded-full size-10 shrink-0 flex items-center justify-center text-white font-semibold"
+          >
+            <span
+              th:if="${patient != null}"
+              th:text="${patient.userInfo != null && patient.userInfo.fullName != null} ? ${patient.userInfo.fullName.substring(0,1)} : 'P'"
+              >P</span
+            >
+            <span th:unless="${patient != null}">P</span>
+          </div>
+          <div class="overflow-hidden sidebar-text">
+            <p
+              class="text-sm font-bold text-slate-900 dark:text-white truncate"
+              th:text="${patient != null && patient.userInfo != null} ? ${patient.userInfo.fullName} : 'Bệnh nhân'"
+            >
+              Bệnh nhân
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+              Bệnh nhân
+            </p>
+          </div>
+        </a>
+        <form th:action="@{/auth/logout}" method="post" class="mt-3">
+          <button
+            type="submit"
+            class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+          >
+            <span class="material-symbols-outlined text-[20px]">logout</span>
+            <span class="sidebar-text">Đăng xuất</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Active menu highlight script -->
+      <script>
+        (function () {
+          const currentPath = window.location.pathname;
+          const menuItems = document.querySelectorAll(".menu-item");
+          menuItems.forEach((item) => {
+            const itemPath = item.getAttribute("data-path");
+            // Exact match for /patient to avoid matching all patient/* routes
+            if (itemPath === "/patient" && currentPath === "/patient") {
+              item.classList.add(
+                "bg-primary/10",
+                "text-primary",
+                "dark:text-primary",
+              );
+              item.classList.remove("text-slate-600", "dark:text-slate-400");
+              const icon = item.querySelector(".material-symbols-outlined");
+              if (icon)
+                icon.style.fontVariationSettings =
+                  '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24';
+            } else if (
+              itemPath !== "/patient" &&
+              currentPath.startsWith(itemPath)
+            ) {
+              item.classList.add(
+                "bg-primary/10",
+                "text-primary",
+                "dark:text-primary",
+              );
+              item.classList.remove("text-slate-600", "dark:text-slate-400");
+              const icon = item.querySelector(".material-symbols-outlined");
+              if (icon)
+                icon.style.fontVariationSettings =
+                  '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24';
+            }
+          });
+        })();
+      </script>
+    </aside>
+
+    <!-- ==================================================================================
+         HEADER FRAGMENT
+         ================================================================================== -->
+    <header
+      th:fragment="header(title)"
+      class="h-16 flex items-center justify-between px-6 bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 shrink-0 z-10"
+    >
+      <!-- Mobile Menu Toggle Button -->
+      <button
+        data-sidebar-toggle
+        class="lg:hidden flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors mr-2"
+        aria-label="Mở menu"
+        aria-expanded="false"
+      >
+        <span class="material-symbols-outlined text-[24px]">menu</span>
+      </button>
+
+      <!-- Desktop Sidebar Toggle Button -->
+      <button
+        data-sidebar-desktop-toggle
+        class="hidden lg:flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors mr-2"
+        aria-label="Thu gọn menu"
+        aria-expanded="true"
+        title="Ctrl+B"
+      >
+        <span class="material-symbols-outlined text-[24px]">menu</span>
+      </button>
+
+      <!-- Search Bar -->
+      <div class="flex-1 max-w-lg">
+        <div class="relative group">
+          <div
+            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+          >
+            <span class="material-symbols-outlined text-slate-400 text-[20px]"
+              >search</span
+            >
+          </div>
+          <input
+            class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg leading-5 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition-all"
+            placeholder="Tìm nhanh (Ctrl+K)..."
+            type="text"
+          />
+        </div>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="flex items-center gap-3 ml-4">
+        <!-- Notifications -->
+        <button
+          class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors relative"
+        >
+          <span class="material-symbols-outlined text-[24px]"
+            >notifications</span
+          >
+          <span
+            class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-[#1a2634]"
+          ></span>
+        </button>
+        <!-- Settings -->
+        <button
+          class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
+        >
+          <span class="material-symbols-outlined text-[24px]">settings</span>
+        </button>
+        <!-- Dark Mode Toggle -->
+        <button
+          onclick="document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');"
+          class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
+          title="Chuyển đổi chế độ tối"
+        >
+          <span class="material-symbols-outlined text-[24px] dark:hidden"
+            >dark_mode</span
+          >
+          <span class="material-symbols-outlined text-[24px] hidden dark:block"
+            >light_mode</span
+          >
+        </button>
+      </div>
+    </header>
+
+    <!-- ==================================================================================
+         SCRIPTS FRAGMENT - Common JS includes
+         ================================================================================== -->
+    <th:block th:fragment="scripts">
+      <!-- Sidebar Controller -->
+      <script th:src="@{/js/sidebar-controller.js}"></script>
+
+      <!-- Theme Initialization -->
+      <script>
+        // Initialize theme from localStorage
+        (function () {
+          const theme = localStorage.getItem("theme");
+          if (
+            theme === "dark" ||
+            (!theme &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches)
+          ) {
+            document.documentElement.classList.add("dark");
+          }
+        })();
+      </script>
+    </th:block>
+
+    <!-- Legacy Sidebar Reference (for backward compatibility) -->
+    <nav th:fragment="sidebar">
+      <aside th:replace="~{fragments/layout :: admin-sidebar}"></aside>
+    </nav>
+
+    <!-- Legacy navbar fragment removed to prevent infinite recursion -->
+  </body>
 </html>

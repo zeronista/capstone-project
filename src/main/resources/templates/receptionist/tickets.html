@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ticket Hỗ Trợ - ABClinic</title>
+    <title>Quản lý Ticket - ABClinic</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script th:src="@{/js/tailwind-config.js}"></script>
     <link
@@ -46,7 +46,7 @@
   >
     <div class="flex h-screen overflow-hidden">
       <!-- Sidebar -->
-      <aside th:replace="~{fragments/doctor-layout :: doctor-sidebar}"></aside>
+      <aside th:replace="~{fragments/layout :: receptionist-sidebar}"></aside>
 
       <!-- Main Content -->
       <div class="flex-1 flex flex-col overflow-hidden">
@@ -64,19 +64,19 @@
               </button>
               <div>
                 <h1 class="text-xl font-bold text-slate-900 dark:text-white">
-                  Ticket Hỗ Trợ
+                  Quản lý Ticket
                 </h1>
                 <p class="text-sm text-slate-500 dark:text-slate-400">
-                  Quản lý và xử lý các yêu cầu hỗ trợ từ lễ tân
+                  Tạo và theo dõi ticket hỗ trợ gửi đến bác sĩ
                 </p>
               </div>
             </div>
             <button
-              onclick="refreshTickets()"
-              class="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              onclick="openCreateModal()"
+              class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
             >
-              <span class="material-symbols-outlined text-[20px]">refresh</span>
-              <span class="hidden sm:inline">Làm mới</span>
+              <span class="material-symbols-outlined text-[20px]">add</span>
+              <span class="hidden sm:inline">Tạo Ticket</span>
             </button>
           </div>
         </header>
@@ -127,6 +127,14 @@
               <option value="MEDIUM">Trung bình</option>
               <option value="LOW">Thấp</option>
             </select>
+
+            <button
+              onclick="refreshTickets()"
+              class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              title="Làm mới"
+            >
+              <span class="material-symbols-outlined">refresh</span>
+            </button>
           </div>
         </div>
 
@@ -153,7 +161,7 @@
                   >
                     0
                   </p>
-                  <p class="text-xs text-slate-500">Tổng ticket</p>
+                  <p class="text-xs text-slate-500">Tổng ticket đã tạo</p>
                 </div>
               </div>
             </div>
@@ -166,7 +174,30 @@
                 >
                   <span
                     class="material-symbols-outlined text-amber-600 dark:text-amber-400"
-                    >pending</span
+                    >schedule</span
+                  >
+                </div>
+                <div>
+                  <p
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
+                    id="pendingTickets"
+                  >
+                    0
+                  </p>
+                  <p class="text-xs text-slate-500">Chờ xử lý</p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-4"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-purple-600 dark:text-purple-400"
+                    >sync</span
                   >
                 </div>
                 <div>
@@ -185,34 +216,11 @@
             >
               <div class="flex items-center gap-3">
                 <div
-                  class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center"
-                >
-                  <span
-                    class="material-symbols-outlined text-red-600 dark:text-red-400"
-                    >priority_high</span
-                  >
-                </div>
-                <div>
-                  <p
-                    class="text-2xl font-bold text-slate-900 dark:text-white"
-                    id="highPriorityTickets"
-                  >
-                    0
-                  </p>
-                  <p class="text-xs text-slate-500">Ưu tiên cao</p>
-                </div>
-              </div>
-            </div>
-            <div
-              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-4"
-            >
-              <div class="flex items-center gap-3">
-                <div
                   class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center"
                 >
                   <span
                     class="material-symbols-outlined text-green-600 dark:text-green-400"
-                    >check_circle</span
+                    >task_alt</span
                   >
                 </div>
                 <div>
@@ -262,7 +270,7 @@
                     <th
                       class="px-6 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider"
                     >
-                      Lễ tân
+                      Bác sĩ xử lý
                     </th>
                     <th
                       class="px-6 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider"
@@ -307,9 +315,165 @@
       </div>
     </div>
 
+    <!-- Create/Edit Ticket Modal -->
+    <div
+      id="ticketFormModal"
+      class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4"
+    >
+      <div
+        class="bg-white dark:bg-[#1a2634] rounded-2xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col"
+      >
+        <div
+          class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between"
+        >
+          <h3
+            id="formModalTitle"
+            class="text-lg font-semibold text-slate-900 dark:text-white"
+          >
+            Tạo Ticket mới
+          </h3>
+          <button
+            onclick="closeFormModal()"
+            class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <form
+          id="ticketForm"
+          onsubmit="saveTicket(event)"
+          class="flex-1 overflow-y-auto p-6"
+        >
+          <input type="hidden" id="ticketId" />
+
+          <div class="space-y-4">
+            <!-- Patient -->
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Bệnh nhân *
+              </label>
+              <select
+                id="patientId"
+                required
+                class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+              >
+                <option value="">-- Chọn bệnh nhân --</option>
+              </select>
+            </div>
+
+            <!-- Title -->
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Tiêu đề *
+              </label>
+              <input
+                type="text"
+                id="ticketTitle"
+                required
+                placeholder="Mô tả ngắn gọn vấn đề"
+                class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            <!-- Category & Priority -->
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                >
+                  Danh mục
+                </label>
+                <select
+                  id="ticketCategory"
+                  class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+                >
+                  <option value="MEDICAL_QUERY">Câu hỏi y tế</option>
+                  <option value="APPOINTMENT">Lịch hẹn</option>
+                  <option value="PRESCRIPTION">Đơn thuốc</option>
+                  <option value="TECHNICAL">Kỹ thuật</option>
+                  <option value="OTHER">Khác</option>
+                </select>
+              </div>
+              <div>
+                <label
+                  class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                >
+                  Mức độ ưu tiên
+                </label>
+                <select
+                  id="ticketPriority"
+                  class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+                >
+                  <option value="LOW">Thấp</option>
+                  <option value="MEDIUM" selected>Trung bình</option>
+                  <option value="HIGH">Cao</option>
+                  <option value="URGENT">Khẩn cấp</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Assign Doctor -->
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Gán cho bác sĩ
+              </label>
+              <select
+                id="assignedToId"
+                class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+              >
+                <option value="">-- Chưa gán --</option>
+              </select>
+            </div>
+
+            <!-- Description -->
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >
+                Mô tả chi tiết *
+              </label>
+              <textarea
+                id="ticketDescription"
+                rows="4"
+                required
+                placeholder="Mô tả chi tiết vấn đề cần hỗ trợ..."
+                class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary resize-none"
+              ></textarea>
+            </div>
+          </div>
+        </form>
+
+        <div
+          class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3"
+        >
+          <button
+            onclick="closeFormModal()"
+            class="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            Hủy
+          </button>
+          <button
+            type="submit"
+            form="ticketForm"
+            class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors flex items-center gap-2"
+          >
+            <span class="material-symbols-outlined text-[20px]">send</span>
+            Gửi Ticket
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Ticket Detail Modal -->
     <div
-      id="ticketModal"
+      id="ticketDetailModal"
       class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4"
     >
       <div
@@ -319,59 +483,42 @@
           class="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between"
         >
           <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
-            Chi tiết Ticket #<span id="ticketId"></span>
+            Chi tiết Ticket #<span id="detailTicketId"></span>
           </h3>
-          <button
-            onclick="closeModal()"
-            class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
-          >
-            <span class="material-symbols-outlined">close</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              onclick="editCurrentTicket()"
+              class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+              title="Chỉnh sửa"
+            >
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+            <button
+              onclick="closeDetailModal()"
+              class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
         </div>
 
         <div id="ticketDetailContent" class="flex-1 overflow-y-auto p-6">
           <!-- Content will be loaded dynamically -->
         </div>
 
-        <!-- Status Update & Reply -->
-        <div
-          class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 space-y-4"
-        >
-          <!-- Update Status -->
-          <div class="flex items-center gap-3">
-            <label
-              class="text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap"
-              >Đổi trạng thái:</label
-            >
-            <select
-              id="newStatus"
-              class="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
-            >
-              <option value="">-- Chọn trạng thái --</option>
-              <option value="IN_PROGRESS">Đang xử lý</option>
-              <option value="RESOLVED">Đã giải quyết</option>
-              <option value="CLOSED">Đóng ticket</option>
-            </select>
-            <button
-              onclick="updateStatus()"
-              class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
-            >
-              Cập nhật
-            </button>
-          </div>
-
-          <!-- Reply -->
+        <!-- Reply Section -->
+        <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-700">
           <div class="flex gap-3">
             <input
               type="text"
               id="replyMessage"
-              placeholder="Nhập phản hồi..."
-              onkeypress="if(event.key==='Enter') sendReply()"
+              placeholder="Nhập tin nhắn cho bác sĩ..."
+              onkeypress="if(event.key==='Enter') sendMessage()"
               class="flex-1 px-4 py-2 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
             />
             <button
-              onclick="sendReply()"
-              class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2"
+              onclick="sendMessage()"
+              class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors flex items-center gap-2"
             >
               <span class="material-symbols-outlined text-[20px]">send</span>
               Gửi
@@ -388,23 +535,85 @@
     ></div>
 
     <!-- Scripts -->
-    <script th:src="@{/js/doctor-sidebar-controller.js}"></script>
+    <script>
+      // Toggle sidebar function for mobile
+      function toggleSidebar() {
+        const sidebar = document.querySelector("[data-sidebar]");
+        if (sidebar) {
+          sidebar.classList.toggle("sidebar-hidden");
+          sidebar.classList.toggle("sidebar-open");
+        }
+      }
+    </script>
     <script>
       // Global state
       let allTickets = [];
       let filteredTickets = [];
-      let currentTicketId = null;
+      let patients = [];
+      let doctors = [];
+      let currentTicket = null;
       let searchTimeout = null;
 
       // Initialize
       document.addEventListener("DOMContentLoaded", function () {
+        loadPatients();
+        loadDoctors();
         loadTickets();
       });
+
+      // Load patients
+      async function loadPatients() {
+        try {
+          const response = await fetch("/api/receptionist/patients");
+          if (response.ok) {
+            patients = await response.json();
+            populatePatientSelect();
+          }
+        } catch (error) {
+          console.error("Error loading patients:", error);
+        }
+      }
+
+      // Load doctors
+      async function loadDoctors() {
+        try {
+          const response = await fetch("/api/receptionist/doctors");
+          if (response.ok) {
+            doctors = await response.json();
+            populateDoctorSelect();
+          }
+        } catch (error) {
+          console.error("Error loading doctors:", error);
+        }
+      }
+
+      // Populate patient select
+      function populatePatientSelect() {
+        const select = document.getElementById("patientId");
+        select.innerHTML =
+          '<option value="">-- Chọn bệnh nhân --</option>' +
+          patients
+            .map(
+              (p) =>
+                `<option value="${p.id}">${p.fullName} - ${p.phoneNumber || p.email}</option>`,
+            )
+            .join("");
+      }
+
+      // Populate doctor select
+      function populateDoctorSelect() {
+        const select = document.getElementById("assignedToId");
+        select.innerHTML =
+          '<option value="">-- Chưa gán --</option>' +
+          doctors
+            .map((d) => `<option value="${d.id}">BS. ${d.fullName}</option>`)
+            .join("");
+      }
 
       // Load tickets
       async function loadTickets() {
         try {
-          const response = await fetch("/api/doctor/tickets");
+          const response = await fetch("/api/receptionist/tickets");
           if (!response.ok) throw new Error("Failed to load tickets");
 
           const data = await response.json();
@@ -454,13 +663,11 @@
       // Update statistics
       function updateStatistics() {
         document.getElementById("totalTickets").textContent = allTickets.length;
+        document.getElementById("pendingTickets").textContent =
+          allTickets.filter((t) => t.status === "OPEN").length;
         document.getElementById("inProgressTickets").textContent =
           allTickets.filter(
             (t) => t.status === "IN_PROGRESS" || t.status === "ASSIGNED",
-          ).length;
-        document.getElementById("highPriorityTickets").textContent =
-          allTickets.filter(
-            (t) => t.priority === "HIGH" || t.priority === "URGENT",
           ).length;
         document.getElementById("resolvedTickets").textContent =
           allTickets.filter(
@@ -477,7 +684,10 @@
             <tr>
               <td colspan="8" class="px-6 py-12 text-center">
                 <span class="material-symbols-outlined text-5xl text-slate-300 dark:text-slate-600">inbox</span>
-                <p class="mt-2 text-slate-500">Không có ticket nào</p>
+                <p class="mt-2 text-slate-500">Chưa có ticket nào</p>
+                <button onclick="openCreateModal()" class="mt-4 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg">
+                  Tạo ticket đầu tiên
+                </button>
               </td>
             </tr>
           `;
@@ -498,15 +708,23 @@
               <div class="text-sm text-slate-900 dark:text-white">${escapeHtml(ticket.patientName || "N/A")}</div>
             </td>
             <td class="px-6 py-4">
-              <div class="text-sm text-slate-600 dark:text-slate-400">${escapeHtml(ticket.createdByName || "N/A")}</div>
+              <div class="text-sm text-slate-600 dark:text-slate-400">${ticket.assignedToName ? "BS. " + escapeHtml(ticket.assignedToName) : '<span class="text-slate-400 italic">Chưa gán</span>'}</div>
             </td>
             <td class="px-6 py-4">${getPriorityBadge(ticket.priority)}</td>
             <td class="px-6 py-4">${getStatusBadge(ticket.status)}</td>
             <td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">${formatDate(ticket.createdAt)}</td>
             <td class="px-6 py-4 text-right">
-              <button onclick="viewTicket(${ticket.id})" class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Xem chi tiết">
-                <span class="material-symbols-outlined text-[20px]">visibility</span>
-              </button>
+              <div class="flex items-center justify-end gap-1">
+                <button onclick="viewTicket(${ticket.id})" class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Xem chi tiết">
+                  <span class="material-symbols-outlined text-[20px]">visibility</span>
+                </button>
+                <button onclick="editTicket(${ticket.id})" class="p-2 text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Sửa">
+                  <span class="material-symbols-outlined text-[20px]">edit</span>
+                </button>
+                <button onclick="deleteTicket(${ticket.id})" class="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Xóa">
+                  <span class="material-symbols-outlined text-[20px]">delete</span>
+                </button>
+              </div>
             </td>
           </tr>
         `,
@@ -517,18 +735,129 @@
           `${filteredTickets.length} ticket`;
       }
 
-      // View ticket detail
-      async function viewTicket(id) {
-        currentTicketId = id;
-        document.getElementById("ticketId").textContent = id;
+      // Open create modal
+      function openCreateModal() {
+        document.getElementById("formModalTitle").textContent =
+          "Tạo Ticket mới";
+        document.getElementById("ticketForm").reset();
+        document.getElementById("ticketId").value = "";
+        document.getElementById("ticketPriority").value = "MEDIUM";
+        openFormModal();
+      }
 
+      // Edit ticket
+      async function editTicket(id) {
         try {
-          const response = await fetch(`/api/doctor/tickets/${id}`);
+          const response = await fetch(`/api/receptionist/tickets/${id}`);
           if (!response.ok) throw new Error("Failed to load ticket");
 
           const ticket = await response.json();
-          renderTicketDetail(ticket);
-          openModal();
+
+          document.getElementById("formModalTitle").textContent =
+            "Chỉnh sửa Ticket";
+          document.getElementById("ticketId").value = ticket.id;
+          document.getElementById("patientId").value = ticket.patientId || "";
+          document.getElementById("ticketTitle").value = ticket.title || "";
+          document.getElementById("ticketCategory").value =
+            ticket.category || "OTHER";
+          document.getElementById("ticketPriority").value =
+            ticket.priority || "MEDIUM";
+          document.getElementById("assignedToId").value =
+            ticket.assignedToId || "";
+          document.getElementById("ticketDescription").value =
+            ticket.description || "";
+
+          openFormModal();
+        } catch (error) {
+          console.error("Error:", error);
+          showToast("Không thể tải thông tin ticket", "error");
+        }
+      }
+
+      // Edit current ticket from detail modal
+      function editCurrentTicket() {
+        if (currentTicket) {
+          closeDetailModal();
+          editTicket(currentTicket.id);
+        }
+      }
+
+      // Save ticket (create or update)
+      async function saveTicket(event) {
+        event.preventDefault();
+
+        const id = document.getElementById("ticketId").value;
+        const data = {
+          patientId: document.getElementById("patientId").value,
+          title: document.getElementById("ticketTitle").value,
+          category: document.getElementById("ticketCategory").value,
+          priority: document.getElementById("ticketPriority").value,
+          assignedToId: document.getElementById("assignedToId").value || null,
+          description: document.getElementById("ticketDescription").value,
+        };
+
+        try {
+          const url = id
+            ? `/api/receptionist/tickets/${id}`
+            : "/api/receptionist/tickets";
+          const method = id ? "PUT" : "POST";
+
+          const response = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            showToast(
+              id ? "Cập nhật ticket thành công" : "Tạo ticket thành công",
+              "success",
+            );
+            closeFormModal();
+            loadTickets();
+          } else {
+            showToast(result.message || "Lỗi lưu ticket", "error");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          showToast("Không thể lưu ticket", "error");
+        }
+      }
+
+      // Delete ticket
+      async function deleteTicket(id) {
+        if (!confirm("Bạn có chắc muốn xóa ticket này?")) return;
+
+        try {
+          const response = await fetch(`/api/receptionist/tickets/${id}`, {
+            method: "DELETE",
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            showToast("Xóa ticket thành công", "success");
+            loadTickets();
+          } else {
+            showToast(result.message || "Lỗi xóa ticket", "error");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          showToast("Không thể xóa ticket", "error");
+        }
+      }
+
+      // View ticket detail
+      async function viewTicket(id) {
+        document.getElementById("detailTicketId").textContent = id;
+
+        try {
+          const response = await fetch(`/api/receptionist/tickets/${id}`);
+          if (!response.ok) throw new Error("Failed to load ticket");
+
+          currentTicket = await response.json();
+          renderTicketDetail(currentTicket);
+          openDetailModal();
         } catch (error) {
           console.error("Error:", error);
           showToast("Không thể tải chi tiết ticket", "error");
@@ -549,8 +878,8 @@
                   <p class="text-sm font-medium text-slate-900 dark:text-white">${escapeHtml(ticket.patientName || "N/A")}</p>
                 </div>
                 <div>
-                  <p class="text-xs text-slate-500 mb-1">Lễ tân tạo</p>
-                  <p class="text-sm font-medium text-slate-900 dark:text-white">${escapeHtml(ticket.createdByName || "N/A")}</p>
+                  <p class="text-xs text-slate-500 mb-1">Bác sĩ xử lý</p>
+                  <p class="text-sm font-medium text-slate-900 dark:text-white">${ticket.assignedToName ? "BS. " + escapeHtml(ticket.assignedToName) : '<span class="text-slate-400 italic">Chưa gán</span>'}</p>
                 </div>
                 <div>
                   <p class="text-xs text-slate-500 mb-1">Danh mục</p>
@@ -570,6 +899,16 @@
                   <p class="text-xs text-slate-500 mb-1">Trạng thái</p>
                   ${getStatusBadge(ticket.status)}
                 </div>
+                ${
+                  ticket.resolvedAt
+                    ? `
+                <div>
+                  <p class="text-xs text-slate-500 mb-1">Ngày xử lý</p>
+                  <p class="text-sm font-medium text-green-600">${formatDateTime(ticket.resolvedAt)}</p>
+                </div>
+                `
+                    : ""
+                }
               </div>
             </div>
 
@@ -587,8 +926,8 @@
             <!-- Messages -->
             <div>
               <h4 class="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">chat</span>
-                Lịch sử trao đổi (${ticket.messages?.length || 0})
+                <span class="material-symbols-outlined text-[18px]">forum</span>
+                Trao đổi với bác sĩ (${ticket.messages?.length || 0})
               </h4>
               <div class="space-y-3 max-h-64 overflow-y-auto">
                 ${
@@ -596,77 +935,42 @@
                     ? ticket.messages
                         .map(
                           (msg) => `
-                  <div class="flex gap-3 ${msg.isInternalNote ? "bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3" : ""}">
-                    <div class="w-8 h-8 rounded-full ${msg.senderRole === "RECEPTIONIST" ? "bg-purple-500" : "bg-green-500"} text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  <div class="flex gap-3">
+                    <div class="w-8 h-8 rounded-full ${msg.senderRole === "DOCTOR" ? "bg-green-500" : "bg-primary"} text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
                       ${msg.senderName ? msg.senderName.charAt(0).toUpperCase() : "?"}
                     </div>
                     <div class="flex-1">
                       <div class="flex items-center gap-2 mb-1">
                         <span class="text-sm font-medium text-slate-900 dark:text-white">${escapeHtml(msg.senderName || "Unknown")}</span>
-                        <span class="px-1.5 py-0.5 ${msg.senderRole === "RECEPTIONIST" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"} text-xs rounded">${msg.senderRole === "RECEPTIONIST" ? "Lễ tân" : "Bác sĩ"}</span>
                         <span class="text-xs text-slate-500">${formatDateTime(msg.createdAt)}</span>
-                        ${msg.isInternalNote ? '<span class="px-2 py-0.5 bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 text-xs rounded">Ghi chú nội bộ</span>' : ""}
                       </div>
-                      <p class="text-sm text-slate-600 dark:text-slate-400">${escapeHtml(msg.messageText)}</p>
+                      <p class="text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 rounded-lg p-3">${escapeHtml(msg.messageText)}</p>
                     </div>
                   </div>
                 `,
                         )
                         .join("")
-                    : '<p class="text-sm text-slate-500 text-center py-8">Chưa có tin nhắn</p>'
+                    : '<p class="text-sm text-slate-500 text-center py-8">Chưa có tin nhắn. Hãy bắt đầu cuộc hội thoại!</p>'
                 }
               </div>
             </div>
           </div>
         `;
-
-        // Set current status in dropdown
-        document.getElementById("newStatus").value = "";
       }
 
-      // Update status
-      async function updateStatus() {
-        const newStatus = document.getElementById("newStatus").value;
-        if (!newStatus) {
-          showToast("Vui lòng chọn trạng thái", "warning");
-          return;
-        }
-
-        try {
-          const response = await fetch(
-            `/api/doctor/tickets/${currentTicketId}/status`,
-            {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ status: newStatus, note: "" }),
-            },
-          );
-
-          const result = await response.json();
-          if (result.success) {
-            showToast("Cập nhật trạng thái thành công", "success");
-            loadTickets();
-            viewTicket(currentTicketId); // Reload detail
-          } else {
-            showToast(result.message || "Lỗi cập nhật", "error");
-          }
-        } catch (error) {
-          console.error("Error:", error);
-          showToast("Không thể cập nhật trạng thái", "error");
-        }
-      }
-
-      // Send reply
-      async function sendReply() {
+      // Send message
+      async function sendMessage() {
         const message = document.getElementById("replyMessage").value.trim();
         if (!message) {
-          showToast("Vui lòng nhập nội dung phản hồi", "warning");
+          showToast("Vui lòng nhập nội dung tin nhắn", "warning");
           return;
         }
 
+        if (!currentTicket) return;
+
         try {
           const response = await fetch(
-            `/api/doctor/tickets/${currentTicketId}/messages`,
+            `/api/receptionist/tickets/${currentTicket.id}/messages`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -681,27 +985,37 @@
           const result = await response.json();
           if (result.success) {
             document.getElementById("replyMessage").value = "";
-            showToast("Gửi phản hồi thành công", "success");
-            viewTicket(currentTicketId); // Reload detail
+            showToast("Gửi tin nhắn thành công", "success");
+            viewTicket(currentTicket.id); // Reload detail
           } else {
-            showToast(result.message || "Lỗi gửi phản hồi", "error");
+            showToast(result.message || "Lỗi gửi tin nhắn", "error");
           }
         } catch (error) {
           console.error("Error:", error);
-          showToast("Không thể gửi phản hồi", "error");
+          showToast("Không thể gửi tin nhắn", "error");
         }
       }
 
       // Modal functions
-      function openModal() {
-        document.getElementById("ticketModal").classList.remove("hidden");
-        document.getElementById("ticketModal").classList.add("flex");
+      function openFormModal() {
+        document.getElementById("ticketFormModal").classList.remove("hidden");
+        document.getElementById("ticketFormModal").classList.add("flex");
       }
 
-      function closeModal() {
-        document.getElementById("ticketModal").classList.add("hidden");
-        document.getElementById("ticketModal").classList.remove("flex");
-        currentTicketId = null;
+      function closeFormModal() {
+        document.getElementById("ticketFormModal").classList.add("hidden");
+        document.getElementById("ticketFormModal").classList.remove("flex");
+      }
+
+      function openDetailModal() {
+        document.getElementById("ticketDetailModal").classList.remove("hidden");
+        document.getElementById("ticketDetailModal").classList.add("flex");
+      }
+
+      function closeDetailModal() {
+        document.getElementById("ticketDetailModal").classList.add("hidden");
+        document.getElementById("ticketDetailModal").classList.remove("flex");
+        currentTicket = null;
       }
 
       // Helper functions

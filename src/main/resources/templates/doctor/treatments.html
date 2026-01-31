@@ -3,34 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quản lý Kế hoạch điều trị - Bác sĩ</title>
-
-    <!-- Tailwind CSS -->
+    <title>Lộ Trình Điều Trị - ABClinic</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Material Icons -->
+    <script th:src="@{/js/tailwind-config.js}"></script>
     <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
     />
-    <!-- Material Symbols -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
       rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap"
     />
-
-    <script>
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              primary: "#0d7cf2",
-              "primary-dark": "#0a62bf",
-            },
-          },
-        },
-      };
-    </script>
     <style>
       .material-symbols-outlined {
         font-variation-settings:
@@ -38,649 +21,1368 @@
           "wght" 400,
           "GRAD" 0,
           "opsz" 24;
-        font-size: 20px;
       }
       .material-symbols-outlined.fill {
         font-variation-settings: "FILL" 1;
       }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #475569;
+      }
+      @media print {
+        .no-print {
+          display: none !important;
+        }
+        .print-only {
+          display: block !important;
+        }
+        body {
+          background: white !important;
+          color: black !important;
+        }
+        .print-container {
+          box-shadow: none !important;
+          border: none !important;
+        }
+      }
     </style>
   </head>
-  <body class="bg-gray-50">
-    <!-- Doctor Sidebar -->
-    <aside th:replace="~{fragments/doctor-layout :: doctor-sidebar}"></aside>
+  <body
+    class="bg-slate-50 dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-sans"
+  >
+    <div class="flex h-screen overflow-hidden">
+      <!-- Sidebar -->
+      <aside th:replace="~{fragments/doctor-layout :: doctor-sidebar}"></aside>
 
-    <!-- Main Content -->
-    <main class="ml-64 pt-8 pb-8 px-4 md:px-6 lg:px-8 min-h-screen">
-      <!-- Page Header -->
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Top Header -->
+        <header
+          class="bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 px-6 py-4 no-print"
+        >
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <!-- Mobile menu button -->
+              <button
+                onclick="toggleSidebar()"
+                class="lg:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+              >
+                <span class="material-symbols-outlined">menu</span>
+              </button>
+              <div>
+                <h1 class="text-xl font-bold text-slate-900 dark:text-white">
+                  Lộ Trình Điều Trị
+                </h1>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                  Quản lý kế hoạch và lịch tái khám
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <a
+                href="/doctor/treatments/create"
+                class="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
+              >
+                <span class="material-symbols-outlined text-[20px]">add</span>
+                <span class="hidden sm:inline">Tạo lộ trình mới</span>
+              </a>
+            </div>
+          </div>
+        </header>
+
+        <!-- Content Area -->
+        <main class="flex-1 overflow-y-auto p-6">
+          <!-- Statistics Cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-4"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-blue-600 dark:text-blue-400"
+                    >assignment</span
+                  >
+                </div>
+                <div>
+                  <p
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
+                    id="totalTreatments"
+                  >
+                    0
+                  </p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Tổng lộ trình
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-4"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-green-600 dark:text-green-400"
+                    >play_circle</span
+                  >
+                </div>
+                <div>
+                  <p
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
+                    id="activeTreatments"
+                  >
+                    0
+                  </p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Đang thực hiện
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-4"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-purple-600 dark:text-purple-400"
+                    >check_circle</span
+                  >
+                </div>
+                <div>
+                  <p
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
+                    id="completedTreatments"
+                  >
+                    0
+                  </p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Hoàn thành
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-4"
+            >
+              <div class="flex items-center gap-3">
+                <div
+                  class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-amber-600 dark:text-amber-400"
+                    >event</span
+                  >
+                </div>
+                <div>
+                  <p
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
+                    id="upcomingCheckups"
+                  >
+                    0
+                  </p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Tái khám sắp tới
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Bar -->
+          <div
+            class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-4 mb-6 no-print"
+          >
+            <div class="flex flex-wrap items-center gap-4">
+              <div class="flex-1 min-w-[200px]">
+                <div class="relative">
+                  <span
+                    class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    >search</span
+                  >
+                  <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Tìm kiếm theo tên bệnh nhân, chẩn đoán..."
+                    class="w-full pl-10 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+                    onkeyup="filterTreatments()"
+                  />
+                </div>
+              </div>
+              <select
+                id="statusFilter"
+                onchange="filterTreatments()"
+                class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+              >
+                <option value="">Tất cả trạng thái</option>
+                <option value="DRAFT">Nháp</option>
+                <option value="ACTIVE">Đang thực hiện</option>
+                <option value="COMPLETED">Hoàn thành</option>
+                <option value="CANCELLED">Đã hủy</option>
+              </select>
+              <input
+                type="date"
+                id="dateFilter"
+                onchange="filterTreatments()"
+                class="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          </div>
+
+          <!-- Treatments Grid -->
+          <div id="treatmentsGrid" class="grid lg:grid-cols-2 gap-4">
+            <!-- Treatment cards will be loaded here -->
+          </div>
+
+          <!-- Empty State -->
+          <div
+            id="emptyState"
+            class="hidden text-center py-16 bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800"
+          >
+            <span
+              class="material-symbols-outlined text-6xl text-slate-300 dark:text-slate-600 mb-4"
+              >assignment</span
+            >
+            <h3 class="text-lg font-medium text-slate-900 dark:text-white mb-2">
+              Chưa có lộ trình điều trị
+            </h3>
+            <p class="text-slate-500 dark:text-slate-400 mb-4">
+              Bắt đầu tạo lộ trình điều trị cho bệnh nhân của bạn
+            </p>
+            <a
+              href="/doctor/treatments/create"
+              class="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
+            >
+              <span class="material-symbols-outlined text-[20px]">add</span>
+              Tạo lộ trình mới
+            </a>
+          </div>
+
+          <!-- Loading State -->
+          <div id="loadingState" class="text-center py-16">
+            <div
+              class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"
+            ></div>
+            <p class="text-slate-500 dark:text-slate-400">
+              Đang tải dữ liệu...
+            </p>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Treatment Detail Modal -->
+    <div id="treatmentDetailModal" class="fixed inset-0 z-50 hidden">
       <div
-        class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-8"
+        class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onclick="closeDetailModal()"
+      ></div>
+      <div
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl max-h-[90vh] bg-white dark:bg-[#1a2634] rounded-2xl shadow-2xl overflow-hidden"
       >
-        <div>
-          <h1 class="text-3xl font-bold text-gray-900">
-            Quản lý Kế hoạch điều trị
-          </h1>
-          <p class="text-gray-600 mt-2">
-            Theo dõi và quản lý kế hoạch điều trị cho bệnh nhân
-          </p>
-        </div>
-        <button
-          onclick="openCreateTreatmentModal()"
-          class="inline-flex items-center gap-2 px-5 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <span class="material-icons">add</span>
-          Tạo kế hoạch điều trị
-        </button>
-      </div>
-
-      <!-- Statistics Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- Total Plans -->
         <div
-          class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all"
+          class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between"
         >
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-medium text-gray-500">Tổng số kế hoạch</p>
-              <p id="totalCount" class="text-3xl font-bold text-gray-900 mt-2">
-                0
-              </p>
-            </div>
-            <div
-              class="w-14 h-14 bg-blue-100 rounded-lg flex items-center justify-center"
-            >
-              <span class="material-icons text-blue-600 text-3xl"
-                >medical_services</span
-              >
-            </div>
-          </div>
-        </div>
-
-        <!-- Active Plans -->
-        <div
-          class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all"
-        >
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-medium text-gray-500">Đang thực hiện</p>
-              <p
-                id="activeCount"
-                class="text-3xl font-bold text-green-600 mt-2"
-              >
-                0
-              </p>
-            </div>
-            <div
-              class="w-14 h-14 bg-green-100 rounded-lg flex items-center justify-center"
-            >
-              <span class="material-icons text-green-600 text-3xl"
-                >play_circle</span
-              >
-            </div>
-          </div>
-        </div>
-
-        <!-- Completed Plans -->
-        <div
-          class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all"
-        >
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-medium text-gray-500">Hoàn thành</p>
-              <p
-                id="completedCount"
-                class="text-3xl font-bold text-gray-600 mt-2"
-              >
-                0
-              </p>
-            </div>
-            <div
-              class="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center"
-            >
-              <span class="material-icons text-gray-600 text-3xl"
-                >check_circle</span
-              >
-            </div>
-          </div>
-        </div>
-
-        <!-- Draft Plans -->
-        <div
-          class="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all"
-        >
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm font-medium text-gray-500">Nháp</p>
-              <p
-                id="draftCount"
-                class="text-3xl font-bold text-yellow-600 mt-2"
-              >
-                0
-              </p>
-            </div>
-            <div
-              class="w-14 h-14 bg-yellow-100 rounded-lg flex items-center justify-center"
-            >
-              <span class="material-icons text-yellow-600 text-3xl">draft</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Filters & Search -->
-      <div class="bg-white rounded-xl border border-gray-200 p-6 mb-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2"
-              >Trạng thái</label
-            >
-            <select
-              id="statusFilter"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Tất cả</option>
-              <option value="DRAFT">Nháp</option>
-              <option value="ACTIVE">Đang thực hiện</option>
-              <option value="COMPLETED">Hoàn thành</option>
-              <option value="CANCELLED">Đã hủy</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2"
-              >Tìm kiếm bệnh nhân</label
-            >
-            <input
-              type="text"
-              id="patientSearch"
-              placeholder="Tên hoặc mã bệnh nhân"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <div class="flex items-end">
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white">
+            Chi Tiết Lộ Trình Điều Trị
+          </h2>
+          <div class="flex items-center gap-2">
             <button
-              onclick="applyFilters()"
-              class="w-full px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              onclick="printTreatment()"
+              class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+              title="In lộ trình"
             >
-              <span class="material-icons text-sm align-middle mr-1"
-                >search</span
-              >
-              Tìm kiếm
+              <span class="material-symbols-outlined">print</span>
+            </button>
+            <button
+              onclick="exportTreatment()"
+              class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+              title="Xuất PDF"
+            >
+              <span class="material-symbols-outlined">download</span>
+            </button>
+            <button
+              onclick="closeDetailModal()"
+              class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+            >
+              <span class="material-symbols-outlined">close</span>
             </button>
           </div>
         </div>
-      </div>
-
-      <!-- Treatment Plans Table -->
-      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th
-                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                >
-                  Mã KH
-                </th>
-                <th
-                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                >
-                  Bệnh nhân
-                </th>
-                <th
-                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                >
-                  Chẩn đoán
-                </th>
-                <th
-                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                >
-                  Mục tiêu
-                </th>
-                <th
-                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                >
-                  Thời gian
-                </th>
-                <th
-                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                >
-                  Trạng thái
-                </th>
-                <th
-                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                >
-                  Lịch tái khám
-                </th>
-                <th
-                  class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                >
-                  Thao tác
-                </th>
-              </tr>
-            </thead>
-            <tbody id="treatmentsTable" class="divide-y divide-gray-200">
-              <!-- Treatment plans will be loaded here via JavaScript -->
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Loading State -->
-        <div id="loadingState" class="p-8 text-center">
-          <div
-            class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600"
-          ></div>
-          <p class="text-gray-600 mt-4">Đang tải dữ liệu...</p>
-        </div>
-
-        <!-- Empty State -->
-        <div id="emptyState" class="p-12 text-center hidden">
-          <span class="material-icons text-gray-300 text-6xl mb-4"
-            >medical_services</span
-          >
-          <p class="text-gray-600 text-lg">Không tìm thấy kế hoạch điều trị</p>
-          <p class="text-gray-500 text-sm mt-2">
-            Thử điều chỉnh bộ lọc hoặc tạo kế hoạch mới
-          </p>
-        </div>
-      </div>
-    </main>
-
-    <!-- Treatment Plan Detail Modal -->
-    <div
-      id="treatmentDetailModal"
-      class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center"
-    >
-      <div
-        class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto"
-      >
         <div
-          class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between"
+          class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]"
+          id="treatmentDetailContent"
         >
-          <h3 class="text-xl font-bold text-gray-900">
-            Chi tiết Kế hoạch điều trị
-          </h3>
-          <button
-            onclick="closeTreatmentModal()"
-            class="text-gray-400 hover:text-gray-600"
-          >
-            <span class="material-icons">close</span>
-          </button>
-        </div>
-
-        <div id="treatmentDetailContent" class="p-6">
-          <!-- Content will be loaded dynamically -->
+          <!-- Detail content will be loaded here -->
         </div>
       </div>
     </div>
 
-    <!-- External JavaScript Module -->
-    <script type="module">
-        import * as doctorTreatments from '/static/js/doctor-treatments.js';
-        
-        // Initialize the module
-        document.addEventListener('DOMContentLoaded', () => {
-            doctorTreatments.init();
-        });
-        
-        // Expose functions to window for inline onclick handlers
-        window.doctorTreatments = {
-            viewTreatment: doctorTreatments.viewTreatment,
-            closeTreatmentModal: doctorTreatments.closeTreatmentModal,
-            managementCheckups: doctorTreatments.managementCheckups,
-            openCreateTreatmentModal: doctorTreatments.openCreateTreatmentModal,
-            applyFilters: doctorTreatments.applyFilters
-        };
-    </script>
-  </body>
-</html>
-      let filteredTreatments = [];
+    <!-- Create/Edit Treatment Modal -->
+    <div id="treatmentFormModal" class="fixed inset-0 z-50 hidden">
+      <div
+        class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onclick="closeFormModal()"
+      ></div>
+      <div
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl max-h-[90vh] bg-white dark:bg-[#1a2634] rounded-2xl shadow-2xl overflow-hidden"
+      >
+        <div
+          class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between"
+        >
+          <h2
+            class="text-lg font-bold text-slate-900 dark:text-white"
+            id="formModalTitle"
+          >
+            Tạo Lộ Trình Điều Trị
+          </h2>
+          <button
+            onclick="closeFormModal()"
+            class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+          <form id="treatmentForm" onsubmit="saveTreatment(event)">
+            <input type="hidden" id="treatmentId" />
 
-      // Load treatment plans on page load
+            <!-- Patient Selection -->
+            <div class="mb-4">
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >Bệnh nhân *</label
+              >
+              <select
+                id="patientSelect"
+                required
+                class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+              >
+                <option value="">Chọn bệnh nhân</option>
+              </select>
+            </div>
+
+            <!-- Diagnosis -->
+            <div class="mb-4">
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >Chẩn đoán *</label
+              >
+              <textarea
+                id="diagnosisInput"
+                rows="3"
+                required
+                placeholder="Nhập chẩn đoán bệnh..."
+                class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary resize-none"
+              ></textarea>
+            </div>
+
+            <!-- Treatment Goal -->
+            <div class="mb-4">
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >Mục tiêu điều trị</label
+              >
+              <textarea
+                id="treatmentGoalInput"
+                rows="2"
+                placeholder="Mục tiêu cần đạt được..."
+                class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary resize-none"
+              ></textarea>
+            </div>
+
+            <!-- Date Range -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label
+                  class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  >Ngày bắt đầu *</label
+                >
+                <input
+                  type="date"
+                  id="startDateInput"
+                  required
+                  class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  >Ngày dự kiến kết thúc</label
+                >
+                <input
+                  type="date"
+                  id="endDateInput"
+                  class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+
+            <!-- Status -->
+            <div class="mb-6">
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >Trạng thái</label
+              >
+              <select
+                id="statusInput"
+                class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+              >
+                <option value="DRAFT">Nháp</option>
+                <option value="ACTIVE">Đang thực hiện</option>
+                <option value="COMPLETED">Hoàn thành</option>
+                <option value="CANCELLED">Đã hủy</option>
+              </select>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-end gap-4">
+              <button
+                type="button"
+                onclick="closeFormModal()"
+                class="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                class="flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
+              >
+                <span class="material-symbols-outlined text-[20px]">save</span>
+                Lưu
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Checkup Modal -->
+    <div id="checkupFormModal" class="fixed inset-0 z-50 hidden">
+      <div
+        class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onclick="closeCheckupModal()"
+      ></div>
+      <div
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white dark:bg-[#1a2634] rounded-2xl shadow-2xl overflow-hidden"
+      >
+        <div
+          class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between"
+        >
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white">
+            Thiết Lập Lịch Tái Khám
+          </h2>
+          <button
+            onclick="closeCheckupModal()"
+            class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="p-6">
+          <form id="checkupForm" onsubmit="saveCheckup(event)">
+            <input type="hidden" id="checkupTreatmentId" />
+
+            <!-- Checkup Date -->
+            <div class="mb-4">
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >Ngày tái khám *</label
+              >
+              <input
+                type="date"
+                id="checkupDateInput"
+                required
+                class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            <!-- Quick Schedule Options -->
+            <div class="mb-4">
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >Lịch định kỳ</label
+              >
+              <div class="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onclick="setCheckupDate(1)"
+                  class="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-primary/10 hover:text-primary rounded-lg text-sm transition-colors"
+                >
+                  1 tháng
+                </button>
+                <button
+                  type="button"
+                  onclick="setCheckupDate(3)"
+                  class="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-primary/10 hover:text-primary rounded-lg text-sm transition-colors"
+                >
+                  3 tháng
+                </button>
+                <button
+                  type="button"
+                  onclick="setCheckupDate(6)"
+                  class="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-primary/10 hover:text-primary rounded-lg text-sm transition-colors"
+                >
+                  6 tháng
+                </button>
+              </div>
+            </div>
+
+            <!-- Checkup Type -->
+            <div class="mb-4">
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >Loại tái khám</label
+              >
+              <select
+                id="checkupTypeInput"
+                class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary"
+              >
+                <option value="routine">Định kỳ</option>
+                <option value="follow_up">Theo dõi</option>
+                <option value="emergency">Khẩn cấp</option>
+              </select>
+            </div>
+
+            <!-- Notes -->
+            <div class="mb-6">
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >Ghi chú</label
+              >
+              <textarea
+                id="checkupNotesInput"
+                rows="2"
+                placeholder="Ghi chú cho lần tái khám..."
+                class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 border-0 rounded-lg focus:ring-2 focus:ring-primary resize-none"
+              ></textarea>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-end gap-4">
+              <button
+                type="button"
+                onclick="closeCheckupModal()"
+                class="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                class="flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
+              >
+                <span class="material-symbols-outlined text-[20px]">event</span>
+                Tạo lịch
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Change Modal -->
+    <div id="statusChangeModal" class="fixed inset-0 z-50 hidden">
+      <div
+        class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onclick="closeStatusModal()"
+      ></div>
+      <div
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white dark:bg-[#1a2634] rounded-2xl shadow-2xl overflow-hidden"
+      >
+        <div
+          class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between"
+        >
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white">
+            Thay Đổi Trạng Thái
+          </h2>
+          <button
+            onclick="closeStatusModal()"
+            class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="p-6">
+          <input type="hidden" id="statusChangeTreatmentId" />
+          <p class="text-slate-600 dark:text-slate-400 mb-4">
+            Chọn trạng thái mới cho lộ trình:
+          </p>
+          <div class="space-y-2">
+            <button
+              onclick="updateTreatmentStatus('DRAFT')"
+              class="w-full flex items-center gap-3 px-4 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            >
+              <span class="w-3 h-3 bg-slate-400 rounded-full"></span>
+              <span>Nháp</span>
+            </button>
+            <button
+              onclick="updateTreatmentStatus('ACTIVE')"
+              class="w-full flex items-center gap-3 px-4 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-green-100 dark:hover:bg-green-900/30 hover:text-green-600 rounded-lg transition-colors"
+            >
+              <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+              <span>Đang thực hiện</span>
+            </button>
+            <button
+              onclick="updateTreatmentStatus('COMPLETED')"
+              class="w-full flex items-center gap-3 px-4 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-600 rounded-lg transition-colors"
+            >
+              <span class="w-3 h-3 bg-purple-500 rounded-full"></span>
+              <span>Hoàn thành</span>
+            </button>
+            <button
+              onclick="updateTreatmentStatus('CANCELLED')"
+              class="w-full flex items-center gap-3 px-4 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 rounded-lg transition-colors"
+            >
+              <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+              <span>Đã hủy</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Print Template (Hidden) -->
+    <div id="printTemplate" class="hidden print-only">
+      <!-- Will be populated for printing -->
+    </div>
+
+    <!-- Toast Container -->
+    <div
+      id="toastContainer"
+      class="fixed bottom-4 right-4 z-50 space-y-2"
+    ></div>
+
+    <!-- Scripts -->
+    <script th:src="@{/js/doctor-sidebar-controller.js}"></script>
+    <script>
+      // Global state
+      let treatments = [];
+      let patients = [];
+      let currentTreatmentId = null;
+
+      // Initialize
       document.addEventListener("DOMContentLoaded", function () {
-        loadTreatmentPlans();
+        loadTreatments();
+        loadPatients();
       });
 
-      // Load treatment plans from API
-      async function loadTreatmentPlans() {
+      // Load treatments from API
+      async function loadTreatments() {
         try {
           const response = await fetch("/api/doctor/treatments");
-          const data = await response.json();
+          if (!response.ok) throw new Error("Failed to load treatments");
 
-          allTreatments = data.treatments;
-          filteredTreatments = allTreatments;
+          const data = await response.json();
+          treatments = data.treatments || [];
 
           updateStatistics();
-          renderTreatmentPlans();
+          renderTreatments();
         } catch (error) {
-          console.error("Error loading treatment plans:", error);
-          showError("Không thể tải danh sách kế hoạch điều trị");
+          console.error("Error loading treatments:", error);
+          showToast("Lỗi khi tải danh sách lộ trình", "error");
+        } finally {
+          document.getElementById("loadingState").classList.add("hidden");
         }
+      }
+
+      // Load patients for form
+      async function loadPatients() {
+        try {
+          const response = await fetch("/doctor/api/patients");
+          if (!response.ok) throw new Error("Failed to load patients");
+
+          patients = await response.json();
+          populatePatientSelect();
+        } catch (error) {
+          console.error("Error loading patients:", error);
+        }
+      }
+
+      // Populate patient select
+      function populatePatientSelect() {
+        const select = document.getElementById("patientSelect");
+        select.innerHTML = '<option value="">Chọn bệnh nhân</option>';
+        patients.forEach((p) => {
+          select.innerHTML += `<option value="${p.id}">${p.fullName} - ${p.phone || p.email}</option>`;
+        });
       }
 
       // Update statistics
       function updateStatistics() {
-        document.getElementById("totalCount").textContent =
-          allTreatments.length;
+        document.getElementById("totalTreatments").textContent =
+          treatments.length;
+        document.getElementById("activeTreatments").textContent =
+          treatments.filter((t) => t.status === "ACTIVE").length;
+        document.getElementById("completedTreatments").textContent =
+          treatments.filter((t) => t.status === "COMPLETED").length;
 
-        const activeCount = allTreatments.filter(
-          (t) => t.status === "ACTIVE",
-        ).length;
-        document.getElementById("activeCount").textContent = activeCount;
-
-        const completedCount = allTreatments.filter(
-          (t) => t.status === "COMPLETED",
-        ).length;
-        document.getElementById("completedCount").textContent = completedCount;
-
-        const draftCount = allTreatments.filter(
-          (t) => t.status === "DRAFT",
-        ).length;
-        document.getElementById("draftCount").textContent = draftCount;
+        // Count upcoming checkups
+        let upcomingCount = 0;
+        treatments.forEach((t) => {
+          if (t.checkupCount) upcomingCount += t.checkupCount;
+        });
+        document.getElementById("upcomingCheckups").textContent = upcomingCount;
       }
 
-      // Render treatment plans table
-      function renderTreatmentPlans() {
-        const tbody = document.getElementById("treatmentsTable");
-        const loadingState = document.getElementById("loadingState");
+      // Render treatments
+      function renderTreatments() {
+        const grid = document.getElementById("treatmentsGrid");
         const emptyState = document.getElementById("emptyState");
 
-        loadingState.classList.add("hidden");
+        // Apply filters
+        const searchTerm = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+        const statusFilter = document.getElementById("statusFilter").value;
+        const dateFilter = document.getElementById("dateFilter").value;
 
-        if (filteredTreatments.length === 0) {
-          tbody.innerHTML = "";
+        let filtered = treatments.filter((t) => {
+          const matchSearch =
+            !searchTerm ||
+            (t.patientName &&
+              t.patientName.toLowerCase().includes(searchTerm)) ||
+            (t.diagnosis && t.diagnosis.toLowerCase().includes(searchTerm));
+          const matchStatus = !statusFilter || t.status === statusFilter;
+          const matchDate =
+            !dateFilter || (t.startDate && t.startDate.startsWith(dateFilter));
+          return matchSearch && matchStatus && matchDate;
+        });
+
+        if (filtered.length === 0) {
+          grid.classList.add("hidden");
           emptyState.classList.remove("hidden");
           return;
         }
 
         emptyState.classList.add("hidden");
+        grid.classList.remove("hidden");
 
-        tbody.innerHTML = filteredTreatments
+        grid.innerHTML = filtered
           .map(
             (treatment) => `
-          <tr class="hover:bg-gray-50 transition-colors">
-            <td class="px-6 py-4">
-              <span class="font-medium text-gray-900">#${treatment.id}</span>
-            </td>
-            <td class="px-6 py-4">
-              <div>
-                <div class="font-medium text-gray-900">${treatment.patientName}</div>
-                <div class="text-sm text-gray-500">${treatment.patientPhone || ""}</div>
+          <div class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg transition-shadow">
+            <div class="p-5">
+              <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary">assignment</span>
+                  </div>
+                  <div>
+                    <h3 class="font-semibold text-slate-900 dark:text-white">${treatment.patientName || "N/A"}</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">LT-${String(treatment.id).padStart(4, "0")}</p>
+                  </div>
+                </div>
+                ${getStatusBadge(treatment.status)}
               </div>
-            </td>
-            <td class="px-6 py-4">
-              <span class="text-sm text-gray-700">${treatment.diagnosis || "Không có"}</span>
-            </td>
-            <td class="px-6 py-4">
-              <span class="text-sm text-gray-700 line-clamp-2">${treatment.treatmentGoal || "Không có"}</span>
-            </td>
-            <td class="px-6 py-4">
-              <div class="text-sm">
-                <div class="text-gray-700">Bắt đầu: ${formatDate(treatment.startDate)}</div>
-                <div class="text-gray-500">Dự kiến: ${formatDate(treatment.expectedEndDate)}</div>
+              
+              <div class="mb-4">
+                <p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">${treatment.diagnosis || "Chưa có chẩn đoán"}</p>
               </div>
-            </td>
-            <td class="px-6 py-4">
-              ${getStatusBadge(treatment.status)}
-            </td>
-            <td class="px-6 py-4">
-              <span class="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-                <span class="material-icons text-base">event</span>
-                ${treatment.checkupCount} lịch
-              </span>
-            </td>
-            <td class="px-6 py-4">
-              <div class="flex items-center gap-2">
-                <button onclick="viewTreatment(${treatment.id})" class="text-blue-600 hover:text-blue-800" title="Xem chi tiết">
-                  <span class="material-icons text-xl">visibility</span>
+              
+              <div class="grid grid-cols-2 gap-3 mb-4 text-sm">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                  <span class="material-symbols-outlined text-[18px]">calendar_today</span>
+                  <span>${formatDate(treatment.startDate)}</span>
+                </div>
+                <div class="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                  <span class="material-symbols-outlined text-[18px]">event</span>
+                  <span>${treatment.checkupCount || 0} lịch tái khám</span>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+                <button onclick="viewTreatmentDetail(${treatment.id})" class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors text-sm">
+                  <span class="material-symbols-outlined text-[18px]">visibility</span>
+                  Chi tiết
                 </button>
-                <button onclick="managementCheckups(${treatment.id})" class="text-purple-600 hover:text-purple-800" title="Quản lý lịch tái khám">
-                  <span class="material-icons text-xl">event_note</span>
+                <button onclick="openCheckupModal(${treatment.id})" class="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors text-sm">
+                  <span class="material-symbols-outlined text-[18px]">event_available</span>
+                  Tái khám
                 </button>
+                <div class="relative group">
+                  <button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+                    <span class="material-symbols-outlined">more_vert</span>
+                  </button>
+                  <div class="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                    <button onclick="openStatusModal(${treatment.id})" class="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-100 dark:hover:bg-slate-700 text-left">
+                      <span class="material-symbols-outlined text-[18px]">sync</span>
+                      Đổi trạng thái
+                    </button>
+                    <button onclick="editTreatment(${treatment.id})" class="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-100 dark:hover:bg-slate-700 text-left">
+                      <span class="material-symbols-outlined text-[18px]">edit</span>
+                      Chỉnh sửa
+                    </button>
+                    <button onclick="deleteTreatment(${treatment.id})" class="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-600 text-left">
+                      <span class="material-symbols-outlined text-[18px]">delete</span>
+                      Xóa
+                    </button>
+                  </div>
+                </div>
               </div>
-            </td>
-          </tr>
+            </div>
+          </div>
         `,
           )
           .join("");
       }
 
-      // Apply filters
-      function applyFilters() {
-        const statusFilter = document.getElementById("statusFilter").value;
-        const patientSearch = document
-          .getElementById("patientSearch")
-          .value.toLowerCase();
-
-        filteredTreatments = allTreatments.filter((treatment) => {
-          // Status filter
-          if (statusFilter && treatment.status !== statusFilter) {
-            return false;
-          }
-
-          // Patient search
-          if (patientSearch) {
-            const patientName = treatment.patientName.toLowerCase();
-            if (!patientName.includes(patientSearch)) {
-              return false;
-            }
-          }
-
-          return true;
-        });
-
-        renderTreatmentPlans();
-      }
-
-      // View treatment detail
-      async function viewTreatment(treatmentId) {
-        try {
-          const response = await fetch(`/api/doctor/treatments/${treatmentId}`);
-          const treatment = await response.json();
-
-          document.getElementById("treatmentDetailContent").innerHTML = `
-            <div class="space-y-6">
-              <!-- Patient Info -->
-              <div class="border-b pb-4">
-                <h4 class="font-semibold text-gray-900 mb-3">Thông tin bệnh nhân</h4>
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <span class="text-sm text-gray-500">Họ tên:</span>
-                    <p class="font-medium text-gray-900">${treatment.patientName}</p>
-                  </div>
-                  <div>
-                    <span class="text-sm text-gray-500">Số điện thoại:</span>
-                    <p class="font-medium text-gray-900">${treatment.patientPhone || "N/A"}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Treatment Plan Info -->
-              <div class="border-b pb-4">
-                <h4 class="font-semibold text-gray-900 mb-3">Thông tin kế hoạch</h4>
-                <div class="space-y-3">
-                  <div>
-                    <span class="text-sm text-gray-500">Chẩn đoán:</span>
-                    <p class="font-medium text-gray-900 mt-1">${treatment.diagnosis || "Không có"}</p>
-                  </div>
-                  <div>
-                    <span class="text-sm text-gray-500">Mục tiêu điều trị:</span>
-                    <p class="font-medium text-gray-900 mt-1">${treatment.treatmentGoal || "Không có"}</p>
-                  </div>
-                  <div class="grid grid-cols-3 gap-4">
-                    <div>
-                      <span class="text-sm text-gray-500">Ngày bắt đầu:</span>
-                      <p class="font-medium text-gray-900">${formatDate(treatment.startDate)}</p>
-                    </div>
-                    <div>
-                      <span class="text-sm text-gray-500">Dự kiến kết thúc:</span>
-                      <p class="font-medium text-gray-900">${formatDate(treatment.expectedEndDate)}</p>
-                    </div>
-                    <div>
-                      <span class="text-sm text-gray-500">Trạng thái:</span>
-                      <div class="mt-1">${getStatusBadge(treatment.status)}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Treatment Items -->
-              <div class="border-b pb-4">
-                <h4 class="font-semibold text-gray-900 mb-3">Các hạng mục điều trị</h4>
-                ${
-                  treatment.items && treatment.items.length > 0
-                    ? `
-                  <div class="space-y-3">
-                    ${treatment.items
-                      .map(
-                        (item, index) => `
-                      <div class="border border-gray-200 rounded-lg p-4">
-                        <div class="flex items-start justify-between">
-                          <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-2">
-                              <span class="font-medium text-gray-900">${index + 1}. ${item.treatmentType}</span>
-                              ${getItemStatusBadge(item.status)}
-                            </div>
-                            <p class="text-sm text-gray-700 mb-2">${item.description}</p>
-                            <div class="grid grid-cols-2 gap-2 text-sm">
-                              <div><span class="text-gray-500">Tần suất:</span> ${item.frequency || "N/A"}</div>
-                              <div><span class="text-gray-500">Thời gian:</span> ${item.duration || "N/A"}</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    `,
-                      )
-                      .join("")}
-                  </div>
-                `
-                    : '<p class="text-gray-500 text-center py-4">Chưa có hạng mục điều trị</p>'
-                }
-              </div>
-              
-              <!-- Checkup Schedules -->
-              <div>
-                <h4 class="font-semibold text-gray-900 mb-3">Lịch tái khám</h4>
-                ${
-                  treatment.checkups && treatment.checkups.length > 0
-                    ? `
-                  <div class="space-y-3">
-                    ${treatment.checkups
-                      .map(
-                        (checkup) => `
-                      <div class="border border-gray-200 rounded-lg p-4">
-                        <div class="flex items-center justify-between mb-2">
-                          <div class="flex items-center gap-2">
-                            <span class="material-icons text-blue-600">event</span>
-                            <span class="font-medium text-gray-900">${formatDate(checkup.scheduledDate)}</span>
-                          </div>
-                          ${getCheckupStatusBadge(checkup.status)}
-                        </div>
-                        <div class="text-sm space-y-1">
-                          <div><span class="text-gray-500">Loại:</span> ${checkup.checkupType}</div>
-                          ${checkup.notes ? `<div><span class="text-gray-500">Ghi chú:</span> ${checkup.notes}</div>` : ""}
-                          ${checkup.completedDate ? `<div><span class="text-gray-500">Hoàn thành:</span> ${formatDate(checkup.completedDate)}</div>` : ""}
-                          ${checkup.resultSummary ? `<div><span class="text-gray-500">Kết quả:</span> ${checkup.resultSummary}</div>` : ""}
-                        </div>
-                      </div>
-                    `,
-                      )
-                      .join("")}
-                  </div>
-                `
-                    : '<p class="text-gray-500 text-center py-4">Chưa có lịch tái khám</p>'
-                }
-              </div>
-            </div>
-          `;
-
-          document
-            .getElementById("treatmentDetailModal")
-            .classList.remove("hidden");
-          document.getElementById("treatmentDetailModal").classList.add("flex");
-        } catch (error) {
-          console.error("Error loading treatment detail:", error);
-          showError("Không thể tải chi tiết kế hoạch điều trị");
-        }
-      }
-
-      // Close treatment modal
-      function closeTreatmentModal() {
-        document.getElementById("treatmentDetailModal").classList.add("hidden");
-        document
-          .getElementById("treatmentDetailModal")
-          .classList.remove("flex");
-      }
-
-      // Management checkups (placeholder)
-      function managementCheckups(treatmentId) {
-        alert(
-          "Chức năng quản lý lịch tái khám sẽ được phát triển trong phiên bản tiếp theo",
-        );
-      }
-
-      // Open create treatment modal (placeholder)
-      function openCreateTreatmentModal() {
-        alert(
-          "Chức năng tạo kế hoạch điều trị sẽ được phát triển trong phiên bản tiếp theo",
-        );
-      }
-
-      // Helper functions
+      // Get status badge HTML
       function getStatusBadge(status) {
         const badges = {
           DRAFT:
-            '<span class="inline-flex items-center gap-1 px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium"><span class="material-icons text-sm">draft</span>Nháp</span>',
+            '<span class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full text-xs font-medium">Nháp</span>',
           ACTIVE:
-            '<span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium"><span class="material-icons text-sm">play_circle</span>Đang thực hiện</span>',
+            '<span class="px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-xs font-medium">Đang thực hiện</span>',
           COMPLETED:
-            '<span class="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium"><span class="material-icons text-sm">check_circle</span>Hoàn thành</span>',
+            '<span class="px-2.5 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full text-xs font-medium">Hoàn thành</span>',
           CANCELLED:
-            '<span class="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium"><span class="material-icons text-sm">cancel</span>Đã hủy</span>',
+            '<span class="px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-xs font-medium">Đã hủy</span>',
         };
-        return badges[status] || status;
+        return badges[status] || badges.DRAFT;
       }
 
-      function getItemStatusBadge(status) {
-        const badges = {
-          PENDING:
-            '<span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs">Chờ</span>',
-          ONGOING:
-            '<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">Đang thực hiện</span>',
-          COMPLETED:
-            '<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Hoàn thành</span>',
-          SKIPPED:
-            '<span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">Bỏ qua</span>',
+      // Filter treatments
+      function filterTreatments() {
+        renderTreatments();
+      }
+
+      // View treatment detail
+      async function viewTreatmentDetail(id) {
+        try {
+          const response = await fetch(`/api/doctor/treatments/${id}`);
+          if (!response.ok) throw new Error("Failed to load treatment");
+
+          const treatment = await response.json();
+          currentTreatmentId = id;
+          renderTreatmentDetail(treatment);
+          document
+            .getElementById("treatmentDetailModal")
+            .classList.remove("hidden");
+        } catch (error) {
+          console.error("Error:", error);
+          showToast("Lỗi khi tải chi tiết lộ trình", "error");
+        }
+      }
+
+      // Render treatment detail
+      function renderTreatmentDetail(treatment) {
+        const content = document.getElementById("treatmentDetailContent");
+
+        content.innerHTML = `
+          <div class="print-container">
+            <!-- Header -->
+            <div class="flex items-start justify-between mb-6 pb-6 border-b border-slate-200 dark:border-slate-700">
+              <div class="flex items-center gap-4">
+                <div class="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center">
+                  <span class="material-symbols-outlined text-primary text-3xl">assignment</span>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold text-slate-900 dark:text-white">LT-${String(treatment.id).padStart(4, "0")}</h3>
+                  <p class="text-slate-500 dark:text-slate-400">${treatment.patientName || "N/A"}</p>
+                </div>
+              </div>
+              ${getStatusBadge(treatment.status)}
+            </div>
+            
+            <!-- Info Grid -->
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <h4 class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Chẩn đoán</h4>
+                <p class="text-slate-900 dark:text-white">${treatment.diagnosis || "Chưa có"}</p>
+              </div>
+              <div>
+                <h4 class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Mục tiêu điều trị</h4>
+                <p class="text-slate-900 dark:text-white">${treatment.treatmentGoal || "Chưa thiết lập"}</p>
+              </div>
+              <div>
+                <h4 class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Ngày bắt đầu</h4>
+                <p class="text-slate-900 dark:text-white">${formatDate(treatment.startDate)}</p>
+              </div>
+              <div>
+                <h4 class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Ngày dự kiến kết thúc</h4>
+                <p class="text-slate-900 dark:text-white">${formatDate(treatment.expectedEndDate) || "Chưa xác định"}</p>
+              </div>
+            </div>
+            
+            <!-- Checkup Schedules -->
+            <div class="mb-6">
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary">event</span>
+                  Lịch Tái Khám
+                </h4>
+                <button onclick="openCheckupModal(${treatment.id})" class="flex items-center gap-1 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm no-print">
+                  <span class="material-symbols-outlined text-[16px]">add</span>
+                  Thêm lịch
+                </button>
+              </div>
+              
+              ${
+                treatment.checkups && treatment.checkups.length > 0
+                  ? `
+                <div class="space-y-3">
+                  ${treatment.checkups
+                    .map(
+                      (c) => `
+                    <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 ${getCheckupStatusBg(c.status)} rounded-lg flex items-center justify-center">
+                          <span class="material-symbols-outlined ${getCheckupStatusColor(c.status)}">${getCheckupStatusIcon(c.status)}</span>
+                        </div>
+                        <div>
+                          <p class="font-medium text-slate-900 dark:text-white">${formatDate(c.scheduledDate)}</p>
+                          <p class="text-sm text-slate-500 dark:text-slate-400">${getCheckupTypeName(c.checkupType)}</p>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        ${getCheckupStatusBadge(c.status)}
+                        <button onclick="updateCheckupStatus(${c.id}, '${c.status}')" class="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg no-print" title="Cập nhật trạng thái">
+                          <span class="material-symbols-outlined text-[18px]">edit</span>
+                        </button>
+                      </div>
+                    </div>
+                  `,
+                    )
+                    .join("")}
+                </div>
+              `
+                  : `
+                <div class="text-center py-8 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                  <span class="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2">event_busy</span>
+                  <p class="text-slate-500 dark:text-slate-400">Chưa có lịch tái khám</p>
+                </div>
+              `
+              }
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="flex items-center gap-3 pt-4 border-t border-slate-200 dark:border-slate-700 no-print">
+              <button onclick="openStatusModal(${treatment.id}); closeDetailModal();" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-[20px]">sync</span>
+                Đổi trạng thái
+              </button>
+              <button onclick="editTreatment(${treatment.id}); closeDetailModal();" class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-[20px]">edit</span>
+                Chỉnh sửa
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      // Checkup helpers
+      function getCheckupStatusBg(status) {
+        const map = {
+          SCHEDULED: "bg-blue-100 dark:bg-blue-900/30",
+          CONFIRMED: "bg-green-100 dark:bg-green-900/30",
+          COMPLETED: "bg-purple-100 dark:bg-purple-900/30",
+          CANCELLED: "bg-red-100 dark:bg-red-900/30",
+          NO_SHOW: "bg-amber-100 dark:bg-amber-900/30",
         };
-        return badges[status] || status;
+        return map[status] || map.SCHEDULED;
+      }
+
+      function getCheckupStatusColor(status) {
+        const map = {
+          SCHEDULED: "text-blue-600 dark:text-blue-400",
+          CONFIRMED: "text-green-600 dark:text-green-400",
+          COMPLETED: "text-purple-600 dark:text-purple-400",
+          CANCELLED: "text-red-600 dark:text-red-400",
+          NO_SHOW: "text-amber-600 dark:text-amber-400",
+        };
+        return map[status] || map.SCHEDULED;
+      }
+
+      function getCheckupStatusIcon(status) {
+        const map = {
+          SCHEDULED: "event",
+          CONFIRMED: "event_available",
+          COMPLETED: "check_circle",
+          CANCELLED: "cancel",
+          NO_SHOW: "person_off",
+        };
+        return map[status] || map.SCHEDULED;
       }
 
       function getCheckupStatusBadge(status) {
         const badges = {
           SCHEDULED:
-            '<span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">Đã lên lịch</span>',
+            '<span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded text-xs">Đã lên lịch</span>',
           CONFIRMED:
-            '<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Đã xác nhận</span>',
+            '<span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded text-xs">Đã xác nhận</span>',
           COMPLETED:
-            '<span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">Hoàn thành</span>',
+            '<span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded text-xs">Hoàn thành</span>',
           CANCELLED:
-            '<span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs">Đã hủy</span>',
+            '<span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded text-xs">Đã hủy</span>',
           NO_SHOW:
-            '<span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs">Không đến</span>',
+            '<span class="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded text-xs">Không đến</span>',
         };
-        return badges[status] || status;
+        return badges[status] || badges.SCHEDULED;
       }
 
-      function formatDate(dateString) {
-        if (!dateString) return "N/A";
-        const date = new Date(dateString);
-        return date.toLocaleDateString("vi-VN", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        });
+      function getCheckupTypeName(type) {
+        const names = {
+          routine: "Tái khám định kỳ",
+          follow_up: "Theo dõi",
+          emergency: "Khẩn cấp",
+        };
+        return names[type] || "Tái khám";
       }
 
-      function showError(message) {
-        alert(message); // Replace with a better notification system
+      // Close detail modal
+      function closeDetailModal() {
+        document.getElementById("treatmentDetailModal").classList.add("hidden");
+        currentTreatmentId = null;
+      }
+
+      // Open form modal for create
+      function openFormModal() {
+        document.getElementById("formModalTitle").textContent =
+          "Tạo Lộ Trình Điều Trị";
+        document.getElementById("treatmentId").value = "";
+        document.getElementById("patientSelect").value = "";
+        document.getElementById("diagnosisInput").value = "";
+        document.getElementById("treatmentGoalInput").value = "";
+        document.getElementById("startDateInput").value = new Date()
+          .toISOString()
+          .split("T")[0];
+        document.getElementById("endDateInput").value = "";
+        document.getElementById("statusInput").value = "DRAFT";
+        document
+          .getElementById("treatmentFormModal")
+          .classList.remove("hidden");
+      }
+
+      // Edit treatment
+      async function editTreatment(id) {
+        try {
+          const response = await fetch(`/api/doctor/treatments/${id}`);
+          if (!response.ok) throw new Error("Failed to load treatment");
+
+          const treatment = await response.json();
+
+          document.getElementById("formModalTitle").textContent =
+            "Chỉnh Sửa Lộ Trình";
+          document.getElementById("treatmentId").value = id;
+          document.getElementById("patientSelect").value =
+            treatment.patientId || "";
+          document.getElementById("diagnosisInput").value =
+            treatment.diagnosis || "";
+          document.getElementById("treatmentGoalInput").value =
+            treatment.treatmentGoal || "";
+          document.getElementById("startDateInput").value =
+            treatment.startDate || "";
+          document.getElementById("endDateInput").value =
+            treatment.expectedEndDate || "";
+          document.getElementById("statusInput").value =
+            treatment.status || "DRAFT";
+          document
+            .getElementById("treatmentFormModal")
+            .classList.remove("hidden");
+        } catch (error) {
+          console.error("Error:", error);
+          showToast("Lỗi khi tải thông tin lộ trình", "error");
+        }
+      }
+
+      // Close form modal
+      function closeFormModal() {
+        document.getElementById("treatmentFormModal").classList.add("hidden");
+      }
+
+      // Save treatment
+      async function saveTreatment(event) {
+        event.preventDefault();
+
+        const id = document.getElementById("treatmentId").value;
+        const data = {
+          patientId: document.getElementById("patientSelect").value,
+          diagnosis: document.getElementById("diagnosisInput").value,
+          treatmentGoal: document.getElementById("treatmentGoalInput").value,
+          startDate: document.getElementById("startDateInput").value,
+          expectedEndDate:
+            document.getElementById("endDateInput").value || null,
+          status: document.getElementById("statusInput").value,
+        };
+
+        try {
+          const url = id
+            ? `/api/doctor/treatments/${id}`
+            : "/api/doctor/treatments";
+          const method = id ? "PUT" : "POST";
+
+          const response = await fetch(url, {
+            method: method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          if (!response.ok) throw new Error("Failed to save treatment");
+
+          const result = await response.json();
+
+          if (result.success) {
+            showToast(
+              id ? "Cập nhật lộ trình thành công" : "Tạo lộ trình thành công",
+              "success",
+            );
+            closeFormModal();
+            loadTreatments();
+          } else {
+            throw new Error(result.message || "Unknown error");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          showToast("Lỗi khi lưu lộ trình: " + error.message, "error");
+        }
+      }
+
+      // Delete treatment
+      async function deleteTreatment(id) {
+        if (
+          !confirm(
+            "Bạn có chắc chắn muốn xóa lộ trình này? Hành động này không thể hoàn tác.",
+          )
+        ) {
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/doctor/treatments/${id}`, {
+            method: "DELETE",
+          });
+
+          if (!response.ok) throw new Error("Failed to delete treatment");
+
+          showToast("Xóa lộ trình thành công", "success");
+          loadTreatments();
+        } catch (error) {
+          console.error("Error:", error);
+          showToast("Lỗi khi xóa lộ trình", "error");
+        }
+      }
+
+      // Open status modal
+      function openStatusModal(id) {
+        document.getElementById("statusChangeTreatmentId").value = id;
+        document.getElementById("statusChangeModal").classList.remove("hidden");
+      }
+
+      // Close status modal
+      function closeStatusModal() {
+        document.getElementById("statusChangeModal").classList.add("hidden");
+      }
+
+      // Update treatment status
+      async function updateTreatmentStatus(status) {
+        const id = document.getElementById("statusChangeTreatmentId").value;
+
+        try {
+          const response = await fetch(
+            `/api/doctor/treatments/${id}/status?status=${status}`,
+            {
+              method: "PUT",
+            },
+          );
+
+          if (!response.ok) throw new Error("Failed to update status");
+
+          showToast("Cập nhật trạng thái thành công", "success");
+          closeStatusModal();
+          loadTreatments();
+        } catch (error) {
+          console.error("Error:", error);
+          showToast("Lỗi khi cập nhật trạng thái", "error");
+        }
+      }
+
+      // Open checkup modal
+      function openCheckupModal(treatmentId) {
+        document.getElementById("checkupTreatmentId").value = treatmentId;
+        document.getElementById("checkupDateInput").value = "";
+        document.getElementById("checkupTypeInput").value = "routine";
+        document.getElementById("checkupNotesInput").value = "";
+        document.getElementById("checkupFormModal").classList.remove("hidden");
+      }
+
+      // Close checkup modal
+      function closeCheckupModal() {
+        document.getElementById("checkupFormModal").classList.add("hidden");
+      }
+
+      // Set checkup date (months from now)
+      function setCheckupDate(months) {
+        const date = new Date();
+        date.setMonth(date.getMonth() + months);
+        document.getElementById("checkupDateInput").value = date
+          .toISOString()
+          .split("T")[0];
+      }
+
+      // Save checkup
+      async function saveCheckup(event) {
+        event.preventDefault();
+
+        const treatmentId = document.getElementById("checkupTreatmentId").value;
+        const data = {
+          scheduledDate: document.getElementById("checkupDateInput").value,
+          checkupType: document.getElementById("checkupTypeInput").value,
+          notes: document.getElementById("checkupNotesInput").value,
+        };
+
+        try {
+          const response = await fetch(
+            `/api/doctor/treatments/${treatmentId}/checkups`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
+            },
+          );
+
+          if (!response.ok) throw new Error("Failed to create checkup");
+
+          const result = await response.json();
+
+          if (result.success) {
+            showToast("Tạo lịch tái khám thành công", "success");
+            closeCheckupModal();
+            loadTreatments();
+
+            // Refresh detail modal if open
+            if (currentTreatmentId) {
+              viewTreatmentDetail(currentTreatmentId);
+            }
+          } else {
+            throw new Error(result.message || "Unknown error");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          showToast("Lỗi khi tạo lịch tái khám: " + error.message, "error");
+        }
+      }
+
+      // Update checkup status
+      async function updateCheckupStatus(checkupId, currentStatus) {
+        const newStatus = prompt(
+          "Nhập trạng thái mới:\n- SCHEDULED (Đã lên lịch)\n- CONFIRMED (Đã xác nhận)\n- COMPLETED (Hoàn thành)\n- CANCELLED (Đã hủy)\n- NO_SHOW (Không đến)",
+          currentStatus,
+        );
+
+        if (!newStatus || newStatus === currentStatus) return;
+
+        const validStatuses = [
+          "SCHEDULED",
+          "CONFIRMED",
+          "COMPLETED",
+          "CANCELLED",
+          "NO_SHOW",
+        ];
+        if (!validStatuses.includes(newStatus.toUpperCase())) {
+          showToast("Trạng thái không hợp lệ", "error");
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `/api/doctor/checkups/${checkupId}/status`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: newStatus.toUpperCase() }),
+            },
+          );
+
+          if (!response.ok) throw new Error("Failed to update checkup status");
+
+          showToast("Cập nhật trạng thái tái khám thành công", "success");
+
+          // Refresh detail modal
+          if (currentTreatmentId) {
+            viewTreatmentDetail(currentTreatmentId);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          showToast("Lỗi khi cập nhật trạng thái", "error");
+        }
+      }
+
+      // Print treatment
+      function printTreatment() {
+        window.print();
+      }
+
+      // Export treatment as PDF (using browser print)
+      function exportTreatment() {
+        showToast(
+          "Đang xuất PDF... Vui lòng chọn 'Save as PDF' trong hộp thoại in",
+          "info",
+        );
+        setTimeout(() => {
+          window.print();
+        }, 500);
+      }
+
+      // Format date helper
+      function formatDate(dateStr) {
+        if (!dateStr) return "N/A";
+        const date = new Date(dateStr);
+        return date.toLocaleDateString("vi-VN");
+      }
+
+      // Toast helper
+      function showToast(message, type = "info") {
+        const container = document.getElementById("toastContainer");
+        const toast = document.createElement("div");
+
+        const colors = {
+          success: "bg-green-500",
+          error: "bg-red-500",
+          info: "bg-blue-500",
+          warning: "bg-amber-500",
+        };
+
+        const icons = {
+          success: "check_circle",
+          error: "error",
+          info: "info",
+          warning: "warning",
+        };
+
+        toast.className = `flex items-center gap-3 px-4 py-3 ${colors[type]} text-white rounded-lg shadow-lg min-w-[300px]`;
+        toast.innerHTML = `
+          <span class="material-symbols-outlined">${icons[type]}</span>
+          <span class="flex-1">${message}</span>
+          <button onclick="this.parentElement.remove()" class="p-1 hover:bg-white/20 rounded">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        `;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+          toast.remove();
+        }, 3000);
       }
     </script>
   </body>

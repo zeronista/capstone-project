@@ -4,10 +4,19 @@
     <meta charset="UTF-8" />
   </head>
   <body>
+    <!-- Mobile Sidebar Backdrop Fragment -->
+    <div
+      th:fragment="doctor-sidebar-backdrop"
+      data-sidebar-backdrop
+      class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden"
+    ></div>
+
     <!-- Doctor Sidebar Fragment -->
     <aside
       th:fragment="doctor-sidebar"
-      class="w-64 bg-white dark:bg-[#1a2634] border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 transition-all duration-300 fixed left-0 top-0 h-full z-40"
+      data-sidebar
+      aria-label="Menu điều hướng chính"
+      class="w-64 bg-white dark:bg-[#1a2634] border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 transition-all duration-300 fixed lg:relative inset-y-0 left-0 z-40 sidebar-hidden lg:sidebar-open"
     >
       <div
         class="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800"
@@ -15,7 +24,7 @@
         <div class="flex items-center gap-2 text-primary">
           <span class="material-symbols-outlined fill">local_hospital</span>
           <h1
-            class="text-xl font-bold tracking-tight text-slate-900 dark:text-white"
+            class="sidebar-text text-xl font-bold tracking-tight text-slate-900 dark:text-white"
           >
             ABClinic
           </h1>
@@ -26,63 +35,81 @@
           class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
           data-path="/doctor/dashboard"
           th:href="@{/doctor/dashboard}"
+          title="Bảng điều khiển"
         >
           <span class="material-symbols-outlined text-[20px]">dashboard</span>
-          <span class="text-sm font-medium">Bảng điều khiển</span>
+          <span class="sidebar-text text-sm font-medium">Bảng điều khiển</span>
         </a>
         <a
           class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
           data-path="/doctor/patients"
           th:href="@{/doctor/patients}"
+          title="Bệnh nhân"
         >
           <span class="material-symbols-outlined text-[20px]">groups</span>
-          <span class="text-sm font-medium">Bệnh nhân</span>
+          <span class="sidebar-text text-sm font-medium">Bệnh nhân</span>
         </a>
         <a
           class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
           data-path="/doctor/prescriptions"
           th:href="@{/doctor/prescriptions}"
+          title="Đơn thuốc"
         >
           <span class="material-symbols-outlined text-[20px]"
             >prescriptions</span
           >
-          <span class="text-sm font-medium">Đơn thuốc</span>
+          <span class="sidebar-text text-sm font-medium">Đơn thuốc</span>
         </a>
         <a
           class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
           data-path="/doctor/treatments"
           th:href="@{/doctor/treatments}"
+          title="Lộ trình điều trị"
         >
           <span class="material-symbols-outlined text-[20px]"
             >medical_services</span
           >
-          <span class="text-sm font-medium">Lộ trình điều trị</span>
+          <span class="sidebar-text text-sm font-medium"
+            >Lộ trình điều trị</span
+          >
         </a>
         <a
           class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
           data-path="/doctor/health-forecast"
           th:href="@{/doctor/health-forecast}"
+          title="Dự báo sức khỏe"
         >
           <span class="material-symbols-outlined text-[20px]">trending_up</span>
-          <span class="text-sm font-medium">Dự báo sức khỏe</span>
+          <span class="sidebar-text text-sm font-medium">Dự báo sức khỏe</span>
         </a>
         <a
           class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
           data-path="/doctor/knowledge"
           th:href="@{/doctor/knowledge}"
+          title="Kho tri thức"
         >
           <span class="material-symbols-outlined text-[20px]">menu_book</span>
-          <span class="text-sm font-medium">Kho tri thức</span>
+          <span class="sidebar-text text-sm font-medium">Kho tri thức</span>
         </a>
         <a
           class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
           data-path="/doctor/tickets"
           th:href="@{/doctor/tickets}"
+          title="Ticket hỗ trợ"
         >
           <span class="material-symbols-outlined text-[20px]"
             >confirmation_number</span
           >
-          <span class="text-sm font-medium">Ticket hỗ trợ</span>
+          <span class="sidebar-text text-sm font-medium">Ticket hỗ trợ</span>
+        </a>
+        <a
+          class="doctor-menu-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white group transition-colors"
+          data-path="/doctor/profile"
+          th:href="@{/doctor/profile}"
+          title="Hồ sơ cá nhân"
+        >
+          <span class="material-symbols-outlined text-[20px]">person</span>
+          <span class="sidebar-text text-sm font-medium">Hồ sơ cá nhân</span>
         </a>
       </div>
       <script>
@@ -106,27 +133,37 @@
         })();
       </script>
       <div class="p-4 border-t border-slate-200 dark:border-slate-800">
-        <div
-          class="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 flex items-center gap-3"
-        >
+        <a th:href="@{/doctor/profile}" class="block">
           <div
-            class="bg-center bg-no-repeat bg-cover rounded-full size-10 shrink-0"
-            style="
-              background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuC_XvdpydS2siR2GnfaKR3PPEPuBMUhGThn898-eXpSsWyw06B-PrXRHJ2XLHT9pN6kljAgWs3mMljJlgIQHNEwWUiR6zuDNGgNgdgAnqCYMiuAvZd5GbdW1gfS6th7Lx3Fce9BwPhQ5Keplj0xQl7yMPZRaoYqXe-Sws3A2y7rwgycMv17B5kOSZplvY48XXaed-lKvCp9UMG1ODB82JXjoMVaay4D90g6tlF2cXHenHsmNzkEDaQst_xYTGfziBf8e87YFCM7SlM&quot;);
-            "
-          ></div>
-          <div class="overflow-hidden">
-            <p
-              class="text-sm font-bold text-slate-900 dark:text-white truncate"
-              th:text="${doctor != null && doctor.userInfo != null} ? ${doctor.userInfo.fullName} : 'BS. Doctor'"
+            class="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+          >
+            <div
+              class="bg-center bg-no-repeat bg-cover rounded-full size-10 shrink-0"
+              th:style="${doctor != null && doctor.avatarUrl != null} ? 'background-image: url(' + ${doctor.avatarUrl} + ')' : 'background: linear-gradient(135deg, #0d7cf2 0%, #0a62bf 100%)'"
             >
-              BS. Doctor
-            </p>
-            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
-              Bác sĩ
-            </p>
+              <div
+                th:if="${doctor == null || doctor.avatarUrl == null}"
+                class="w-full h-full flex items-center justify-center text-white font-bold text-sm"
+              >
+                BS
+              </div>
+            </div>
+            <div class="overflow-hidden flex-1">
+              <p
+                class="text-sm font-bold text-slate-900 dark:text-white truncate"
+                th:text="${doctor != null && doctor.userInfo != null} ? ${doctor.userInfo.fullName} : 'BS. Doctor'"
+              >
+                BS. Doctor
+              </p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+                Bác sĩ
+              </p>
+            </div>
+            <span class="material-symbols-outlined text-slate-400 text-[18px]"
+              >chevron_right</span
+            >
           </div>
-        </div>
+        </a>
       </div>
     </aside>
   </body>

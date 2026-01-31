@@ -1,426 +1,831 @@
-<!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý Ticket chuyên khoa - ISSVSG</title>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: { 50: '#ECFEFF', 100: '#CFFAFE', 200: '#A5F3FC', 300: '#67E8F9', 400: '#22D3EE', 500: '#0891B2', 600: '#0E7490', 700: '#155E75', 800: '#164E63', 900: '#083344' },
-                        secondary: { 50: '#F0FDF4', 100: '#DCFCE7', 200: '#BBF7D0', 300: '#86EFAC', 400: '#4ADE80', 500: '#22C55E', 600: '#059669', 700: '#047857' },
-                        surface: { 50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1', 400: '#94A3B8', 500: '#64748B', 600: '#475569', 700: '#334155', 800: '#1E293B', 900: '#0F172A' }
-                    },
-                    fontFamily: { heading: ['Poppins', 'sans-serif'], body: ['Open Sans', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
-    <style>
-        body { font-family: 'Open Sans', sans-serif; }
-        h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', sans-serif; }
-        .sidebar-link.active { background-color: rgba(8, 145, 178, 0.1); color: #0891B2; border-right: 3px solid #0891B2; }
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-    </style>
-</head>
-<body class="bg-surface-50">
-    <!-- Sidebar -->
-    <nav th:replace="~{fragments/layout :: sidebar}"></nav>
-    
-    <!-- Top Navbar -->
-    <header th:replace="~{fragments/layout :: navbar}"></header>
-    
+<!doctype html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head(title='Quản lý Ticket')}">
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans h-screen flex overflow-hidden"
+  >
+    <!-- Mobile Sidebar Backdrop -->
+    <div th:replace="~{fragments/layout :: sidebar-backdrop}"></div>
+
+    <!-- Admin Sidebar -->
+    <aside th:replace="~{fragments/layout :: admin-sidebar}"></aside>
+
     <!-- Main Content -->
-    <main class="ml-64 pt-24 pb-8 px-4 md:px-6 lg:px-8 min-h-screen">
-        <!-- Page Header -->
-        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
+    <main
+      class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark"
+    >
+      <!-- Header -->
+      <header
+        th:replace="~{fragments/layout :: header(title='Quản lý Ticket')}"
+      ></header>
+
+      <!-- Content Area -->
+      <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+          <!-- Page Header -->
+          <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-4"
+          >
             <div>
-                <h1 class="text-3xl font-bold text-surface-900 font-heading">Quản lý Ticket chuyên khoa</h1>
-                <p class="text-surface-600 mt-2">Tư vấn và xử lý các vấn đề cần ý kiến chuyên gia</p>
-                <div class="flex items-center gap-4 mt-3">
-                    <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                        <span class="text-sm text-surface-600">3 ticket ưu tiên cao cần xử lý</span>
-                    </div>
-                    <div class="flex items-center gap-2 text-sm text-surface-500">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        Thời gian phản hồi trung bình: 2.4 giờ
-                    </div>
+              <h2
+                class="text-3xl font-black tracking-tight text-slate-900 dark:text-white"
+              >
+                Quản lý Ticket chuyên khoa
+              </h2>
+              <p class="text-slate-500 dark:text-slate-400 mt-1">
+                Tư vấn và xử lý các vấn đề cần ý kiến chuyên gia
+              </p>
+              <div class="flex items-center gap-4 mt-2">
+                <div class="flex items-center gap-2">
+                  <span
+                    class="w-2 h-2 bg-red-500 rounded-full animate-pulse"
+                  ></span>
+                  <span class="text-sm text-slate-600 dark:text-slate-400"
+                    >3 ticket ưu tiên cao cần xử lý</span
+                  >
                 </div>
+                <div
+                  class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400"
+                >
+                  <span class="material-symbols-outlined text-[16px]"
+                    >schedule</span
+                  >
+                  Thời gian phản hồi TB: 2.4 giờ
+                </div>
+              </div>
             </div>
-            <button onclick="openCreateTicketModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-500 text-white font-medium rounded-xl hover:bg-primary-600 transition-colors duration-200 cursor-pointer shadow-lg shadow-primary-500/25">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                </svg>
-                Tạo ticket mới
+            <button
+              onclick="openCreateTicketModal()"
+              class="bg-primary text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors flex items-center gap-2 shadow-sm shadow-primary/30"
+            >
+              <span class="material-symbols-outlined text-[20px]">add</span>
+              Tạo ticket mới
             </button>
-        </div>
-        
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <!-- Open Tickets -->
-            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-all duration-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-surface-500">Ticket đang mở</p>
-                        <p class="text-3xl font-bold text-surface-900 mt-2">18</p>
-                        <p class="text-sm text-amber-600 mt-2">6 chờ phản hồi</p>
-                    </div>
-                    <div class="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center">
-                        <svg class="w-7 h-7 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
-                        </svg>
-                    </div>
+          </div>
+
+          <!-- Stats Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p
+                    class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                  >
+                    Ticket đang mở
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1"
+                  >
+                    18
+                  </h3>
+                  <p
+                    class="text-sm text-amber-600/80 dark:text-amber-400/80 mt-1"
+                  >
+                    6 chờ phản hồi
+                  </p>
                 </div>
-            </div>
-            
-            <!-- In Progress -->
-            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-all duration-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-surface-500">Đang xử lý</p>
-                        <p class="text-3xl font-bold text-surface-900 mt-2">12</p>
-                        <p class="text-sm text-primary-600 mt-2">Được giao cho bạn</p>
-                    </div>
-                    <div class="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center">
-                        <svg class="w-7 h-7 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
+                <div
+                  class="p-2 bg-amber-50 dark:bg-amber-900/30 rounded-lg text-amber-600 dark:text-amber-400"
+                >
+                  <span class="material-symbols-outlined">chat</span>
                 </div>
+              </div>
             </div>
-            
-            <!-- Completed This Week -->
-            <div class="bg-white rounded-2xl border border-surface-200 p-6 hover:shadow-lg transition-all duration-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-surface-500">Hoàn thành tuần này</p>
-                        <p class="text-3xl font-bold text-surface-900 mt-2">24</p>
-                        <p class="text-sm text-secondary-600 mt-2 flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            +8 so với tuần trước
-                        </p>
-                    </div>
-                    <div class="w-14 h-14 bg-secondary-100 rounded-2xl flex items-center justify-center">
-                        <svg class="w-7 h-7 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p
+                    class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                  >
+                    Đang xử lý
+                  </p>
+                  <h3 class="text-2xl font-bold text-primary mt-1">12</h3>
+                  <p class="text-sm text-primary/80 mt-1">Được giao cho bạn</p>
                 </div>
-            </div>
-            
-            <!-- High Priority -->
-            <div class="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl border-2 border-red-200 p-6 hover:shadow-lg transition-all duration-200">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-red-700">Ưu tiên cao</p>
-                        <p class="text-3xl font-bold text-red-700 mt-2">3</p>
-                        <button class="text-sm text-red-700 mt-2 font-medium underline hover:text-red-800 cursor-pointer">Xem ngay →</button>
-                    </div>
-                    <div class="w-14 h-14 bg-red-200 rounded-2xl flex items-center justify-center">
-                        <svg class="w-7 h-7 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                        </svg>
-                    </div>
+                <div
+                  class="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-primary"
+                >
+                  <span class="material-symbols-outlined">hourglass_top</span>
                 </div>
+              </div>
             </div>
-        </div>
-        
-        <!-- Filters & View -->
-        <div class="bg-white rounded-2xl border border-surface-200 p-5 mb-6">
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p
+                    class="text-sm font-medium text-slate-500 dark:text-slate-400"
+                  >
+                    Hoàn thành tuần này
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1"
+                  >
+                    24
+                  </h3>
+                  <p
+                    class="text-sm text-emerald-600/80 dark:text-emerald-400/80 mt-1 flex items-center gap-1"
+                  >
+                    <span class="material-symbols-outlined text-[14px]"
+                      >trending_up</span
+                    >
+                    +8 so với tuần trước
+                  </p>
+                </div>
+                <div
+                  class="p-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400"
+                >
+                  <span class="material-symbols-outlined">check_circle</span>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-gradient-to-br from-red-50 to-amber-50 dark:from-red-900/20 dark:to-amber-900/20 rounded-xl border-2 border-red-200 dark:border-red-800/50 p-5 shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-sm font-medium text-red-700 dark:text-red-400">
+                    Ưu tiên cao
+                  </p>
+                  <h3
+                    class="text-2xl font-bold text-red-700 dark:text-red-400 mt-1"
+                  >
+                    3
+                  </h3>
+                  <button
+                    class="text-sm text-red-700 dark:text-red-400 mt-1 font-medium hover:underline"
+                  >
+                    Xem ngay →
+                  </button>
+                </div>
+                <div
+                  class="p-2 bg-red-200 dark:bg-red-900/50 rounded-lg text-red-700 dark:text-red-400"
+                >
+                  <span class="material-symbols-outlined">warning</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters & Search -->
+          <div
+            class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm"
+          >
             <div class="flex flex-col lg:flex-row lg:items-center gap-4">
-                <!-- Search -->
-                <div class="flex-1">
-                    <div class="relative">
-                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                        <input type="text" placeholder="Tìm theo mã ticket, bệnh nhân, hoặc nội dung..." 
-                            class="w-full pl-10 pr-4 py-2.5 bg-surface-50 border border-surface-200 rounded-xl text-surface-900 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200">
-                    </div>
-                </div>
-                
-                <!-- Filter Buttons -->
-                <div class="flex flex-wrap items-center gap-2">
-                    <button class="px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-xl cursor-pointer transition-all duration-200">
-                        Tất cả (18)
-                    </button>
-                    <button class="px-4 py-2 bg-white border border-surface-200 text-surface-700 text-sm font-medium rounded-xl hover:border-red-300 hover:bg-red-50 hover:text-red-700 cursor-pointer transition-all duration-200">
-                        Ưu tiên cao (3)
-                    </button>
-                    <button class="px-4 py-2 bg-white border border-surface-200 text-surface-700 text-sm font-medium rounded-xl hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700 cursor-pointer transition-all duration-200">
-                        Chờ phản hồi (6)
-                    </button>
-                    <button class="px-4 py-2 bg-white border border-surface-200 text-surface-700 text-sm font-medium rounded-xl hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 cursor-pointer transition-all duration-200">
-                        Của tôi (12)
-                    </button>
-                    <select class="px-4 py-2 bg-white border border-surface-200 text-surface-700 text-sm rounded-xl hover:border-surface-300 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer transition-all duration-200">
-                        <option>Tất cả loại</option>
-                        <option>Tư vấn chuyên khoa</option>
-                        <option>Xét nghiệm phức tạp</option>
-                        <option>Điều trị đặc biệt</option>
-                        <option>Hội chẩn</option>
-                    </select>
-                </div>
+              <!-- Search -->
+              <div class="flex-1 relative">
+                <span
+                  class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]"
+                  >search</span
+                >
+                <input
+                  type="text"
+                  placeholder="Tìm theo mã ticket, bệnh nhân, hoặc nội dung..."
+                  class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                />
+              </div>
+
+              <!-- Filter Buttons -->
+              <div class="flex flex-wrap items-center gap-2">
+                <button
+                  class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg transition-all"
+                >
+                  Tất cả (18)
+                </button>
+                <button
+                  class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:border-red-300 dark:hover:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-400 transition-all"
+                >
+                  Ưu tiên cao (3)
+                </button>
+                <button
+                  class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:border-amber-300 dark:hover:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 hover:text-amber-700 dark:hover:text-amber-400 transition-all"
+                >
+                  Chờ phản hồi (6)
+                </button>
+                <button
+                  class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:border-primary hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-primary transition-all"
+                >
+                  Của tôi (12)
+                </button>
+                <select
+                  class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                >
+                  <option>Tất cả loại</option>
+                  <option>Tư vấn chuyên khoa</option>
+                  <option>Xét nghiệm phức tạp</option>
+                  <option>Điều trị đặc biệt</option>
+                  <option>Hội chẩn</option>
+                </select>
+              </div>
             </div>
-        </div>
-        
-        <!-- Tickets List -->
-        <div class="space-y-4">
+          </div>
+
+          <!-- Tickets List -->
+          <div class="space-y-4">
             <!-- Ticket 1 - High Priority -->
-            <div class="bg-white rounded-2xl border-2 border-red-200 overflow-hidden hover:shadow-xl transition-all duration-200">
-                <div class="p-6">
-                    <div class="flex items-start gap-4">
-                        <!-- Priority Indicator -->
-                        <div class="flex-shrink-0 w-1 h-24 bg-gradient-to-b from-red-500 to-red-700 rounded-full"></div>
-                        
-                        <!-- Content -->
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between gap-4 mb-3">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-3 mb-2">
-                                        <span class="font-mono text-sm font-semibold text-primary-600">#TK-2026-0042</span>
-                                        <span class="px-2.5 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">Ưu tiên cao</span>
-                                        <span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">Chờ phản hồi</span>
-                                        <span class="text-xs text-surface-500">• Tạo: 21/01/2026 14:32</span>
-                                    </div>
-                                    <h3 class="text-lg font-semibold text-surface-900 mb-2">
-                                        Tư vấn điều trị bệnh nhân suy tim độ III kèm suy thận mãn
-                                    </h3>
-                                    <p class="text-sm text-surface-600 leading-relaxed mb-3">
-                                        Bệnh nhân nam 68 tuổi, tiền sử suy tim mạn NYHA III, hiện tại creatinine 2.8 mg/dL, eGFR 28 ml/min. 
-                                        Cần tư vấn điều chỉnh liều thuốc và phác đồ điều trị phù hợp với chức năng thận giảm...
-                                    </p>
-                                    
-                                    <!-- Patient Info -->
-                                    <div class="flex items-center gap-4 mb-3">
-                                        <div class="flex items-center gap-2">
-                                            <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                                                <span class="text-primary-600 font-semibold text-xs">NT</span>
-                                            </div>
-                                            <div>
-                                                <p class="text-xs font-medium text-surface-900">Nguyễn Văn Tuấn</p>
-                                                <p class="text-xs text-surface-500">BN-2026-0098</p>
-                                            </div>
-                                        </div>
-                                        <div class="h-4 w-px bg-surface-300"></div>
-                                        <div class="text-xs text-surface-600">
-                                            <span class="font-medium">Người tạo:</span> NV. Trần Thị Mai (Y tá)
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Attachments & Tags -->
-                                    <div class="flex items-center gap-3 text-xs">
-                                        <div class="flex items-center gap-1 text-surface-600">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                                            </svg>
-                                            <span>3 tệp đính kèm</span>
-                                        </div>
-                                        <div class="flex items-center gap-1 text-surface-600">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
-                                            </svg>
-                                            <span>2 bình luận</span>
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">Tim mạch</span>
-                                            <span class="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full">Thận</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Actions -->
-                                <div class="flex-shrink-0 flex flex-col gap-2">
-                                    <button class="px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-xl hover:bg-primary-600 transition-colors duration-200 cursor-pointer flex items-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
-                                        </svg>
-                                        Phản hồi
-                                    </button>
-                                    <button class="px-4 py-2 bg-white border border-surface-200 text-surface-700 text-sm font-medium rounded-xl hover:border-surface-300 hover:bg-surface-50 transition-all duration-200 cursor-pointer">
-                                        Chi tiết
-                                    </button>
-                                </div>
-                            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border-2 border-red-200 dark:border-red-800/50 overflow-hidden shadow-sm hover:shadow-lg transition-all"
+            >
+              <div class="p-6">
+                <div class="flex items-start gap-4">
+                  <!-- Priority Indicator -->
+                  <div
+                    class="flex-shrink-0 w-1 h-24 bg-gradient-to-b from-red-500 to-red-700 rounded-full"
+                  ></div>
+
+                  <!-- Content -->
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-4 mb-3">
+                      <div class="flex-1">
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                          <span
+                            class="font-mono text-sm font-semibold text-primary"
+                            >#TK-2026-0042</span
+                          >
+                          <span
+                            class="px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-bold rounded-full"
+                            >Ưu tiên cao</span
+                          >
+                          <span
+                            class="px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-medium rounded-full"
+                            >Chờ phản hồi</span
+                          >
+                          <span
+                            class="text-xs text-slate-500 dark:text-slate-400"
+                            >• Tạo: 21/01/2026 14:32</span
+                          >
                         </div>
-                    </div>
-                    
-                    <!-- AI Suggestion -->
-                    <div class="mt-4 pt-4 border-t border-surface-200">
-                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                            <div class="flex items-start gap-3">
-                                <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                                </svg>
-                                <div class="flex-1">
-                                    <p class="text-xs font-semibold text-blue-900 mb-1">Gợi ý từ AI dựa trên Guidelines</p>
-                                    <p class="text-xs text-blue-800">
-                                        Theo ESC 2021 Heart Failure Guidelines: Với eGFR 20-30 ml/min, khuyến cáo giảm liều ACE-I/ARB 50%, 
-                                        theo dõi K+ và creatinine hàng tuần. Xem xét sử dụng loop diuretic với liều điều chỉnh...
-                                    </p>
-                                </div>
+                        <h3
+                          class="text-lg font-semibold text-slate-900 dark:text-white mb-2"
+                        >
+                          Tư vấn điều trị bệnh nhân suy tim độ III kèm suy thận
+                          mãn
+                        </h3>
+                        <p
+                          class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-3"
+                        >
+                          Bệnh nhân nam 68 tuổi, tiền sử suy tim mạn NYHA III,
+                          hiện tại creatinine 2.8 mg/dL, eGFR 28 ml/min. Cần tư
+                          vấn điều chỉnh liều thuốc và phác đồ điều trị phù hợp
+                          với chức năng thận giảm...
+                        </p>
+
+                        <!-- Patient Info -->
+                        <div class="flex flex-wrap items-center gap-4 mb-3">
+                          <div class="flex items-center gap-2">
+                            <div
+                              class="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center"
+                            >
+                              <span class="text-primary font-semibold text-xs"
+                                >NT</span
+                              >
                             </div>
+                            <div>
+                              <p
+                                class="text-xs font-medium text-slate-900 dark:text-white"
+                              >
+                                Nguyễn Văn Tuấn
+                              </p>
+                              <p
+                                class="text-xs text-slate-500 dark:text-slate-400"
+                              >
+                                BN-2026-0098
+                              </p>
+                            </div>
+                          </div>
+                          <div
+                            class="h-4 w-px bg-slate-300 dark:bg-slate-600"
+                          ></div>
+                          <div
+                            class="text-xs text-slate-600 dark:text-slate-400"
+                          >
+                            <span class="font-medium">Người tạo:</span> NV. Trần
+                            Thị Mai (Y tá)
+                          </div>
                         </div>
+
+                        <!-- Attachments & Tags -->
+                        <div class="flex flex-wrap items-center gap-3 text-xs">
+                          <div
+                            class="flex items-center gap-1 text-slate-600 dark:text-slate-400"
+                          >
+                            <span class="material-symbols-outlined text-[16px]"
+                              >attach_file</span
+                            >
+                            <span>3 tệp đính kèm</span>
+                          </div>
+                          <div
+                            class="flex items-center gap-1 text-slate-600 dark:text-slate-400"
+                          >
+                            <span class="material-symbols-outlined text-[16px]"
+                              >chat_bubble</span
+                            >
+                            <span>2 bình luận</span>
+                          </div>
+                          <div class="flex items-center gap-2">
+                            <span
+                              class="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full"
+                              >Tim mạch</span
+                            >
+                            <span
+                              class="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full"
+                              >Thận</span
+                            >
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Actions -->
+                      <div class="flex-shrink-0 flex flex-col gap-2">
+                        <button
+                          class="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-2"
+                        >
+                          <span class="material-symbols-outlined text-[18px]"
+                            >reply</span
+                          >
+                          Phản hồi
+                        </button>
+                        <button
+                          class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+                        >
+                          Chi tiết
+                        </button>
+                      </div>
                     </div>
+                  </div>
                 </div>
-                
-                <!-- Footer -->
-                <div class="px-6 py-3 bg-red-50 border-t border-red-200 flex items-center justify-between">
-                    <div class="flex items-center gap-2 text-xs text-red-700">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <span class="font-medium">SLA: Còn 4 giờ 28 phút</span>
+
+                <!-- AI Suggestion -->
+                <div
+                  class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700"
+                >
+                  <div
+                    class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-lg p-4"
+                  >
+                    <div class="flex items-start gap-3">
+                      <span
+                        class="material-symbols-outlined text-primary flex-shrink-0 mt-0.5"
+                        >psychology</span
+                      >
+                      <div class="flex-1">
+                        <p
+                          class="text-xs font-semibold text-blue-900 dark:text-blue-300 mb-1"
+                        >
+                          Gợi ý từ AI dựa trên Guidelines
+                        </p>
+                        <p class="text-xs text-blue-800 dark:text-blue-400">
+                          Theo ESC 2021 Heart Failure Guidelines: Với eGFR 20-30
+                          ml/min, khuyến cáo giảm liều ACE-I/ARB 50%, theo dõi
+                          K+ và creatinine hàng tuần. Xem xét sử dụng loop
+                          diuretic với liều điều chỉnh...
+                        </p>
+                      </div>
                     </div>
-                    <div class="text-xs text-surface-500">
-                        Được giao cho: <span class="font-medium text-primary-600">BS. Nguyễn Văn A</span>
-                    </div>
+                  </div>
                 </div>
+              </div>
+
+              <!-- Footer -->
+              <div
+                class="px-6 py-3 bg-red-50 dark:bg-red-900/20 border-t border-red-200 dark:border-red-800/50 flex items-center justify-between"
+              >
+                <div
+                  class="flex items-center gap-2 text-xs text-red-700 dark:text-red-400"
+                >
+                  <span class="material-symbols-outlined text-[16px]"
+                    >timer</span
+                  >
+                  <span class="font-medium">SLA: Còn 4 giờ 28 phút</span>
+                </div>
+                <div class="text-xs text-slate-500 dark:text-slate-400">
+                  Được giao cho:
+                  <span class="font-medium text-primary">BS. Nguyễn Văn A</span>
+                </div>
+              </div>
             </div>
-            
+
             <!-- Ticket 2 - In Progress -->
-            <div class="bg-white rounded-2xl border border-surface-200 overflow-hidden hover:shadow-lg transition-all duration-200">
-                <div class="p-6">
-                    <div class="flex items-start gap-4">
-                        <!-- Priority Indicator -->
-                        <div class="flex-shrink-0 w-1 h-20 bg-gradient-to-b from-amber-400 to-amber-600 rounded-full"></div>
-                        
-                        <!-- Content -->
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between gap-4 mb-3">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-3 mb-2">
-                                        <span class="font-mono text-sm font-semibold text-primary-600">#TK-2026-0041</span>
-                                        <span class="px-2.5 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">Ưu tiên trung bình</span>
-                                        <span class="px-2.5 py-1 bg-primary-100 text-primary-700 text-xs font-medium rounded-full">Đang xử lý</span>
-                                        <span class="text-xs text-surface-500">• Tạo: 21/01/2026 09:15</span>
-                                    </div>
-                                    <h3 class="text-lg font-semibold text-surface-900 mb-2">
-                                        Hội chẩn trường hợp bệnh nhân ĐTĐ type 2 kiểm soát kém
-                                    </h3>
-                                    <p class="text-sm text-surface-600 leading-relaxed mb-3">
-                                        Bệnh nhân nữ 52 tuổi, ĐTĐ type 2 được 8 năm, HbA1c hiện tại 9.2%. Đang dùng Metformin 2000mg + 
-                                        Glimepiride 4mg nhưng đường huyết vẫn cao. Cần tư vấn bổ sung insulin hoặc thuốc mới...
-                                    </p>
-                                    
-                                    <!-- Patient & Creator Info -->
-                                    <div class="flex items-center gap-4 mb-3">
-                                        <div class="flex items-center gap-2">
-                                            <div class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center">
-                                                <span class="text-pink-600 font-semibold text-xs">LH</span>
-                                            </div>
-                                            <div>
-                                                <p class="text-xs font-medium text-surface-900">Lê Thị Hương</p>
-                                                <p class="text-xs text-surface-500">BN-2026-0087</p>
-                                            </div>
-                                        </div>
-                                        <div class="h-4 w-px bg-surface-300"></div>
-                                        <div class="text-xs text-surface-600">
-                                            <span class="font-medium">Người tạo:</span> BS. Trần Văn Bình
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Meta Info -->
-                                    <div class="flex items-center gap-3 text-xs">
-                                        <div class="flex items-center gap-1 text-surface-600">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
-                                            </svg>
-                                            <span>5 tệp đính kèm</span>
-                                        </div>
-                                        <div class="flex items-center gap-1 text-surface-600">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
-                                            </svg>
-                                            <span>4 bình luận</span>
-                                        </div>
-                                        <span class="px-2 py-0.5 bg-green-100 text-green-700 rounded-full">Nội tiết</span>
-                                    </div>
-                                </div>
-                                
-                                <!-- Actions -->
-                                <div class="flex-shrink-0 flex flex-col gap-2">
-                                    <button class="px-4 py-2 bg-secondary-500 text-white text-sm font-medium rounded-xl hover:bg-secondary-600 transition-colors duration-200 cursor-pointer flex items-center gap-2">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                        </svg>
-                                        Hoàn thành
-                                    </button>
-                                    <button class="px-4 py-2 bg-white border border-surface-200 text-surface-700 text-sm font-medium rounded-xl hover:border-surface-300 hover:bg-surface-50 transition-all duration-200 cursor-pointer">
-                                        Chi tiết
-                                    </button>
-                                </div>
-                            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-lg transition-all"
+            >
+              <div class="p-6">
+                <div class="flex items-start gap-4">
+                  <!-- Priority Indicator -->
+                  <div
+                    class="flex-shrink-0 w-1 h-20 bg-gradient-to-b from-amber-400 to-amber-600 rounded-full"
+                  ></div>
+
+                  <!-- Content -->
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-4 mb-3">
+                      <div class="flex-1">
+                        <div class="flex flex-wrap items-center gap-2 mb-2">
+                          <span
+                            class="font-mono text-sm font-semibold text-primary"
+                            >#TK-2026-0041</span
+                          >
+                          <span
+                            class="px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-medium rounded-full"
+                            >Ưu tiên trung bình</span
+                          >
+                          <span
+                            class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/30 text-primary text-xs font-medium rounded-full"
+                            >Đang xử lý</span
+                          >
+                          <span
+                            class="text-xs text-slate-500 dark:text-slate-400"
+                            >• Tạo: 21/01/2026 09:15</span
+                          >
                         </div>
+                        <h3
+                          class="text-lg font-semibold text-slate-900 dark:text-white mb-2"
+                        >
+                          Hội chẩn trường hợp bệnh nhân ĐTĐ type 2 kiểm soát kém
+                        </h3>
+                        <p
+                          class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-3"
+                        >
+                          Bệnh nhân nữ 52 tuổi, ĐTĐ type 2 được 8 năm, HbA1c
+                          hiện tại 9.2%. Đang dùng Metformin 2000mg +
+                          Glimepiride 4mg nhưng đường huyết vẫn cao. Cần tư vấn
+                          bổ sung insulin hoặc thuốc mới...
+                        </p>
+
+                        <!-- Patient & Creator Info -->
+                        <div class="flex flex-wrap items-center gap-4 mb-3">
+                          <div class="flex items-center gap-2">
+                            <div
+                              class="w-8 h-8 bg-pink-100 dark:bg-pink-900/30 rounded-full flex items-center justify-center"
+                            >
+                              <span
+                                class="text-pink-600 dark:text-pink-400 font-semibold text-xs"
+                                >LH</span
+                              >
+                            </div>
+                            <div>
+                              <p
+                                class="text-xs font-medium text-slate-900 dark:text-white"
+                              >
+                                Lê Thị Hương
+                              </p>
+                              <p
+                                class="text-xs text-slate-500 dark:text-slate-400"
+                              >
+                                BN-2026-0087
+                              </p>
+                            </div>
+                          </div>
+                          <div
+                            class="h-4 w-px bg-slate-300 dark:bg-slate-600"
+                          ></div>
+                          <div
+                            class="text-xs text-slate-600 dark:text-slate-400"
+                          >
+                            <span class="font-medium">Người tạo:</span> BS. Trần
+                            Văn Bình
+                          </div>
+                        </div>
+
+                        <!-- Meta Info -->
+                        <div class="flex flex-wrap items-center gap-3 text-xs">
+                          <div
+                            class="flex items-center gap-1 text-slate-600 dark:text-slate-400"
+                          >
+                            <span class="material-symbols-outlined text-[16px]"
+                              >attach_file</span
+                            >
+                            <span>5 tệp đính kèm</span>
+                          </div>
+                          <div
+                            class="flex items-center gap-1 text-slate-600 dark:text-slate-400"
+                          >
+                            <span class="material-symbols-outlined text-[16px]"
+                              >chat_bubble</span
+                            >
+                            <span>4 bình luận</span>
+                          </div>
+                          <span
+                            class="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full"
+                            >Nội tiết</span
+                          >
+                        </div>
+                      </div>
+
+                      <!-- Actions -->
+                      <div class="flex-shrink-0 flex flex-col gap-2">
+                        <button
+                          class="px-4 py-2 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 transition-colors flex items-center gap-2"
+                        >
+                          <span class="material-symbols-outlined text-[18px]"
+                            >check</span
+                          >
+                          Hoàn thành
+                        </button>
+                        <button
+                          class="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+                        >
+                          Chi tiết
+                        </button>
+                      </div>
                     </div>
+                  </div>
                 </div>
-                
-                <!-- Footer -->
-                <div class="px-6 py-3 bg-surface-50 border-t border-surface-200 flex items-center justify-between">
-                    <div class="flex items-center gap-2 text-xs text-surface-600">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        <span>Bắt đầu xử lý: 21/01/2026 10:30</span>
-                    </div>
-                    <div class="text-xs text-surface-500">
-                        Được giao cho: <span class="font-medium text-primary-600">BS. Nguyễn Văn A</span>
-                    </div>
+              </div>
+
+              <!-- Footer -->
+              <div
+                class="px-6 py-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between"
+              >
+                <div
+                  class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400"
+                >
+                  <span class="material-symbols-outlined text-[16px]"
+                    >schedule</span
+                  >
+                  <span>Bắt đầu xử lý: 21/01/2026 10:30</span>
                 </div>
+                <div class="text-xs text-slate-500 dark:text-slate-400">
+                  Được giao cho:
+                  <span class="font-medium text-primary">BS. Nguyễn Văn A</span>
+                </div>
+              </div>
             </div>
-            
-            <!-- More tickets would go here... -->
-        </div>
-        
-        <!-- Pagination -->
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
-            <p class="text-sm text-surface-600">Hiển thị <span class="font-semibold">1-2</span> của <span class="font-semibold">18</span> ticket</p>
+          </div>
+
+          <!-- Pagination -->
+          <div
+            class="flex flex-col sm:flex-row items-center justify-between gap-4"
+          >
+            <p class="text-sm text-slate-600 dark:text-slate-400">
+              Hiển thị <span class="font-semibold">1-2</span> của
+              <span class="font-semibold">18</span> ticket
+            </p>
             <div class="flex items-center gap-2">
-                <button class="p-2 text-surface-400 hover:text-surface-600 hover:bg-white rounded-lg transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed" disabled aria-label="Trang trước">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                    </svg>
-                </button>
-                <button class="min-w-[36px] h-9 bg-primary-500 text-white rounded-lg font-medium cursor-pointer">1</button>
-                <button class="min-w-[36px] h-9 text-surface-600 hover:bg-white rounded-lg font-medium transition-colors duration-200 cursor-pointer">2</button>
-                <button class="min-w-[36px] h-9 text-surface-600 hover:bg-white rounded-lg font-medium transition-colors duration-200 cursor-pointer">3</button>
-                <button class="p-2 text-surface-600 hover:text-surface-900 hover:bg-white rounded-lg transition-colors duration-200 cursor-pointer" aria-label="Trang sau">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </button>
+              <button
+                class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50"
+                disabled
+              >
+                <span class="material-symbols-outlined text-[20px]"
+                  >chevron_left</span
+                >
+              </button>
+              <button
+                class="min-w-[36px] h-9 bg-primary text-white rounded-lg font-medium"
+              >
+                1
+              </button>
+              <button
+                class="min-w-[36px] h-9 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 rounded-lg font-medium transition-colors"
+              >
+                2
+              </button>
+              <button
+                class="min-w-[36px] h-9 text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 rounded-lg font-medium transition-colors"
+              >
+                3
+              </button>
+              <button
+                class="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                <span class="material-symbols-outlined text-[20px]"
+                  >chevron_right</span
+                >
+              </button>
             </div>
+          </div>
         </div>
+      </div>
     </main>
-    
+
+    <!-- Create Ticket Modal -->
+    <div
+      id="createModal"
+      class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+    >
+      <div
+        class="bg-white dark:bg-[#1a2634] rounded-xl max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-700"
+      >
+        <div class="p-6 border-b border-slate-200 dark:border-slate-700">
+          <div class="flex items-center justify-between">
+            <h3
+              class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2"
+            >
+              <span class="material-symbols-outlined text-primary"
+                >add_circle</span
+              >
+              Tạo ticket mới
+            </h3>
+            <button
+              onclick="closeCreateModal()"
+              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+        </div>
+        <form id="createTicketForm" class="p-6 space-y-4">
+          <div>
+            <label
+              class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >Loại ticket</label
+            >
+            <select
+              class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+            >
+              <option>Tư vấn chuyên khoa</option>
+              <option>Xét nghiệm phức tạp</option>
+              <option>Điều trị đặc biệt</option>
+              <option>Hội chẩn</option>
+            </select>
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >Bệnh nhân</label
+            >
+            <input
+              type="text"
+              placeholder="Tìm kiếm bệnh nhân..."
+              class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >Tiêu đề</label
+            >
+            <input
+              type="text"
+              placeholder="Nhập tiêu đề ticket..."
+              class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >Mô tả chi tiết</label
+            >
+            <textarea
+              rows="4"
+              placeholder="Mô tả vấn đề cần tư vấn..."
+              class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+            ></textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                >Mức độ ưu tiên</label
+              >
+              <select
+                class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+              >
+                <option>Thấp</option>
+                <option selected>Trung bình</option>
+                <option>Cao</option>
+                <option>Khẩn cấp</option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                >Gán cho</label
+              >
+              <select
+                class="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
+              >
+                <option>AI tự động gán</option>
+                <option>BS. Nguyễn Văn A</option>
+                <option>BS. Trần Thị B</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+              >Tệp đính kèm</label
+            >
+            <div
+              class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer"
+            >
+              <span
+                class="material-symbols-outlined text-[32px] text-slate-400 mb-2"
+                >cloud_upload</span
+              >
+              <p class="text-sm text-slate-500 dark:text-slate-400">
+                Kéo thả hoặc click để tải lên
+              </p>
+              <p class="text-xs text-slate-400 mt-1">
+                PDF, DOC, XLS, hình ảnh (tối đa 10MB)
+              </p>
+            </div>
+          </div>
+        </form>
+        <div
+          class="p-6 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3"
+        >
+          <button
+            onclick="closeCreateModal()"
+            class="px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          >
+            Hủy
+          </button>
+          <button
+            type="submit"
+            form="createTicketForm"
+            class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center gap-2"
+          >
+            <span class="material-symbols-outlined text-[18px]">add</span>
+            Tạo ticket
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 z-50 hidden">
+      <div
+        class="flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border"
+        id="toastContent"
+      >
+        <span
+          id="toastIcon"
+          class="material-symbols-outlined text-[20px]"
+        ></span>
+        <span id="toastMessage" class="text-sm font-medium"></span>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
     <script>
-        // Modal functions
-        function openCreateTicketModal() {
-            alert('Tạo ticket mới:\n\n✓ Chọn loại ticket\n✓ Chọn bệnh nhân\n✓ Mô tả vấn đề chi tiết\n✓ Đính kèm tệp (hồ sơ, xét nghiệm)\n✓ Gán cho chuyên gia\n✓ Đặt mức độ ưu tiên\n✓ AI gợi ý chuyên khoa phù hợp\n\nTicket sẽ được gửi đến bác sĩ chuyên khoa!');
-        }
-        
-        // Smooth scroll
-        document.documentElement.style.scrollBehavior = 'smooth';
+      function openCreateTicketModal() {
+        document.getElementById("createModal").classList.remove("hidden");
+        document.getElementById("createModal").classList.add("flex");
+      }
+
+      function closeCreateModal() {
+        document.getElementById("createModal").classList.add("hidden");
+        document.getElementById("createModal").classList.remove("flex");
+      }
+
+      document
+        .getElementById("createModal")
+        ?.addEventListener("click", function (e) {
+          if (e.target === this) closeCreateModal();
+        });
+
+      document
+        .getElementById("createTicketForm")
+        ?.addEventListener("submit", function (e) {
+          e.preventDefault();
+          showToast("Ticket đã được tạo thành công!", "success");
+          closeCreateModal();
+        });
+
+      function showToast(message, type = "info") {
+        const toast = document.getElementById("toast");
+        const content = document.getElementById("toastContent");
+        const icon = document.getElementById("toastIcon");
+        const msg = document.getElementById("toastMessage");
+
+        const config = {
+          success: {
+            icon: "check_circle",
+            bg: "bg-emerald-50 dark:bg-emerald-900/30",
+            text: "text-emerald-700 dark:text-emerald-400",
+            border: "border-emerald-200 dark:border-emerald-800",
+          },
+          error: {
+            icon: "error",
+            bg: "bg-red-50 dark:bg-red-900/30",
+            text: "text-red-700 dark:text-red-400",
+            border: "border-red-200 dark:border-red-800",
+          },
+          info: {
+            icon: "info",
+            bg: "bg-blue-50 dark:bg-blue-900/30",
+            text: "text-blue-700 dark:text-blue-400",
+            border: "border-blue-200 dark:border-blue-800",
+          },
+        };
+
+        const c = config[type] || config.info;
+        content.className = `flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border ${c.bg} ${c.border}`;
+        icon.className = `material-symbols-outlined text-[20px] ${c.text}`;
+        icon.textContent = c.icon;
+        msg.className = `text-sm font-medium ${c.text}`;
+        msg.textContent = message;
+
+        toast.classList.remove("hidden");
+        setTimeout(() => toast.classList.add("hidden"), 3000);
+      }
     </script>
-</body>
+  </body>
 </html>

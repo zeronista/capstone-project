@@ -372,4 +372,21 @@ public class TicketService {
     public long getRetryCount() {
         return getRetryTickets().size();
     }
+
+    /**
+     * Update existing ticket (full object)
+     */
+    public Ticket updateTicket(Ticket ticket) {
+        return ticketRepository.save(ticket);
+    }
+
+    /**
+     * Delete ticket by ID
+     */
+    public void deleteTicket(Long id) {
+        // First delete all messages associated with this ticket
+        ticketMessageRepository.deleteByTicketId(id);
+        // Then delete the ticket
+        ticketRepository.deleteById(id);
+    }
 }

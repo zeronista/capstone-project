@@ -99,10 +99,11 @@ tailwind.config = {
                 },
             },
             fontFamily: {
-                display: ['Be Vietnam Pro', 'system-ui', '-apple-system', 'sans-serif'],
-                sans: ['Be Vietnam Pro', 'system-ui', '-apple-system', 'sans-serif'],
+                // Unified: Roboto for all text (matches Doctor Dashboard)
+                display: ['Roboto', 'system-ui', '-apple-system', 'sans-serif'],
+                sans: ['Roboto', 'system-ui', '-apple-system', 'sans-serif'],
                 body: ['Roboto', 'system-ui', '-apple-system', 'sans-serif'],
-                heading: ['Be Vietnam Pro', 'system-ui', '-apple-system', 'sans-serif'],
+                heading: ['Roboto', 'system-ui', '-apple-system', 'sans-serif'],
             },
             fontSize: {
                 'xs': ['0.75rem', { lineHeight: '1rem' }],
