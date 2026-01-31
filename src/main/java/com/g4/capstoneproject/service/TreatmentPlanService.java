@@ -8,6 +8,9 @@ import com.g4.capstoneproject.repository.CheckupScheduleRepository;
 import com.g4.capstoneproject.repository.TreatmentPlanRepository;
 import com.g4.capstoneproject.repository.TreatmentPlanItemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +41,9 @@ public class TreatmentPlanService {
 
     /**
      * Lấy treatment plan theo ID
+     * Cached for 30 minutes
      */
+    @Cacheable(value = "treatmentPlans", key = "#id")
     @Transactional(readOnly = true)
     public Optional<TreatmentPlan> getTreatmentPlanById(Long id) {
         return treatmentPlanRepository.findById(id);
@@ -46,7 +51,9 @@ public class TreatmentPlanService {
 
     /**
      * Lấy treatment plan theo bệnh nhân
+     * Cached for 30 minutes
      */
+    @Cacheable(value = "treatmentPlans", key = "'patient-' + #patientId")
     @Transactional(readOnly = true)
     public List<TreatmentPlan> getTreatmentPlansByPatientId(Long patientId) {
         return treatmentPlanRepository.findByPatientId(patientId);
@@ -54,7 +61,9 @@ public class TreatmentPlanService {
 
     /**
      * Lấy treatment plan theo bác sĩ
+     * Cached for 30 minutes
      */
+    @Cacheable(value = "treatmentPlans", key = "'doctor-' + #doctorId")
     @Transactional(readOnly = true)
     public List<TreatmentPlan> getTreatmentPlansByDoctorId(Long doctorId) {
         return treatmentPlanRepository.findByDoctorId(doctorId);
@@ -78,14 +87,18 @@ public class TreatmentPlanService {
 
     /**
      * Tạo treatment plan mới
+     * Clears treatment plan caches
      */
+    @CacheEvict(value = "treatmentPlans", allEntries = true)
     public TreatmentPlan createTreatmentPlan(TreatmentPlan plan) {
         return treatmentPlanRepository.save(plan);
     }
 
     /**
      * Cập nhật treatment plan
+     * Clears treatment plan caches
      */
+    @CacheEvict(value = "treatmentPlans", allEntries = true)
     public TreatmentPlan updateTreatmentPlan(Long id, TreatmentPlan updatedPlan) {
         return treatmentPlanRepository.findById(id)
                 .map(existing -> {

@@ -5,6 +5,8 @@ import com.g4.capstoneproject.entity.VitalSigns;
 import com.g4.capstoneproject.repository.UserRepository;
 import com.g4.capstoneproject.repository.VitalSignsRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,21 +29,27 @@ public class PatientService {
 
     /**
      * Get all patients
+     * Cached for 30 minutes to reduce database load
      */
+    @Cacheable(value = "patients", key = "'all'")
     public List<User> getAllPatients() {
         return userRepository.findByRole(User.UserRole.PATIENT);
     }
 
     /**
      * Get all active patients
+     * Cached for 30 minutes to reduce database load
      */
+    @Cacheable(value = "patients", key = "'active'")
     public List<User> getAllActivePatients() {
         return userRepository.findByRoleAndIsActiveTrue(User.UserRole.PATIENT);
     }
 
     /**
      * Get patient by ID
+     * Cached for 30 minutes
      */
+    @Cacheable(value = "patients", key = "#patientId")
     public Optional<User> getPatientById(Long patientId) {
         return userRepository.findById(patientId)
                 .filter(user -> user.getRole() == User.UserRole.PATIENT);
@@ -57,7 +65,9 @@ public class PatientService {
 
     /**
      * Get patients by doctor ID (from treatment plans)
+     * Cached for 30 minutes
      */
+    @Cacheable(value = "patients", key = "'doctor-' + #doctorId")
     public List<User> getPatientsByDoctorId(Long doctorId) {
         return userRepository.findPatientsByDoctorId(doctorId);
     }

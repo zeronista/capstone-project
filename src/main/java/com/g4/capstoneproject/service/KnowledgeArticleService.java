@@ -11,6 +11,8 @@ import com.g4.capstoneproject.repository.KnowledgeCategoryRepository;
 import com.g4.capstoneproject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -48,7 +50,9 @@ public class KnowledgeArticleService {
 
     /**
      * Get articles by category
+     * Cached for 15 minutes
      */
+    @Cacheable(value = "knowledgeArticles", key = "'category-' + #categoryId + '-' + #pageable.pageNumber")
     public Page<KnowledgeArticleResponse> getArticlesByCategory(Long categoryId, Pageable pageable) {
         return articleRepository.findByCategoryIdOrderByCreatedAtDesc(categoryId, pageable)
                 .map(KnowledgeArticleResponse::fromEntity);
@@ -65,7 +69,9 @@ public class KnowledgeArticleService {
 
     /**
      * Get published articles
+     * Cached for 15 minutes
      */
+    @Cacheable(value = "knowledgeArticles", key = "'published-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<KnowledgeArticleResponse> getPublishedArticles(Pageable pageable) {
         return articleRepository.findPublishedArticles(pageable)
                 .map(KnowledgeArticleResponse::fromEntity);
@@ -73,7 +79,9 @@ public class KnowledgeArticleService {
 
     /**
      * Get featured articles
+     * Cached for 15 minutes
      */
+    @Cacheable(value = "knowledgeArticles", key = "'featured-' + #limit")
     public List<KnowledgeArticleResponse> getFeaturedArticles(int limit) {
         Pageable pageable = PageRequest.of(0, limit);
         return articleRepository.findByFeaturedTrueAndStatusOrderByViewsDesc(ArticleStatus.PUBLISHED, pageable)
@@ -84,7 +92,9 @@ public class KnowledgeArticleService {
 
     /**
      * Get most viewed articles
+     * Cached for 15 minutes
      */
+    @Cacheable(value = "knowledgeArticles", key = "'most-viewed-' + #limit")
     public List<KnowledgeArticleResponse> getMostViewedArticles(int limit) {
         Pageable pageable = PageRequest.of(0, limit);
         return articleRepository.findMostViewed(pageable)
@@ -95,7 +105,9 @@ public class KnowledgeArticleService {
 
     /**
      * Get recent published articles
+     * Cached for 15 minutes
      */
+    @Cacheable(value = "knowledgeArticles", key = "'recent-' + #limit")
     public List<KnowledgeArticleResponse> getRecentArticles(int limit) {
         Pageable pageable = PageRequest.of(0, limit);
         return articleRepository.findRecentPublished(pageable)
@@ -155,7 +167,9 @@ public class KnowledgeArticleService {
 
     /**
      * Create new article
+     * Clears all article caches on create
      */
+    @CacheEvict(value = "knowledgeArticles", allEntries = true)
     @Transactional
     public KnowledgeArticleDetailResponse createArticle(
             String title,
@@ -204,7 +218,9 @@ public class KnowledgeArticleService {
 
     /**
      * Update article
+     * Clears all article caches on update
      */
+    @CacheEvict(value = "knowledgeArticles", allEntries = true)
     @Transactional
     public KnowledgeArticleDetailResponse updateArticle(
             Long id,
@@ -269,7 +285,9 @@ public class KnowledgeArticleService {
 
     /**
      * Delete article (hard delete)
+     * Clears all article caches on delete
      */
+    @CacheEvict(value = "knowledgeArticles", allEntries = true)
     @Transactional
     public void deleteArticle(Long id) {
         KnowledgeArticle article = articleRepository.findById(id)
@@ -281,7 +299,9 @@ public class KnowledgeArticleService {
 
     /**
      * Publish article
+     * Clears all article caches when publishing
      */
+    @CacheEvict(value = "knowledgeArticles", allEntries = true)
     @Transactional
     public KnowledgeArticleDetailResponse publishArticle(Long id, Long userId) {
         KnowledgeArticle article = articleRepository.findById(id)
@@ -301,7 +321,9 @@ public class KnowledgeArticleService {
 
     /**
      * Archive article
+     * Clears all article caches when archiving
      */
+    @CacheEvict(value = "knowledgeArticles", allEntries = true)
     @Transactional
     public KnowledgeArticleDetailResponse archiveArticle(Long id, Long userId) {
         KnowledgeArticle article = articleRepository.findById(id)
@@ -321,7 +343,9 @@ public class KnowledgeArticleService {
 
     /**
      * Toggle featured status
+     * Clears all article caches when changing featured status
      */
+    @CacheEvict(value = "knowledgeArticles", allEntries = true)
     @Transactional
     public KnowledgeArticleDetailResponse toggleFeatured(Long id) {
         KnowledgeArticle article = articleRepository.findById(id)

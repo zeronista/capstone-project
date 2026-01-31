@@ -9,6 +9,9 @@ import com.g4.capstoneproject.repository.PrescriptionRepository;
 import com.g4.capstoneproject.repository.PrescriptionDetailRepository;
 import com.g4.capstoneproject.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +41,9 @@ public class PrescriptionService {
 
     /**
      * Lấy đơn thuốc theo ID (trả về Prescription object, không phải Optional)
+     * Cached for 10 minutes
      */
+    @Cacheable(value = "prescriptions", key = "#id")
     @Transactional(readOnly = true)
     public Prescription getPrescriptionById(Long id) {
         return prescriptionRepository.findById(id).orElse(null);
@@ -54,7 +59,9 @@ public class PrescriptionService {
 
     /**
      * Lấy đơn thuốc theo bệnh nhân
+     * Cached for 10 minutes
      */
+    @Cacheable(value = "prescriptions", key = "'patient-' + #patientId")
     @Transactional(readOnly = true)
     public List<Prescription> getPrescriptionsByPatientId(Long patientId) {
         return prescriptionRepository.findByPatientId(patientId);
@@ -62,7 +69,9 @@ public class PrescriptionService {
 
     /**
      * Lấy đơn thuốc theo bác sĩ
+     * Cached for 10 minutes
      */
+    @Cacheable(value = "prescriptions", key = "'doctor-' + #doctorId")
     @Transactional(readOnly = true)
     public List<Prescription> getPrescriptionsByDoctorId(Long doctorId) {
         return prescriptionRepository.findByDoctorId(doctorId);
@@ -78,14 +87,24 @@ public class PrescriptionService {
 
     /**
      * Tạo đơn thuốc mới
+     * Evicts cache for patient and doctor
      */
+    @Caching(evict = {
+            @CacheEvict(value = "prescriptions", key = "'patient-' + #prescription.patient.id"),
+            @CacheEvict(value = "prescriptions", key = "'doctor-' + #prescription.doctor.id")
+    })
     public Prescription createPrescription(Prescription prescription) {
         return prescriptionRepository.save(prescription);
     }
 
     /**
      * Cập nhật đơn thuốc
+     * Evicts specific prescription and related patient/doctor caches
      */
+    @Caching(evict = {
+            @CacheEvict(value = "prescriptions", key = "#id"),
+            @CacheEvict(value = "prescriptions", allEntries = true, condition = "#result != null")
+    })
     public Prescription updatePrescription(Long id, Prescription updatedPrescription) {
         return prescriptionRepository.findById(id)
                 .map(existing -> {
@@ -100,7 +119,9 @@ public class PrescriptionService {
 
     /**
      * Xóa đơn thuốc
+     * Clears all prescription caches
      */
+    @CacheEvict(value = "prescriptions", allEntries = true)
     public boolean deletePrescription(Long id) {
         if (prescriptionRepository.existsById(id)) {
             prescriptionRepository.deleteById(id);
