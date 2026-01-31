@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Console Appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Application Logger -->
+    <logger name="com.g4.capstoneproject" level="INFO"/>
+
+    <!-- Reduce Spring Framework noise -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.springframework.boot" level="WARN"/>
+    <logger name="org.springframework.boot.autoconfigure" level="ERROR"/>
+    <logger name="org.springframework.boot.web.embedded.tomcat" level="WARN"/>
+    <logger name="org.springframework.web" level="WARN"/>
+    <logger name="org.springframework.web.servlet.mvc.method.annotation" level="WARN"/>
+    <logger name="org.springframework.web.servlet.handler" level="WARN"/>
+    <logger name="org.springframework.messaging" level="WARN"/>
+    <logger name="org.springframework.web.socket" level="WARN"/>
+    <logger name="org.springframework.data" level="WARN"/>
+    <logger name="org.springframework.context" level="WARN"/>
+    <logger name="org.springframework.beans" level="WARN"/>
+    <logger name="org.springframework.security" level="WARN"/>
+
+    <!-- Reduce Hibernate verbose logging -->
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.hibernate.SQL" level="WARN"/>
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN"/>
+    <logger name="org.hibernate.engine.jdbc.env.internal" level="ERROR"/>
+    <logger name="org.hibernate.engine.transaction.jta.platform" level="ERROR"/>
+    <logger name="org.hibernate.orm.deprecation" level="ERROR"/>
+
+    <!-- Reduce HikariCP logging -->
+    <logger name="com.zaxxer.hikari" level="WARN"/>
+    <logger name="com.zaxxer.hikari.HikariConfig" level="WARN"/>
+
+    <!-- Reduce Tomcat logging -->
+    <logger name="org.apache.catalina" level="WARN"/>
+    <logger name="org.apache.coyote" level="WARN"/>
+    <logger name="org.apache.tomcat" level="WARN"/>
+
+    <!-- Reduce Thymeleaf logging -->
+    <logger name="org.thymeleaf" level="WARN"/>
+
+    <!-- Reduce Swagger/OpenAPI logging -->
+    <logger name="org.springdoc" level="WARN"/>
+    <logger name="org.springframework.web.servlet.resource" level="WARN"/>
+
+    <!-- Reduce DevTools logging -->
+    <logger name="org.springframework.boot.devtools" level="WARN"/>
+
+    <!-- Root Logger -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>
