@@ -191,6 +191,112 @@ public class S3Service {
     }
 
     /**
+     * Upload file tài liệu của bệnh nhân lên S3 vào folder patients/{userId}/documents/
+     * @param file File tài liệu cần upload
+     * @param userId ID của bệnh nhân
+     * @param documentType Loại tài liệu (MEDICAL_HISTORY, PRESCRIPTION, TEST_RESULT, OTHER)
+     * @return Key của file trong S3
+     */
+    public String uploadPatientDocument(MultipartFile file, Long userId, String documentType) throws IOException {
+        // Tạo tên file với timestamp và thông tin bệnh nhân
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String originalFilename = file.getOriginalFilename();
+        String extension = originalFilename != null && originalFilename.contains(".") 
+            ? originalFilename.substring(originalFilename.lastIndexOf(".")) 
+            : "";
+        
+        // Tạo key với cấu trúc: patients/{userId}/documents/{documentType}/{timestamp}_{originalFilename}
+        String safeFilename = originalFilename != null ? originalFilename.replaceAll("[^a-zA-Z0-9.-]", "_") : "file";
+        String fileName = "patients/" + userId + "/documents/" + documentType.toLowerCase() + "/" + timestamp + "_" + safeFilename;
+
+        // Tạo request upload
+        PutObjectRequest putOb = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(fileName)
+                .contentType(file.getContentType())
+                .build();
+
+        // Thực hiện upload
+        s3Client.putObject(putOb, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+
+        // Trả về key của file
+        return fileName;
+    }
+
+    /**
+     * Lấy danh sách tất cả các file tài liệu của bệnh nhân
+     * @param userId ID của bệnh nhân
+     * @return Danh sách các tài liệu với thông tin chi tiết
+     */
+    public List<Map<String, Object>> listPatientDocuments(Long userId) {
+        List<Map<String, Object>> documents = new ArrayList<>();
+        
+        try {
+            String prefix = "patients/" + userId + "/documents/";
+            ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
+                    .bucket(bucketName)
+                    .prefix(prefix)
+                    .build();
+            
+            ListObjectsV2Response listResponse = s3Client.listObjectsV2(listRequest);
+            
+            for (S3Object s3Object : listResponse.contents()) {
+                // Bỏ qua folder
+                if (s3Object.key().endsWith("/")) {
+                    continue;
+                }
+                
+                Map<String, Object> docInfo = new HashMap<>();
+                docInfo.put("key", s3Object.key());
+                docInfo.put("filename", s3Object.key().substring(s3Object.key().lastIndexOf("/") + 1));
+                docInfo.put("size", s3Object.size());
+                docInfo.put("lastModified", s3Object.lastModified().toString());
+                docInfo.put("url", generatePresignedUrl(s3Object.key(), 7 * 24 * 3600)); // URL có hiệu lực 7 ngày
+                
+                // Parse document type from path
+                String[] parts = s3Object.key().split("/");
+                if (parts.length >= 4) {
+                    docInfo.put("documentType", parts[3].toUpperCase());
+                } else {
+                    docInfo.put("documentType", "OTHER");
+                }
+                
+                documents.add(docInfo);
+            }
+            
+            // Sắp xếp theo thời gian mới nhất
+            documents.sort((a, b) -> {
+                String dateA = (String) a.get("lastModified");
+                String dateB = (String) b.get("lastModified");
+                return dateB.compareTo(dateA);
+            });
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi lấy danh sách tài liệu bệnh nhân: " + e.getMessage(), e);
+        }
+        
+        return documents;
+    }
+
+    /**
+     * Xóa file tài liệu của bệnh nhân trên S3
+     * @param fileKey Key của file cần xóa
+     */
+    public void deletePatientDocument(String fileKey) {
+        try {
+            software.amazon.awssdk.services.s3.model.DeleteObjectRequest deleteRequest = 
+                software.amazon.awssdk.services.s3.model.DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileKey)
+                    .build();
+            
+            s3Client.deleteObject(deleteRequest);
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi xóa file: " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * Lấy danh sách tất cả các file recordings trong folder voice/
      * @return Danh sách các recordings với thông tin chi tiết
      */

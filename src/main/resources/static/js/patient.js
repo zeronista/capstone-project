@@ -3,7 +3,9 @@ let currentTab = 'prescriptions';
 let prescriptionsData = [];
 let treatmentsData = [];
 let ticketsData = [];
+let documentsData = [];
 let profileData = null;
+let deleteDocumentId = null;
 
 // Switch Tab Function
 function switchTab(tabName) {
@@ -30,6 +32,8 @@ function switchTab(tabName) {
         loadTreatments();
     } else if (tabName === 'tickets' && ticketsData.length === 0) {
         loadTickets();
+    } else if (tabName === 'documents' && documentsData.length === 0) {
+        loadDocuments();
     } else if (tabName === 'profile' && !profileData) {
         loadProfile();
     }
@@ -46,6 +50,7 @@ async function loadStats() {
             document.getElementById('statTreatments').textContent = data.stats.treatments;
             document.getElementById('statTickets').textContent = data.stats.tickets;
             document.getElementById('statOpenTickets').textContent = data.stats.openTickets;
+            document.getElementById('statDocuments').textContent = data.stats.documents || 0;
         }
     } catch (error) {
         console.error('Error loading stats:', error);
@@ -223,6 +228,309 @@ function renderTickets() {
     `).join('');
 }
 
+// ========== DOCUMENT FUNCTIONS ==========
+
+// Load Documents
+async function loadDocuments() {
+    try {
+        const response = await fetch('/api/patient/documents');
+        const data = await response.json();
+        
+        if (data.success) {
+            documentsData = data.documents;
+            renderDocuments();
+        } else {
+            showError('documentsList', data.message);
+        }
+    } catch (error) {
+        console.error('Error loading documents:', error);
+        showError('documentsList', 'Không thể tải danh sách tài liệu');
+    }
+}
+
+// Render Documents
+function renderDocuments() {
+    const container = document.getElementById('documentsList');
+    const filter = document.getElementById('documentTypeFilter')?.value || '';
+    
+    let filteredDocs = documentsData;
+    if (filter) {
+        filteredDocs = documentsData.filter(doc => doc.documentType === filter);
+    }
+    
+    if (filteredDocs.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12">
+                <i class="fas fa-folder-open text-6xl text-gray-300 mb-4"></i>
+                <p class="text-gray-500 text-lg">${filter ? 'Không có tài liệu nào thuộc loại này' : 'Chưa có tài liệu nào'}</p>
+                <button onclick="openUploadModal()" class="mt-4 px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600 transition-colors">
+                    <i class="fas fa-upload mr-2"></i>Upload tài liệu đầu tiên
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = filteredDocs.map(doc => `
+        <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div class="flex items-start justify-between">
+                <div class="flex items-start gap-4 flex-1">
+                    <div class="bg-cyan-100 p-3 rounded-lg">
+                        <i class="${getFileIcon(doc.fileName)} text-2xl text-cyan-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="px-3 py-1 rounded-full text-xs font-medium ${getDocTypeBadge(doc.documentType)}">
+                                ${doc.documentTypeLabel}
+                            </span>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-1">${doc.fileName}</h4>
+                        ${doc.description ? `<p class="text-gray-600 text-sm mb-2">${doc.description}</p>` : ''}
+                        <div class="flex items-center gap-4 text-sm text-gray-500">
+                            <span><i class="fas fa-calendar-alt mr-1"></i>${formatDateTime(doc.uploadDate)}</span>
+                            <span><i class="fas fa-file mr-1"></i>${doc.fileSizeFormatted}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 ml-4">
+                    ${doc.viewUrl ? `
+                        <a href="${doc.viewUrl}" target="_blank" class="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors" title="Xem tài liệu">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="${doc.viewUrl}" download class="px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors" title="Tải xuống">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    ` : ''}
+                    <button onclick="openDeleteModal(${doc.id}, '${escapeHtml(doc.fileName)}')" class="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors" title="Xóa">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Filter documents by type
+function filterDocuments() {
+    renderDocuments();
+}
+
+// Upload Modal Functions
+function openUploadModal() {
+    document.getElementById('uploadModal').classList.remove('hidden');
+    document.getElementById('uploadModal').classList.add('flex');
+    // Reset form
+    document.getElementById('uploadForm').reset();
+    document.getElementById('filePreview').innerHTML = `
+        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+        <p class="text-gray-600">Click để chọn file hoặc kéo thả vào đây</p>
+        <p class="text-sm text-gray-400 mt-1">PDF, Word, Excel, Ảnh (max 10MB)</p>
+    `;
+    document.getElementById('uploadProgress').classList.add('hidden');
+}
+
+function closeUploadModal() {
+    document.getElementById('uploadModal').classList.add('hidden');
+    document.getElementById('uploadModal').classList.remove('flex');
+}
+
+function updateFilePreview() {
+    const fileInput = document.getElementById('uploadFile');
+    const preview = document.getElementById('filePreview');
+    
+    if (fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        const fileSize = formatFileSizeJS(file.size);
+        preview.innerHTML = `
+            <i class="${getFileIcon(file.name)} text-4xl text-cyan-600 mb-2"></i>
+            <p class="text-gray-800 font-medium">${file.name}</p>
+            <p class="text-sm text-gray-500">${fileSize}</p>
+        `;
+    }
+}
+
+// Handle Upload
+async function handleUpload(event) {
+    event.preventDefault();
+    
+    const fileInput = document.getElementById('uploadFile');
+    const documentType = document.getElementById('uploadDocumentType').value;
+    const description = document.getElementById('uploadDescription').value;
+    
+    if (!fileInput.files || !fileInput.files[0]) {
+        alert('Vui lòng chọn file');
+        return;
+    }
+    
+    if (!documentType) {
+        alert('Vui lòng chọn loại tài liệu');
+        return;
+    }
+    
+    const file = fileInput.files[0];
+    
+    // Check file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        alert('File không được vượt quá 10MB');
+        return;
+    }
+    
+    // Show progress
+    document.getElementById('uploadProgress').classList.remove('hidden');
+    document.getElementById('uploadButton').disabled = true;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('documentType', documentType);
+    if (description) {
+        formData.append('description', description);
+    }
+    
+    try {
+        // Simulate progress (since fetch doesn't have native progress)
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += 10;
+            if (progress <= 90) {
+                document.getElementById('uploadProgressBar').style.width = progress + '%';
+                document.getElementById('uploadPercent').textContent = progress + '%';
+            }
+        }, 200);
+        
+        const response = await fetch('/api/patient/documents/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        clearInterval(progressInterval);
+        document.getElementById('uploadProgressBar').style.width = '100%';
+        document.getElementById('uploadPercent').textContent = '100%';
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            closeUploadModal();
+            // Reload documents
+            documentsData = [];
+            await loadDocuments();
+            await loadStats();
+            showToast('Upload tài liệu thành công!', 'success');
+        } else {
+            alert(data.message || 'Lỗi upload file');
+        }
+    } catch (error) {
+        console.error('Error uploading document:', error);
+        alert('Lỗi upload file: ' + error.message);
+    } finally {
+        document.getElementById('uploadButton').disabled = false;
+        document.getElementById('uploadProgress').classList.add('hidden');
+        document.getElementById('uploadProgressBar').style.width = '0%';
+        document.getElementById('uploadPercent').textContent = '0%';
+    }
+}
+
+// Delete Modal Functions
+function openDeleteModal(docId, docName) {
+    deleteDocumentId = docId;
+    document.getElementById('deleteDocName').textContent = docName;
+    document.getElementById('deleteModal').classList.remove('hidden');
+    document.getElementById('deleteModal').classList.add('flex');
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    document.getElementById('deleteModal').classList.remove('flex');
+    deleteDocumentId = null;
+}
+
+async function confirmDelete() {
+    if (!deleteDocumentId) return;
+    
+    document.getElementById('confirmDeleteBtn').disabled = true;
+    
+    try {
+        const response = await fetch(`/api/patient/documents/${deleteDocumentId}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            closeDeleteModal();
+            // Remove from local data and re-render
+            documentsData = documentsData.filter(doc => doc.id !== deleteDocumentId);
+            renderDocuments();
+            await loadStats();
+            showToast('Xóa tài liệu thành công!', 'success');
+        } else {
+            alert(data.message || 'Lỗi xóa tài liệu');
+        }
+    } catch (error) {
+        console.error('Error deleting document:', error);
+        alert('Lỗi xóa tài liệu: ' + error.message);
+    } finally {
+        document.getElementById('confirmDeleteBtn').disabled = false;
+    }
+}
+
+// Helper functions for documents
+function getFileIcon(filename) {
+    if (!filename) return 'fas fa-file';
+    const ext = filename.split('.').pop().toLowerCase();
+    const icons = {
+        'pdf': 'fas fa-file-pdf',
+        'doc': 'fas fa-file-word',
+        'docx': 'fas fa-file-word',
+        'xls': 'fas fa-file-excel',
+        'xlsx': 'fas fa-file-excel',
+        'jpg': 'fas fa-file-image',
+        'jpeg': 'fas fa-file-image',
+        'png': 'fas fa-file-image',
+        'gif': 'fas fa-file-image',
+        'txt': 'fas fa-file-alt'
+    };
+    return icons[ext] || 'fas fa-file';
+}
+
+function getDocTypeBadge(type) {
+    const badges = {
+        'MEDICAL_HISTORY': 'bg-blue-100 text-blue-800',
+        'PRESCRIPTION': 'bg-green-100 text-green-800',
+        'TEST_RESULT': 'bg-purple-100 text-purple-800',
+        'OTHER': 'bg-gray-100 text-gray-800'
+    };
+    return badges[type] || 'bg-gray-100 text-gray-800';
+}
+
+function formatFileSizeJS(bytes) {
+    if (!bytes) return 'N/A';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML.replace(/'/g, "\\'");
+}
+
+function showToast(message, type = 'info') {
+    // Simple toast notification
+    const toast = document.createElement('div');
+    toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg text-white shadow-lg z-50 transition-opacity duration-300 ${
+        type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+    }`;
+    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-times-circle' : 'fa-info-circle'} mr-2"></i>${message}`;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
 // Load Profile
 async function loadProfile() {
     try {
@@ -230,7 +538,8 @@ async function loadProfile() {
         const data = await response.json();
         
         if (data.success) {
-            profileData = data.profile;
+            // Profile data is returned directly in response, not under 'profile' key
+            profileData = data;
             renderProfile();
         } else {
             showError('profileContent', data.message);
@@ -508,5 +817,17 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById('prescriptionModal')?.addEventListener('click', function(e) {
     if (e.target === this) {
         closePrescriptionModal();
+    }
+});
+
+document.getElementById('uploadModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeUploadModal();
+    }
+});
+
+document.getElementById('deleteModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
     }
 });

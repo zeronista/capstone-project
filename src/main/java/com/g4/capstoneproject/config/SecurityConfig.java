@@ -81,7 +81,9 @@ public class SecurityConfig {
                                                                 "/v3/api-docs/**",
                                                                 "/swagger-ui/**",
                                                                 // Allow Stringee webhook callbacks
-                                                                "/api/stringee/webhook/**"));
+                                                                "/api/stringee/webhook/**",
+                                                                // Allow patient document upload (multipart form)
+                                                                "/api/patient/documents/**"));
 
                 return http.build();
         }
