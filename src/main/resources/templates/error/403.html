@@ -1,0 +1,50 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>403 - Truy cập bị từ chối</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-50 font-['Be_Vietnam_Pro']">
+    <div class="min-h-screen flex items-center justify-center px-4">
+      <div class="max-w-md w-full text-center">
+        <div class="mb-8">
+          <h1 class="text-9xl font-bold text-cyan-600">403</h1>
+          <div class="text-6xl mb-4">🔒</div>
+        </div>
+
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">
+          Truy cập bị từ chối
+        </h2>
+
+        <p class="text-gray-600 mb-2" th:text="${message}">
+          Bạn không có quyền truy cập trang này.
+        </p>
+
+        <p class="text-sm text-gray-500 mb-8">
+          Vui lòng kiểm tra quyền truy cập hoặc liên hệ quản trị viên.
+        </p>
+
+        <div class="space-y-3">
+          <a
+            href="/dashboard"
+            class="block w-full bg-cyan-600 text-white px-6 py-3 rounded-lg hover:bg-cyan-700 transition"
+          >
+            Về trang chủ
+          </a>
+          <button
+            onclick="history.back()"
+            class="block w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition"
+          >
+            Quay lại
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
