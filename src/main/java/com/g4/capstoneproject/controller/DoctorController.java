@@ -11,13 +11,6 @@ import com.g4.capstoneproject.dto.TreatmentPlanResponse;
 import com.g4.capstoneproject.dto.TreatmentPlanDetailResponse;
 import com.g4.capstoneproject.dto.HealthForecastResponse;
 import com.g4.capstoneproject.dto.HealthForecastDetailResponse;
-import com.g4.capstoneproject.dto.response.KnowledgeArticleResponse;
-import com.g4.capstoneproject.dto.response.KnowledgeArticleDetailResponse;
-import com.g4.capstoneproject.dto.response.KnowledgeCategoryResponse;
-import com.g4.capstoneproject.entity.KnowledgeArticle.ArticleStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import com.g4.capstoneproject.entity.CheckupSchedule;
 import com.g4.capstoneproject.entity.HealthForecast;
 import com.g4.capstoneproject.entity.Prescription;
@@ -62,8 +55,6 @@ public class DoctorController {
     private final HealthForecastService healthForecastService;
     private final TreatmentPlanService treatmentPlanService;
     private final UserRepository userRepository;
-    private final com.g4.capstoneproject.service.KnowledgeArticleService knowledgeArticleService;
-    private final com.g4.capstoneproject.service.KnowledgeCategoryService knowledgeCategoryService;
 
     /**
      * Doctor Dashboard

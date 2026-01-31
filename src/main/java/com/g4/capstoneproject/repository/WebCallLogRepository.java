@@ -1,7 +1,6 @@
 package com.g4.capstoneproject.repository;
 
 import com.g4.capstoneproject.entity.WebCallLog;
-import com.g4.capstoneproject.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -17,6 +17,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -140,7 +141,7 @@ public class S3Service {
         String fileName = "voice/" + timestamp + "_" + callId + fileExtension;
 
         // Download file từ URL
-        URL url = new URL(fileUrl);
+        URL url = URI.create(fileUrl).toURL();
         try (InputStream inputStream = url.openStream()) {
             // Tạo request upload lên S3
             PutObjectRequest putOb = PutObjectRequest.builder()

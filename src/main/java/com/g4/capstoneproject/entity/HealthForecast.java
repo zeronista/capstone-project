@@ -127,6 +127,7 @@ public class HealthForecast {
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
     private ForecastStatus status = ForecastStatus.ACTIVE;
 
     // ========== Notes ==========

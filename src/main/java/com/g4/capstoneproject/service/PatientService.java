@@ -5,7 +5,6 @@ import com.g4.capstoneproject.entity.VitalSigns;
 import com.g4.capstoneproject.repository.UserRepository;
 import com.g4.capstoneproject.repository.VitalSignsRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

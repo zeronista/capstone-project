@@ -238,7 +238,6 @@ public class TicketService {
     public Ticket updateTicketStatus(String ticketId, Ticket.Status newStatus) {
         return ticketRepository.findById(Long.parseLong(ticketId))
                 .map(ticket -> {
-                    Ticket.Status oldStatus = ticket.getStatus();
                     ticket.setStatus(newStatus);
                     Ticket updated = ticketRepository.save(ticket);
 

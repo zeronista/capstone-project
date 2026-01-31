@@ -2,8 +2,6 @@ package com.g4.capstoneproject.config.thymeleaf;
 
 import org.thymeleaf.dialect.AbstractProcessorDialect;
 import org.thymeleaf.processor.IProcessor;
-import org.thymeleaf.standard.StandardDialect;
-
 import java.util.HashSet;
 import java.util.Set;
 

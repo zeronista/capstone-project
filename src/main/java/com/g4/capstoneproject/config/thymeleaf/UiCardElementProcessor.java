@@ -1,8 +1,6 @@
 package com.g4.capstoneproject.config.thymeleaf;
 
 import org.thymeleaf.context.ITemplateContext;
-import org.thymeleaf.model.IModel;
-import org.thymeleaf.model.IModelFactory;
 import org.thymeleaf.model.IProcessableElementTag;
 import org.thymeleaf.processor.element.AbstractElementTagProcessor;
 import org.thymeleaf.processor.element.IElementTagStructureHandler;

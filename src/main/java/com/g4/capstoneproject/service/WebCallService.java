@@ -37,9 +37,6 @@ public class WebCallService {
     @Autowired
     private S3Service s3Service;
     
-    @Autowired
-    private StringeeService stringeeService;
-    
     /**
      * Lưu trữ danh sách user đang online
      * Key: userId (Long), Value: stringeeUserId (String)

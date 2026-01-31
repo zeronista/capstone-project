@@ -2,7 +2,6 @@ package com.g4.capstoneproject.config;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +32,10 @@ public class RateLimitInterceptor implements HandlerInterceptor {
      * 100 requests per minute with burst of 20 tokens
      */
     private Bucket createNewBucket() {
-        Bandwidth limit = Bandwidth.classic(100, Refill.intervally(100, Duration.ofMinutes(1)));
+        Bandwidth limit = Bandwidth.builder()
+                .capacity(100)
+                .refillGreedy(100, Duration.ofMinutes(1))
+                .build();
         return Bucket.builder()
                 .addLimit(limit)
                 .build();
