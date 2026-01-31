@@ -177,15 +177,29 @@ async function handleProfileSubmit(e) {
     };
     
     // Validation
-    if (!formData.fullName) {
+    // Validate full name
+    if (!formData.fullName || formData.fullName.trim() === '') {
         showMessage('Vui lòng nhập họ tên', 'error');
         return;
     }
     
+    // Validate phone number
     if (!formData.phoneNumber) {
         showMessage('Vui lòng nhập số điện thoại', 'error');
         return;
     }
+    
+    // Validate phone format (10 digits starting with 0)
+    if (!/^0\d{9}$/.test(formData.phoneNumber)) {
+        showMessage('Số điện thoại phải có 10 chữ số và bắt đầu bằng 0', 'error');
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = document.querySelector('#profileForm button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang lưu...';
     
     try {
         const response = await fetch('/api/profile/update', {
@@ -199,7 +213,7 @@ async function handleProfileSubmit(e) {
         const result = await response.json();
         
         if (result.success) {
-            showMessage('Cập nhật thông tin thành công', 'success');
+            showMessage('✅ Cập nhật thông tin thành công', 'success');
             
             // Cập nhật dữ liệu gốc
             originalProfile = { ...result.data };
@@ -209,13 +223,20 @@ async function handleProfileSubmit(e) {
             
             // Cập nhật hiển thị
             displayProfile(result.data);
+            
+            // Reload profile to ensure fresh data
+            setTimeout(() => loadProfile(), 500);
         } else {
-            showMessage(result.message || 'Cập nhật thất bại', 'error');
+            showMessage('❌ ' + (result.message || 'Cập nhật thất bại'), 'error');
         }
         
     } catch (error) {
         console.error('Error updating profile:', error);
-        showMessage('Lỗi hệ thống, vui lòng thử lại', 'error');
+        showMessage('❌ Lỗi kết nối, vui lòng thử lại', 'error');
+    } finally {
+        // Restore button state
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
     }
 }
 
@@ -230,8 +251,18 @@ async function handlePasswordSubmit(e) {
     const confirmPassword = document.getElementById('confirmPassword').value;
     
     // Validation
+    if (!currentPassword) {
+        showMessage('Vui lòng nhập mật khẩu hiện tại', 'error');
+        return;
+    }
+    
     if (newPassword.length < 6) {
         showMessage('Mật khẩu mới phải có ít nhất 6 ký tự', 'error');
+        return;
+    }
+    
+    if (newPassword === currentPassword) {
+        showMessage('Mật khẩu mới phải khác mật khẩu hiện tại', 'error');
         return;
     }
     
@@ -239,6 +270,12 @@ async function handlePasswordSubmit(e) {
         showMessage('Mật khẩu xác nhận không khớp', 'error');
         return;
     }
+    
+    // Show loading state
+    const submitBtn = document.querySelector('#passwordForm button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang xử lý...';
     
     try {
         const response = await fetch('/api/profile/change-password', {
@@ -256,17 +293,21 @@ async function handlePasswordSubmit(e) {
         const result = await response.json();
         
         if (result.success) {
-            showMessage('Đổi mật khẩu thành công', 'success');
+            showMessage('✅ Đổi mật khẩu thành công', 'success');
             
             // Reset form
             document.getElementById('passwordForm').reset();
         } else {
-            showMessage(result.message || 'Đổi mật khẩu thất bại', 'error');
+            showMessage('❌ ' + (result.message || 'Đổi mật khẩu thất bại'), 'error');
         }
         
     } catch (error) {
         console.error('Error changing password:', error);
-        showMessage('Lỗi hệ thống, vui lòng thử lại', 'error');
+        showMessage('❌ Lỗi hệ thống, vui lòng thử lại', 'error');
+    } finally {
+        // Restore button state
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
     }
 }
 

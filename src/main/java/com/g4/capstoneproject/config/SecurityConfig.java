@@ -83,7 +83,9 @@ public class SecurityConfig {
                                                                 // Allow Stringee webhook callbacks
                                                                 "/api/stringee/webhook/**",
                                                                 // Allow patient document upload (multipart form)
-                                                                "/api/patient/documents/**"));
+                                                                "/api/patient/documents/**",
+                                                                // Allow profile update and avatar (for patient portal)
+                                                                "/api/profile/**"));
 
                 return http.build();
         }

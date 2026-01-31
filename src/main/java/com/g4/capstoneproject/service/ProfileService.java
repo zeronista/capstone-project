@@ -62,7 +62,18 @@ public class ProfileService {
             response.setDateOfBirth(userInfo.getDateOfBirth());
             response.setGender(userInfo.getGender());
             response.setAddress(userInfo.getAddress());
-            response.setAvatar(userInfo.getAvatarUrl());
+            
+            // Generate presigned URL for avatar if it exists
+            String avatarKey = userInfo.getAvatarUrl();
+            if (avatarKey != null && !avatarKey.isEmpty()) {
+                try {
+                    String presignedUrl = s3Service.generatePresignedUrl(avatarKey, 7 * 24 * 3600); // 7 days
+                    response.setAvatar(presignedUrl);
+                } catch (Exception e) {
+                    log.warn("Could not generate presigned URL for avatar: {}", avatarKey, e);
+                    response.setAvatar(null);
+                }
+            }
         }
 
         response.setProfileCompletion(calculateProfileCompletion(user, userInfo));
@@ -198,8 +209,8 @@ public class ProfileService {
             throw new IllegalArgumentException("Chỉ chấp nhận file ảnh định dạng JPG, JPEG, PNG");
         }
 
-        // Upload to S3
-        String fileKey = s3Service.uploadFile(file);
+        // Upload to S3 (organized in image/avatars/{userId}/ folder)
+        String fileKey = s3Service.uploadAvatar(file, userId);
         String avatarUrl = s3Service.generatePresignedUrl(fileKey);
 
         // Update UserInfo

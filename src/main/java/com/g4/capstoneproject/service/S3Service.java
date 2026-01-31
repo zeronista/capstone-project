@@ -67,6 +67,37 @@ public class S3Service {
     }
 
     /**
+     * Upload avatar lên S3 vào folder image/avatars/{userId}/
+     * @param file File avatar cần upload
+     * @param userId ID của user
+     * @return Key của file trong S3
+     */
+    public String uploadAvatar(MultipartFile file, Long userId) throws IOException {
+        // Tạo tên file với userId và timestamp
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String originalFilename = file.getOriginalFilename();
+        String extension = originalFilename != null && originalFilename.contains(".")
+            ? originalFilename.substring(originalFilename.lastIndexOf("."))
+            : ".jpg";
+        
+        // Key: image/avatars/{userId}/avatar_{timestamp}.jpg
+        String fileName = "image/avatars/" + userId + "/avatar_" + timestamp + extension;
+
+        // Tạo request upload
+        PutObjectRequest putOb = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(fileName)
+                .contentType(file.getContentType())
+                .build();
+
+        // Thực hiện upload
+        s3Client.putObject(putOb, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+
+        // Trả về key của file
+        return fileName;
+    }
+
+    /**
      * Upload file recording lên S3 vào folder voice/
      * @param file File ghi âm cần upload
      * @param callId ID của cuộc gọi
