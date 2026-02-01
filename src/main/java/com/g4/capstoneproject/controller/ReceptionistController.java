@@ -39,6 +39,17 @@ public class ReceptionistController {
     private final UserRepository userRepository;
 
     /**
+     * Survey Management - Quản lý khảo sát
+     */
+    @GetMapping("/surveys")
+    public String surveys(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        String username = userDetails.getUsername();
+        User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+        model.addAttribute("receptionist", receptionist);
+        return "receptionist/surveys";
+    }
+
+    /**
      * Receptionist Dashboard
      */
     @GetMapping("/dashboard")
@@ -131,6 +142,17 @@ public class ReceptionistController {
     @GetMapping("/callbot")
     public String callbot(Model model) {
         return "ai/web-call";
+    }
+
+    /**
+     * User Management - Quản lý người dùng
+     */
+    @GetMapping("/users")
+    public String users(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        String username = userDetails.getUsername();
+        User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+        model.addAttribute("receptionist", receptionist);
+        return "receptionist/users";
     }
 
     /**

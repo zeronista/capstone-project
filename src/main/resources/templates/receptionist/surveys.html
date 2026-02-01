@@ -1,0 +1,1073 @@
+<!doctype html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Quản lý Survey - ABClinic</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" th:href="@{/images/Logo.jpg}" />
+    <link rel="shortcut icon" type="image/jpeg" th:href="@{/images/Logo.jpg}" />
+
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0d7cf2",
+              "primary-dark": "#0a62bf",
+              "background-light": "#f5f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              display: ["Roboto", "sans-serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 24px;
+      }
+      .material-symbols-outlined.fill {
+        font-variation-settings: "FILL" 1;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display h-screen flex overflow-hidden"
+  >
+    <!-- Mobile Sidebar Backdrop -->
+    <div
+      id="sidebarBackdrop"
+      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden hidden"
+      onclick="toggleSidebar()"
+    ></div>
+
+    <!-- Receptionist Sidebar -->
+    <aside
+      id="sidebar"
+      class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#1a2634] border-r border-slate-200 dark:border-slate-800 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out"
+    >
+      <!-- Logo -->
+      <div
+        class="h-16 flex items-center gap-3 px-5 border-b border-slate-200 dark:border-slate-800 shrink-0"
+      >
+        <div
+          class="flex size-10 items-center justify-center rounded-xl bg-primary text-white font-bold text-lg shadow-md shadow-primary/30"
+        >
+          AB
+        </div>
+        <span
+          class="text-lg font-bold text-slate-900 dark:text-white tracking-tight"
+          >ABClinic</span
+        >
+        <button
+          class="lg:hidden ml-auto p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
+          onclick="toggleSidebar()"
+        >
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 overflow-y-auto p-3 space-y-1">
+        <p
+          class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider"
+        >
+          Menu chính
+        </p>
+
+        <a
+          href="/receptionist/dashboard"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]">dashboard</span>
+          <span>Bảng điều khiển</span>
+        </a>
+
+        <a
+          href="/receptionist/callbot"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]"
+            >phone_in_talk</span
+          >
+          <span>AI Callbot</span>
+          <span
+            class="ml-auto text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-1.5 py-0.5 rounded font-bold"
+            >NEW</span
+          >
+        </a>
+
+        <a
+          href="/receptionist/users"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]"
+            >personal_injury</span
+          >
+          <span>Quản lý bệnh nhân</span>
+        </a>
+
+        <a
+          href="/receptionist/surveys"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]">quiz</span>
+          <span>Quản lý Survey</span>
+        </a>
+
+        <a
+          href="/receptionist/profile"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]">person</span>
+          <span>Hồ sơ cá nhân</span>
+        </a>
+      </nav>
+
+      <!-- User Profile -->
+      <div class="p-3 border-t border-slate-200 dark:border-slate-800">
+        <a
+          href="/receptionist/profile"
+          class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-all"
+        >
+          <div
+            class="size-10 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white font-bold text-sm shadow-sm"
+          >
+            <span
+              th:text="${receptionist != null && receptionist.userInfo != null && receptionist.userInfo.fullName != null ? receptionist.userInfo.fullName.substring(0,1) : 'R'}"
+              >R</span
+            >
+          </div>
+          <div class="flex-1 min-w-0">
+            <p
+              class="text-sm font-semibold text-slate-900 dark:text-white truncate"
+              th:text="${receptionist != null && receptionist.userInfo != null ? receptionist.userInfo.fullName : 'Receptionist'}"
+            >
+              Receptionist
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Lễ tân</p>
+          </div>
+        </a>
+        <form th:action="@{/auth/logout}" method="post" class="mt-2">
+          <button
+            type="submit"
+            class="w-full flex items-center justify-center gap-2 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-500 hover:text-red-500 transition-colors text-sm"
+          >
+            <span class="material-symbols-outlined text-[20px]">logout</span>
+            <span>Đăng xuất</span>
+          </button>
+        </form>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main
+      class="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800"
+    >
+      <!-- Header -->
+      <header
+        class="h-16 flex items-center justify-between px-6 bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 shrink-0 z-10"
+      >
+        <button
+          onclick="toggleSidebar()"
+          class="lg:hidden flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors mr-2"
+        >
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <div class="flex items-center gap-2">
+          <a
+            href="/receptionist/dashboard"
+            class="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors"
+          >
+            <span class="material-symbols-outlined text-[20px]">home</span>
+          </a>
+          <span class="text-slate-300 dark:text-slate-600">/</span>
+          <span class="text-slate-900 dark:text-white font-medium"
+            >Quản lý Survey</span
+          >
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            onclick="toggleDarkMode()"
+            class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
+          >
+            <span class="material-symbols-outlined text-[20px] dark:hidden"
+              >dark_mode</span
+            >
+            <span
+              class="material-symbols-outlined text-[20px] hidden dark:block"
+              >light_mode</span
+            >
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <div class="flex-1 overflow-y-auto p-4 lg:p-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+          <!-- Page Header -->
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+          >
+            <div>
+              <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+                Quản lý Survey (Google Form)
+              </h1>
+              <p class="text-slate-500 dark:text-slate-400 mt-1">
+                Tạo và quản lý các form khảo sát hiển thị trên Landing Page
+              </p>
+            </div>
+            <button
+              onclick="openModal()"
+              class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white font-medium rounded-xl transition-colors shadow-lg shadow-primary/25"
+            >
+              <span class="material-symbols-outlined text-[20px]">add</span>
+              Thêm Survey
+            </button>
+          </div>
+
+          <!-- Stats Cards -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-2xl border border-slate-200 dark:border-slate-700 p-5"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-blue-600 dark:text-blue-400"
+                    >description</span
+                  >
+                </div>
+                <div>
+                  <p
+                    id="statTotal"
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
+                  >
+                    0
+                  </p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Tổng Survey
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-2xl border border-slate-200 dark:border-slate-700 p-5"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-emerald-600 dark:text-emerald-400"
+                    >visibility</span
+                  >
+                </div>
+                <div>
+                  <p
+                    id="statActive"
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
+                  >
+                    0
+                  </p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Đang hiển thị
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-2xl border border-slate-200 dark:border-slate-700 p-5"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-purple-600 dark:text-purple-400"
+                    >groups</span
+                  >
+                </div>
+                <div>
+                  <p
+                    id="statResponses"
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
+                  >
+                    0
+                  </p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Tổng phản hồi
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-2xl border border-slate-200 dark:border-slate-700 p-5"
+            >
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-amber-600 dark:text-amber-400"
+                    >trending_up</span
+                  >
+                </div>
+                <div>
+                  <p
+                    id="statHidden"
+                    class="text-2xl font-bold text-slate-900 dark:text-white"
+                  >
+                    0
+                  </p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Đã ẩn
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Tabs -->
+          <div
+            class="flex items-center gap-4 border-b border-slate-200 dark:border-slate-700"
+          >
+            <button
+              onclick="filterSurveys('all')"
+              id="tab-all"
+              class="px-4 py-3 text-sm font-medium text-primary border-b-2 border-primary -mb-px"
+            >
+              Tất cả (<span id="count-all">0</span>)
+            </button>
+            <button
+              onclick="filterSurveys('active')"
+              id="tab-active"
+              class="px-4 py-3 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 border-b-2 border-transparent -mb-px"
+            >
+              Đang hiển thị (<span id="count-active">0</span>)
+            </button>
+            <button
+              onclick="filterSurveys('hidden')"
+              id="tab-hidden"
+              class="px-4 py-3 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 border-b-2 border-transparent -mb-px"
+            >
+              Đã ẩn (<span id="count-hidden">0</span>)
+            </button>
+            <div class="ml-auto">
+              <div class="relative">
+                <span
+                  class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  >search</span
+                >
+                <input
+                  type="text"
+                  id="searchInput"
+                  onkeyup="searchSurveys()"
+                  placeholder="Tìm kiếm..."
+                  class="pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Survey Grid -->
+          <div id="surveyGrid" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Surveys will be loaded here -->
+          </div>
+
+          <!-- Empty State -->
+          <div id="emptyState" class="hidden text-center py-12">
+            <span
+              class="material-symbols-outlined text-[64px] text-slate-300 dark:text-slate-600"
+              >quiz</span
+            >
+            <h3 class="mt-4 text-lg font-medium text-slate-900 dark:text-white">
+              Chưa có survey nào
+            </h3>
+            <p class="mt-2 text-slate-500 dark:text-slate-400">
+              Bắt đầu bằng cách thêm survey mới
+            </p>
+            <button
+              onclick="openModal()"
+              class="mt-4 inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white font-medium rounded-xl transition-colors"
+            >
+              <span class="material-symbols-outlined text-[20px]">add</span>
+              Thêm Survey
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div id="surveyModal" class="fixed inset-0 z-50 hidden">
+      <div
+        class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onclick="closeModal()"
+      ></div>
+      <div
+        class="absolute inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-2xl bg-white dark:bg-[#1a2634] rounded-2xl shadow-2xl flex flex-col max-h-[90vh]"
+      >
+        <div
+          class="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700"
+        >
+          <h2
+            id="modalTitle"
+            class="text-xl font-bold text-slate-900 dark:text-white"
+          >
+            Thêm Survey mới
+          </h2>
+          <button
+            onclick="closeModal()"
+            class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form id="surveyForm" class="flex-1 overflow-y-auto p-6 space-y-5">
+          <input type="hidden" id="surveyId" />
+
+          <div>
+            <label
+              class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+              >Tiêu đề *</label
+            >
+            <input
+              type="text"
+              id="title"
+              required
+              class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="VD: Khảo sát mức độ hài lòng"
+            />
+          </div>
+
+          <div>
+            <label
+              class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+              >Mô tả</label
+            >
+            <textarea
+              id="description"
+              rows="2"
+              class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Mô tả ngắn về survey"
+            ></textarea>
+          </div>
+
+          <div>
+            <label
+              class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+              >Đường dẫn Form (Google Form, Typeform,...) *</label
+            >
+            <input
+              type="url"
+              id="formUrl"
+              required
+              class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="https://forms.gle/abc123xyz"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >Tag</label
+              >
+              <input
+                type="text"
+                id="tag"
+                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="VD: Hài lòng"
+              />
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >Thứ tự hiển thị</label
+              >
+              <input
+                type="number"
+                id="displayOrder"
+                min="0"
+                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >Icon</label
+              >
+              <select
+                id="iconType"
+                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="survey">📋 Khảo sát</option>
+                <option value="health">❤️ Sức khỏe</option>
+                <option value="feedback">👍 Đánh giá</option>
+                <option value="register">📝 Đăng ký</option>
+              </select>
+            </div>
+            <div>
+              <label
+                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >Màu Icon</label
+              >
+              <input
+                type="color"
+                id="iconColor"
+                value="#3B82F6"
+                class="w-full h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer"
+              />
+            </div>
+          </div>
+
+          <div class="flex items-center gap-6">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                id="isActive"
+                checked
+                class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
+              />
+              <span class="text-sm text-slate-700 dark:text-slate-300"
+                >Hiển thị survey</span
+              >
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                id="showOnLanding"
+                checked
+                class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
+              />
+              <span class="text-sm text-slate-700 dark:text-slate-300"
+                >Hiển thị trên Landing Page</span
+              >
+            </label>
+          </div>
+        </form>
+        <div
+          class="flex items-center justify-end gap-3 p-6 border-t border-slate-200 dark:border-slate-700"
+        >
+          <button
+            onclick="closeModal()"
+            class="px-5 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+          >
+            Hủy
+          </button>
+          <button
+            onclick="saveSurvey()"
+            class="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white font-medium rounded-xl transition-colors"
+          >
+            Lưu Survey
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 z-50 hidden">
+      <div
+        class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onclick="closeDeleteModal()"
+      ></div>
+      <div
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white dark:bg-[#1a2634] rounded-2xl shadow-2xl p-6"
+      >
+        <div class="text-center">
+          <div
+            class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4"
+          >
+            <span
+              class="material-symbols-outlined text-[32px] text-red-600 dark:text-red-400"
+              >delete</span
+            >
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">
+            Xóa Survey?
+          </h3>
+          <p class="text-slate-500 dark:text-slate-400 mb-6">
+            Bạn có chắc chắn muốn xóa survey này? Hành động này không thể hoàn
+            tác.
+          </p>
+          <div class="flex items-center justify-center gap-3">
+            <button
+              onclick="closeDeleteModal()"
+              class="px-5 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+            >
+              Hủy
+            </button>
+            <button
+              onclick="confirmDelete()"
+              class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors"
+            >
+              Xóa
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-4 right-4 z-50 hidden">
+      <div
+        id="toastContent"
+        class="flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border"
+      >
+        <span
+          id="toastIcon"
+          class="material-symbols-outlined text-[20px]"
+        ></span>
+        <span id="toastMessage" class="text-sm font-medium"></span>
+      </div>
+    </div>
+
+    <script th:inline="javascript">
+      // CSRF Token
+      const csrfToken = /*[[${_csrf.token}]]*/ "";
+      const csrfHeader = /*[[${_csrf.headerName}]]*/ "X-CSRF-TOKEN";
+
+      // State
+      let allSurveys = [];
+      let currentFilter = "all";
+      let deleteTargetId = null;
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", () => {
+        loadSurveys();
+        loadStats();
+      });
+
+      // Load surveys
+      async function loadSurveys() {
+        try {
+          const response = await fetch("/api/surveys");
+          const result = await response.json();
+          if (result.success) {
+            allSurveys = result.data;
+            renderSurveys();
+            updateCounts();
+          }
+        } catch (error) {
+          console.error("Error loading surveys:", error);
+          showToast("Lỗi tải danh sách survey", "error");
+        }
+      }
+
+      // Load stats
+      async function loadStats() {
+        try {
+          const response = await fetch("/api/surveys/stats");
+          const result = await response.json();
+          if (result.success) {
+            document.getElementById("statTotal").textContent =
+              result.data.totalSurveys || 0;
+            document.getElementById("statActive").textContent =
+              result.data.activeSurveys || 0;
+            document.getElementById("statResponses").textContent =
+              result.data.totalResponses || 0;
+            document.getElementById("statHidden").textContent =
+              result.data.totalSurveys - result.data.activeSurveys || 0;
+          }
+        } catch (error) {
+          console.error("Error loading stats:", error);
+        }
+      }
+
+      // Render surveys
+      function renderSurveys() {
+        const grid = document.getElementById("surveyGrid");
+        const emptyState = document.getElementById("emptyState");
+        const searchTerm = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+
+        let filtered = allSurveys;
+
+        // Apply filter
+        if (currentFilter === "active") {
+          filtered = filtered.filter((s) => s.isActive);
+        } else if (currentFilter === "hidden") {
+          filtered = filtered.filter((s) => !s.isActive);
+        }
+
+        // Apply search
+        if (searchTerm) {
+          filtered = filtered.filter(
+            (s) =>
+              s.title.toLowerCase().includes(searchTerm) ||
+              (s.description &&
+                s.description.toLowerCase().includes(searchTerm)),
+          );
+        }
+
+        if (filtered.length === 0) {
+          grid.innerHTML = "";
+          emptyState.classList.remove("hidden");
+          return;
+        }
+
+        emptyState.classList.add("hidden");
+        grid.innerHTML = filtered
+          .map((survey) => createSurveyCard(survey))
+          .join("");
+      }
+
+      // Create survey card HTML
+      function createSurveyCard(survey) {
+        const iconMap = {
+          survey: "📋",
+          health: "❤️",
+          feedback: "👍",
+          register: "📝",
+        };
+        const icon = iconMap[survey.iconType] || "📋";
+        const statusBadge = survey.isActive
+          ? '<span class="px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full">Hiển thị</span>'
+          : '<span class="px-2 py-1 text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400 rounded-full">Ẩn</span>';
+
+        const formattedDate = survey.createdAt
+          ? new Date(survey.createdAt).toLocaleDateString("vi-VN")
+          : "";
+
+        return `
+          <div class="bg-white dark:bg-[#1a2634] rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:shadow-lg transition-all">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background-color: ${survey.iconColor}20">
+                  ${icon}
+                </div>
+                <div>
+                  <h3 class="font-bold text-slate-900 dark:text-white">${survey.title}</h3>
+                  <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">${survey.description || "Không có mô tả"}</p>
+                </div>
+              </div>
+              ${statusBadge}
+            </div>
+            
+            <div class="flex items-center gap-4 mb-4 text-sm">
+              <span class="px-2 py-1 rounded-full text-xs font-medium" style="background-color: ${survey.tagColor || "#3B82F6"}20; color: ${survey.tagColor || "#3B82F6"}">${survey.tag || "Khảo sát"}</span>
+              <span class="text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[16px]">groups</span>
+                ${survey.responseCount || 0} phản hồi
+              </span>
+              <span class="text-slate-500 dark:text-slate-400">Thứ tự: ${survey.displayOrder || 0}</span>
+            </div>
+            
+            <div class="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-800 rounded-xl mb-4">
+              <span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span>
+              <a href="${survey.formUrl}" target="_blank" class="text-sm text-primary hover:underline truncate flex-1">${survey.formUrl}</a>
+              <button onclick="copyUrl('${survey.formUrl}')" class="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors" title="Sao chép link">
+                <span class="material-symbols-outlined text-[18px] text-slate-500">content_copy</span>
+              </button>
+            </div>
+            
+            <div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
+              <span class="text-xs text-slate-400">Tạo: ${formattedDate} bởi ${survey.createdByName || "System"}</span>
+              <div class="flex items-center gap-1">
+                <a href="${survey.formUrl}" target="_blank" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" title="Mở link">
+                  <span class="material-symbols-outlined text-[20px] text-slate-500">open_in_new</span>
+                </a>
+                <button onclick="editSurvey(${survey.id})" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" title="Chỉnh sửa">
+                  <span class="material-symbols-outlined text-[20px] text-slate-500">edit</span>
+                </button>
+                <button onclick="toggleStatus(${survey.id})" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" title="${survey.isActive ? "Ẩn" : "Hiển thị"}">
+                  <span class="material-symbols-outlined text-[20px] ${survey.isActive ? "text-amber-500" : "text-emerald-500"}">${survey.isActive ? "visibility_off" : "visibility"}</span>
+                </button>
+                <button onclick="deleteSurvey(${survey.id})" class="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Xóa">
+                  <span class="material-symbols-outlined text-[20px] text-red-500">delete</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Update counts
+      function updateCounts() {
+        document.getElementById("count-all").textContent = allSurveys.length;
+        document.getElementById("count-active").textContent = allSurveys.filter(
+          (s) => s.isActive,
+        ).length;
+        document.getElementById("count-hidden").textContent = allSurveys.filter(
+          (s) => !s.isActive,
+        ).length;
+      }
+
+      // Filter surveys
+      function filterSurveys(filter) {
+        currentFilter = filter;
+
+        // Update tab styles
+        ["all", "active", "hidden"].forEach((f) => {
+          const tab = document.getElementById(`tab-${f}`);
+          if (f === filter) {
+            tab.classList.add("text-primary", "border-primary");
+            tab.classList.remove(
+              "text-slate-500",
+              "dark:text-slate-400",
+              "border-transparent",
+            );
+          } else {
+            tab.classList.remove("text-primary", "border-primary");
+            tab.classList.add(
+              "text-slate-500",
+              "dark:text-slate-400",
+              "border-transparent",
+            );
+          }
+        });
+
+        renderSurveys();
+      }
+
+      // Search surveys
+      function searchSurveys() {
+        renderSurveys();
+      }
+
+      // Open modal
+      function openModal() {
+        document.getElementById("surveyModal").classList.remove("hidden");
+        document.getElementById("modalTitle").textContent = "Thêm Survey mới";
+        document.getElementById("surveyForm").reset();
+        document.getElementById("surveyId").value = "";
+        document.getElementById("iconColor").value = "#3B82F6";
+      }
+
+      // Close modal
+      function closeModal() {
+        document.getElementById("surveyModal").classList.add("hidden");
+      }
+
+      // Edit survey
+      function editSurvey(id) {
+        const survey = allSurveys.find((s) => s.id === id);
+        if (!survey) return;
+
+        document.getElementById("surveyModal").classList.remove("hidden");
+        document.getElementById("modalTitle").textContent = "Chỉnh sửa Survey";
+        document.getElementById("surveyId").value = survey.id;
+        document.getElementById("title").value = survey.title || "";
+        document.getElementById("description").value = survey.description || "";
+        document.getElementById("formUrl").value = survey.formUrl || "";
+        document.getElementById("tag").value = survey.tag || "";
+        document.getElementById("displayOrder").value =
+          survey.displayOrder || 0;
+        document.getElementById("iconType").value = survey.iconType || "survey";
+        document.getElementById("iconColor").value =
+          survey.iconColor || "#3B82F6";
+        document.getElementById("isActive").checked = survey.isActive;
+        document.getElementById("showOnLanding").checked = survey.showOnLanding;
+      }
+
+      // Save survey
+      async function saveSurvey() {
+        const id = document.getElementById("surveyId").value;
+        const data = {
+          title: document.getElementById("title").value,
+          description: document.getElementById("description").value,
+          formUrl: document.getElementById("formUrl").value,
+          tag: document.getElementById("tag").value || "Khảo sát",
+          displayOrder:
+            parseInt(document.getElementById("displayOrder").value) || 0,
+          iconType: document.getElementById("iconType").value,
+          iconColor: document.getElementById("iconColor").value,
+          tagColor: document.getElementById("iconColor").value,
+          isActive: document.getElementById("isActive").checked,
+          showOnLanding: document.getElementById("showOnLanding").checked,
+        };
+
+        if (!data.title || !data.formUrl) {
+          showToast("Vui lòng nhập tiêu đề và đường dẫn form", "error");
+          return;
+        }
+
+        try {
+          const url = id ? `/api/surveys/${id}` : "/api/surveys";
+          const method = id ? "PUT" : "POST";
+
+          const response = await fetch(url, {
+            method,
+            headers: {
+              "Content-Type": "application/json",
+              [csrfHeader]: csrfToken,
+            },
+            body: JSON.stringify(data),
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            showToast(
+              id ? "Cập nhật survey thành công" : "Tạo survey thành công",
+              "success",
+            );
+            closeModal();
+            loadSurveys();
+            loadStats();
+          } else {
+            showToast(result.message || "Có lỗi xảy ra", "error");
+          }
+        } catch (error) {
+          console.error("Error saving survey:", error);
+          showToast("Lỗi kết nối", "error");
+        }
+      }
+
+      // Toggle status
+      async function toggleStatus(id) {
+        try {
+          const response = await fetch(`/api/surveys/${id}/toggle`, {
+            method: "PATCH",
+            headers: { [csrfHeader]: csrfToken },
+          });
+          const result = await response.json();
+          if (result.success) {
+            showToast(result.message, "success");
+            loadSurveys();
+            loadStats();
+          } else {
+            showToast(result.message || "Có lỗi xảy ra", "error");
+          }
+        } catch (error) {
+          console.error("Error toggling status:", error);
+          showToast("Lỗi kết nối", "error");
+        }
+      }
+
+      // Delete survey
+      function deleteSurvey(id) {
+        deleteTargetId = id;
+        document.getElementById("deleteModal").classList.remove("hidden");
+      }
+
+      function closeDeleteModal() {
+        document.getElementById("deleteModal").classList.add("hidden");
+        deleteTargetId = null;
+      }
+
+      async function confirmDelete() {
+        if (!deleteTargetId) return;
+
+        try {
+          const response = await fetch(`/api/surveys/${deleteTargetId}`, {
+            method: "DELETE",
+            headers: { [csrfHeader]: csrfToken },
+          });
+          const result = await response.json();
+          if (result.success) {
+            showToast("Xóa survey thành công", "success");
+            closeDeleteModal();
+            loadSurveys();
+            loadStats();
+          } else {
+            showToast(result.message || "Có lỗi xảy ra", "error");
+          }
+        } catch (error) {
+          console.error("Error deleting survey:", error);
+          showToast("Lỗi kết nối", "error");
+        }
+      }
+
+      // Copy URL
+      function copyUrl(url) {
+        navigator.clipboard.writeText(url);
+        showToast("Đã sao chép link", "success");
+      }
+
+      // Toast
+      function showToast(message, type = "success") {
+        const toast = document.getElementById("toast");
+        const content = document.getElementById("toastContent");
+        const icon = document.getElementById("toastIcon");
+        const msg = document.getElementById("toastMessage");
+
+        msg.textContent = message;
+
+        if (type === "success") {
+          content.className =
+            "flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800";
+          icon.textContent = "check_circle";
+          icon.className =
+            "material-symbols-outlined text-[20px] text-emerald-600";
+          msg.className =
+            "text-sm font-medium text-emerald-700 dark:text-emerald-300";
+        } else {
+          content.className =
+            "flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800";
+          icon.textContent = "error";
+          icon.className = "material-symbols-outlined text-[20px] text-red-600";
+          msg.className = "text-sm font-medium text-red-700 dark:text-red-300";
+        }
+
+        toast.classList.remove("hidden");
+        setTimeout(() => toast.classList.add("hidden"), 3000);
+      }
+
+      // Sidebar toggle
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const backdrop = document.getElementById("sidebarBackdrop");
+        sidebar.classList.toggle("-translate-x-full");
+        backdrop.classList.toggle("hidden");
+      }
+
+      // Dark mode toggle
+      function toggleDarkMode() {
+        document.documentElement.classList.toggle("dark");
+        localStorage.setItem(
+          "darkMode",
+          document.documentElement.classList.contains("dark"),
+        );
+      }
+
+      // Load dark mode preference
+      if (localStorage.getItem("darkMode") === "true") {
+        document.documentElement.classList.add("dark");
+      }
+    </script>
+  </body>
+</html>

@@ -46,7 +46,10 @@ public class SecurityConfig {
                                                                 "/swagger-resources/**",
                                                                 "/webjars/**",
                                                                 // Stringee API (public for demo)
-                                                                "/api/stringee/**")
+                                                                "/api/stringee/**",
+                                                                // Survey landing page API (public)
+                                                                "/api/surveys/landing",
+                                                                "/api/surveys/*/track")
                                                 .permitAll()
                                                 // Role-based access control
                                                 .requestMatchers("/doctor/**").hasRole("DOCTOR")

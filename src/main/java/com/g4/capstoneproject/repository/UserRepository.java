@@ -149,4 +149,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
                         "JOIN TreatmentPlan tp ON tp.patient.id = u.id " +
                         "WHERE tp.doctor.id = :doctorId AND u.role = 'PATIENT'")
         long countPatientsByDoctorId(@Param("doctorId") Long doctorId);
+
+        /**
+         * Tìm kiếm người dùng theo keyword (tên, email, số điện thoại)
+         * Dùng cho quản lý người dùng
+         */
+        @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.userInfo ui " +
+                        "WHERE ui.fullName LIKE %:keyword% OR u.email LIKE %:keyword% OR u.phoneNumber LIKE %:keyword%")
+        List<User> searchUsers(@Param("keyword") String keyword);
 }

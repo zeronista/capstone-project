@@ -591,32 +591,162 @@
       class="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary to-blue-600"
       id="survey"
     >
-      <div class="max-w-4xl mx-auto text-center">
-        <div
-          class="inline-flex items-center space-x-2 px-4 py-2 bg-white/20 rounded-full mb-6"
-        >
-          <span class="material-icons-round text-white text-xl">poll</span>
-          <span class="text-sm font-semibold text-white">
-            Khảo sát sức khỏe miễn phí
-          </span>
+      <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-12">
+          <div
+            class="inline-flex items-center space-x-2 px-4 py-2 bg-white/20 rounded-full mb-6"
+          >
+            <span class="material-icons-round text-white text-xl">poll</span>
+            <span class="text-sm font-semibold text-white">
+              Khảo sát sức khỏe miễn phí
+            </span>
+          </div>
+
+          <h2 class="text-4xl md:text-5xl font-bold text-white mb-6">
+            Đánh giá tình trạng sức khỏe của bạn
+          </h2>
+          <p class="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+            Hoàn thành các bảng khảo sát nhanh để nhận tư vấn sức khỏe cá nhân
+            hóa từ Bác sĩ Kiên
+          </p>
         </div>
 
-        <h2 class="text-4xl md:text-5xl font-bold text-white mb-6">
-          Đánh giá tình trạng sức khỏe của bạn
-        </h2>
-        <p class="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-          Hoàn thành bảng khảo sát nhanh để nhận tư vấn sức khỏe cá nhân hóa từ
-          Bác sĩ Kiên
-        </p>
-        <a
-          th:href="@{/auth/register}"
-          class="inline-flex items-center space-x-2 px-8 py-4 bg-white text-primary font-bold rounded-xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all"
+        <!-- Survey Cards Container -->
+        <div
+          id="survey-cards-container"
+          class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
         >
-          <span>Bắt đầu khảo sát</span>
-          <span class="material-icons-round">arrow_forward</span>
-        </a>
+          <!-- Survey cards will be loaded dynamically -->
+          <div class="col-span-full text-center py-8">
+            <div class="animate-pulse flex flex-col items-center">
+              <div class="w-12 h-12 bg-white/30 rounded-full mb-4"></div>
+              <div class="h-4 bg-white/30 rounded w-32"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- No Surveys Message (hidden by default) -->
+        <div id="no-surveys-message" class="hidden text-center py-8">
+          <span class="material-icons-round text-white/60 text-5xl mb-4"
+            >assignment</span
+          >
+          <p class="text-white/80 text-lg">
+            Hiện chưa có khảo sát nào. Vui lòng quay lại sau!
+          </p>
+        </div>
+
+        <!-- Default CTA when no specific surveys -->
+        <div class="text-center">
+          <a
+            th:href="@{/auth/register}"
+            class="inline-flex items-center space-x-2 px-8 py-4 bg-white text-primary font-bold rounded-xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all"
+          >
+            <span>Đăng ký để nhận tư vấn</span>
+            <span class="material-icons-round">arrow_forward</span>
+          </a>
+        </div>
       </div>
     </section>
+
+    <!-- Survey Cards Script -->
+    <script>
+      // Load surveys on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        loadSurveys();
+      });
+
+      async function loadSurveys() {
+        const container = document.getElementById("survey-cards-container");
+        const noSurveysMsg = document.getElementById("no-surveys-message");
+
+        try {
+          const response = await fetch("/api/surveys/landing");
+          const result = await response.json();
+
+          if (result.success && result.data && result.data.length > 0) {
+            container.innerHTML = result.data
+              .map((survey) => createSurveyCard(survey))
+              .join("");
+            noSurveysMsg.classList.add("hidden");
+          } else {
+            container.innerHTML = "";
+            noSurveysMsg.classList.remove("hidden");
+          }
+        } catch (error) {
+          console.error("Error loading surveys:", error);
+          container.innerHTML = "";
+          noSurveysMsg.classList.remove("hidden");
+        }
+      }
+
+      function createSurveyCard(survey) {
+        const iconColors = {
+          blue: "bg-blue-500",
+          green: "bg-green-500",
+          purple: "bg-purple-500",
+          orange: "bg-orange-500",
+          red: "bg-red-500",
+          pink: "bg-pink-500",
+          teal: "bg-teal-500",
+          indigo: "bg-indigo-500",
+        };
+
+        const tagColors = {
+          blue: "bg-blue-100 text-blue-700",
+          green: "bg-green-100 text-green-700",
+          yellow: "bg-yellow-100 text-yellow-700",
+          purple: "bg-purple-100 text-purple-700",
+          red: "bg-red-100 text-red-700",
+          orange: "bg-orange-100 text-orange-700",
+        };
+
+        const iconBg = iconColors[survey.iconColor] || "bg-blue-500";
+        const tagStyle =
+          tagColors[survey.tagColor] || "bg-blue-100 text-blue-700";
+
+        return `
+          <div class="bg-white rounded-2xl shadow-xl overflow-hidden card-hover">
+            <div class="p-6">
+              <div class="flex items-start justify-between mb-4">
+                <div class="w-14 h-14 ${iconBg} rounded-xl flex items-center justify-center shadow-lg">
+                  <span class="material-icons-round text-white text-2xl">${survey.iconType || "assignment"}</span>
+                </div>
+                ${survey.tag ? `<span class="px-3 py-1 ${tagStyle} text-xs font-semibold rounded-full">${survey.tag}</span>` : ""}
+              </div>
+              
+              <h3 class="text-xl font-bold text-slate-800 mb-2">${survey.title}</h3>
+              <p class="text-slate-600 text-sm mb-4 line-clamp-2">${survey.description || ""}</p>
+              
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-1 text-slate-500">
+                  <span class="material-icons-round text-sm">people</span>
+                  <span class="text-sm">${survey.responseCount || 0} người đã tham gia</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100">
+              <a 
+                href="${survey.formUrl}" 
+                target="_blank"
+                onclick="trackSurveyClick(${survey.id})"
+                class="w-full inline-flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-primary to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:scale-[1.02] transition-all"
+              >
+                <span>Bắt đầu khảo sát</span>
+                <span class="material-icons-round text-sm">arrow_forward</span>
+              </a>
+            </div>
+          </div>
+        `;
+      }
+
+      function trackSurveyClick(surveyId) {
+        // Track survey click for response counting
+        fetch(`/api/surveys/${surveyId}/track`, { method: "POST" }).catch(
+          (err) => console.log("Track error:", err),
+        );
+      }
+    </script>
 
     <!-- Footer -->
     <footer class="bg-slate-900 text-white py-12 px-4 sm:px-6 lg:px-8">

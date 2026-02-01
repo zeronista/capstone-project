@@ -1,0 +1,947 @@
+<!doctype html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Quản lý bệnh nhân - ABClinic</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" th:href="@{/images/Logo.jpg}" />
+    <link rel="shortcut icon" type="image/jpeg" th:href="@{/images/Logo.jpg}" />
+
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0d7cf2",
+              "primary-dark": "#0a62bf",
+              "background-light": "#f5f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              display: ["Roboto", "sans-serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 24px;
+      }
+      .material-symbols-outlined.fill {
+        font-variation-settings: "FILL" 1;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display h-screen flex overflow-hidden"
+  >
+    <!-- Mobile Sidebar Backdrop -->
+    <div
+      id="sidebarBackdrop"
+      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden hidden"
+      onclick="toggleSidebar()"
+    ></div>
+
+    <!-- Receptionist Sidebar -->
+    <aside
+      id="sidebar"
+      class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#1a2634] border-r border-slate-200 dark:border-slate-800 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out"
+    >
+      <!-- Logo -->
+      <div
+        class="h-16 flex items-center gap-3 px-5 border-b border-slate-200 dark:border-slate-800 shrink-0"
+      >
+        <div
+          class="flex size-10 items-center justify-center rounded-xl bg-primary text-white font-bold text-lg shadow-md shadow-primary/30"
+        >
+          AB
+        </div>
+        <span
+          class="text-lg font-bold text-slate-900 dark:text-white tracking-tight"
+          >ABClinic</span
+        >
+        <button
+          class="lg:hidden ml-auto p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
+          onclick="toggleSidebar()"
+        >
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 overflow-y-auto p-3 space-y-1">
+        <p
+          class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider"
+        >
+          Menu chính
+        </p>
+
+        <a
+          href="/receptionist/dashboard"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]">dashboard</span>
+          <span>Bảng điều khiển</span>
+        </a>
+
+        <a
+          href="/receptionist/callbot"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]"
+            >phone_in_talk</span
+          >
+          <span>AI Callbot</span>
+          <span
+            class="ml-auto text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-1.5 py-0.5 rounded font-bold"
+            >NEW</span
+          >
+        </a>
+
+        <a
+          href="/receptionist/users"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]"
+            >personal_injury</span
+          >
+          <span>Quản lý bệnh nhân</span>
+        </a>
+
+        <a
+          href="/receptionist/surveys"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]">quiz</span>
+          <span>Quản lý Survey</span>
+        </a>
+
+        <a
+          href="/receptionist/profile"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]">person</span>
+          <span>Hồ sơ cá nhân</span>
+        </a>
+      </nav>
+
+      <!-- User Profile -->
+      <div class="p-3 border-t border-slate-200 dark:border-slate-800">
+        <a
+          href="/receptionist/profile"
+          class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-all"
+        >
+          <div
+            class="size-10 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white font-bold text-sm shadow-sm"
+          >
+            <span
+              th:text="${receptionist != null && receptionist.userInfo != null && receptionist.userInfo.fullName != null ? receptionist.userInfo.fullName.substring(0,1) : 'R'}"
+              >R</span
+            >
+          </div>
+          <div class="flex-1 min-w-0">
+            <p
+              class="text-sm font-semibold text-slate-900 dark:text-white truncate"
+              th:text="${receptionist != null && receptionist.userInfo != null ? receptionist.userInfo.fullName : 'Receptionist'}"
+            >
+              Receptionist
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Lễ tân</p>
+          </div>
+        </a>
+        <form th:action="@{/auth/logout}" method="post" class="mt-2">
+          <button
+            type="submit"
+            class="w-full flex items-center justify-center gap-2 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-500 hover:text-red-500 transition-colors text-sm"
+          >
+            <span class="material-symbols-outlined text-[20px]">logout</span>
+            <span>Đăng xuất</span>
+          </button>
+        </form>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main
+      class="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-slate-50 via-white to-violet-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800"
+    >
+      <!-- Header -->
+      <header
+        class="h-16 flex items-center justify-between px-6 bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 shrink-0 z-10"
+      >
+        <!-- Mobile Menu Toggle -->
+        <button
+          onclick="toggleSidebar()"
+          class="lg:hidden flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors mr-2"
+        >
+          <span class="material-symbols-outlined text-[24px]">menu</span>
+        </button>
+
+        <!-- Page Title -->
+        <div class="flex-1">
+          <h1 class="text-xl font-bold text-slate-900 dark:text-white">
+            Quản lý bệnh nhân
+          </h1>
+          <p class="text-sm text-slate-500 dark:text-slate-400">
+            Thêm, sửa, xóa và tìm kiếm thông tin bệnh nhân
+          </p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-3">
+          <button
+            onclick="showImportModal()"
+            class="hidden sm:inline-flex items-center px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+          >
+            <span class="material-symbols-outlined text-[18px] mr-2"
+              >upload_file</span
+            >
+            Import Excel
+          </button>
+          <button
+            onclick="showCreateModal()"
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+          >
+            <span class="material-symbols-outlined text-[18px] mr-2"
+              >person_add</span
+            >
+            Thêm bệnh nhân
+          </button>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <div class="flex-1 overflow-auto p-6">
+        <!-- Filter & Search Bar -->
+        <div
+          class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 mb-6"
+        >
+          <div class="flex flex-col md:flex-row gap-4">
+            <!-- Search -->
+            <div class="flex-1">
+              <div class="relative">
+                <input
+                  type="text"
+                  id="searchInput"
+                  placeholder="Tìm kiếm theo tên, email, số điện thoại..."
+                  class="w-full pl-10 pr-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                />
+                <span
+                  class="material-symbols-outlined absolute left-3 top-2.5 text-[20px] text-slate-400"
+                  >search</span
+                >
+              </div>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="md:w-40">
+              <select
+                id="statusFilter"
+                class="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+              >
+                <option value="">Tất cả</option>
+                <option value="active">Đang hoạt động</option>
+                <option value="inactive">Đã vô hiệu</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div
+          class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden"
+        >
+          <!-- Loading State -->
+          <div id="loadingState" class="hidden p-8 text-center">
+            <div
+              class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto"
+            ></div>
+            <p class="mt-3 text-slate-600 dark:text-slate-400">
+              Đang tải dữ liệu...
+            </p>
+          </div>
+
+          <!-- Table -->
+          <div class="overflow-x-auto">
+            <table
+              class="min-w-full divide-y divide-slate-200 dark:divide-slate-700"
+            >
+              <thead class="bg-slate-50 dark:bg-slate-900/50">
+                <tr>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                  >
+                    Bệnh nhân
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                  >
+                    Liên hệ
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                  >
+                    Trạng thái
+                  </th>
+                  <th
+                    class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                  >
+                    Ngày tạo
+                  </th>
+                  <th
+                    class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+                  >
+                    Thao tác
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                id="usersTableBody"
+                class="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700"
+              >
+                <!-- Rows will be rendered by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State -->
+          <div id="emptyState" class="hidden p-8 text-center">
+            <span class="material-symbols-outlined text-[48px] text-slate-400"
+              >group_off</span
+            >
+            <h3 class="mt-2 text-sm font-medium text-slate-900 dark:text-white">
+              Không tìm thấy bệnh nhân
+            </h3>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác.
+            </p>
+          </div>
+
+          <!-- Pagination -->
+          <div
+            id="paginationContainer"
+            class="bg-white dark:bg-slate-800 px-4 py-3 flex items-center justify-between border-t border-slate-200 dark:border-slate-700 sm:px-6"
+          >
+            <div class="flex-1 flex justify-between sm:hidden">
+              <button
+                id="prevPageMobile"
+                class="relative inline-flex items-center px-4 py-2 border border-slate-300 dark:border-slate-600 text-sm font-medium rounded-md text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600"
+              >
+                Trước
+              </button>
+              <button
+                id="nextPageMobile"
+                class="ml-3 relative inline-flex items-center px-4 py-2 border border-slate-300 dark:border-slate-600 text-sm font-medium rounded-md text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600"
+              >
+                Sau
+              </button>
+            </div>
+            <div
+              class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between"
+            >
+              <div>
+                <p class="text-sm text-slate-700 dark:text-slate-300">
+                  Hiển thị
+                  <span id="showingFrom" class="font-medium">1</span> đến
+                  <span id="showingTo" class="font-medium">10</span> trong số
+                  <span id="totalCount" class="font-medium">0</span> kết quả
+                </p>
+              </div>
+              <div>
+                <nav
+                  id="paginationNav"
+                  class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                >
+                  <!-- Pagination buttons will be rendered by JavaScript -->
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Create/Edit User Modal -->
+    <div
+      id="userModal"
+      class="fixed inset-0 z-50 hidden overflow-y-auto"
+      aria-labelledby="modal-title"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <!-- Backdrop -->
+        <div
+          class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+          onclick="closeModal()"
+        ></div>
+
+        <!-- Modal Content -->
+        <div
+          class="inline-block align-bottom bg-white dark:bg-slate-800 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
+        >
+          <form id="userForm" onsubmit="handleSubmitUser(event)">
+            <input type="hidden" id="userId" name="userId" />
+
+            <div class="bg-white dark:bg-slate-800 px-4 pt-5 pb-4 sm:p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3
+                  id="modalTitle"
+                  class="text-lg font-semibold text-slate-900 dark:text-white"
+                >
+                  Thêm bệnh nhân mới
+                </h3>
+                <button
+                  type="button"
+                  onclick="closeModal()"
+                  class="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300"
+                >
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </div>
+
+              <div class="space-y-4">
+                <!-- Full Name -->
+                <div>
+                  <label
+                    for="fullName"
+                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Họ và tên <span class="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="fullName"
+                    name="fullName"
+                    required
+                    class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                    placeholder="Nguyễn Văn A"
+                  />
+                </div>
+
+                <!-- Email & Phone Row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      for="email"
+                      class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                      >Email</label
+                    >
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                      placeholder="email@example.com"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="phone"
+                      class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                      >Số điện thoại</label
+                    >
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                      placeholder="0901234567"
+                    />
+                  </div>
+                </div>
+
+                <!-- Role (hidden, always PATIENT) -->
+                <input type="hidden" id="role" name="role" value="PATIENT" />
+
+                <!-- DOB & Gender Row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      for="dateOfBirth"
+                      class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                      >Ngày sinh</label
+                    >
+                    <input
+                      type="date"
+                      id="dateOfBirth"
+                      name="dateOfBirth"
+                      class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      for="gender"
+                      class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                      >Giới tính</label
+                    >
+                    <select
+                      id="gender"
+                      name="gender"
+                      class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                    >
+                      <option value="">-- Chọn giới tính --</option>
+                      <option value="MALE">Nam</option>
+                      <option value="FEMALE">Nữ</option>
+                      <option value="OTHER">Khác</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Address -->
+                <div>
+                  <label
+                    for="address"
+                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                    >Địa chỉ</label
+                  >
+                  <textarea
+                    id="address"
+                    name="address"
+                    rows="2"
+                    class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                    placeholder="123 Đường ABC, Quận 1, TP.HCM"
+                  ></textarea>
+                </div>
+
+                <!-- Password (only for create) -->
+                <div id="passwordField">
+                  <label
+                    for="password"
+                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                  >
+                    Mật khẩu
+                    <span class="text-slate-400 text-xs"
+                      >(để trống sẽ tạo tự động)</span
+                    >
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                    placeholder="••••••••"
+                  />
+                </div>
+
+                <!-- Status (only for edit) -->
+                <div id="statusField" class="hidden">
+                  <label class="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="isActive"
+                      name="isActive"
+                      class="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4"
+                    />
+                    <span
+                      class="ml-2 text-sm text-slate-700 dark:text-slate-300"
+                      >Tài khoản đang hoạt động</span
+                    >
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-slate-50 dark:bg-slate-900/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3"
+            >
+              <button
+                type="submit"
+                id="submitBtn"
+                class="w-full inline-flex justify-center rounded-lg border border-transparent px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary sm:w-auto sm:text-sm transition-colors"
+              >
+                <span id="submitBtnText">Tạo bệnh nhân</span>
+                <svg
+                  id="submitBtnLoading"
+                  class="hidden animate-spin ml-2 h-5 w-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              </button>
+              <button
+                type="button"
+                onclick="closeModal()"
+                class="mt-3 w-full inline-flex justify-center rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 bg-white dark:bg-slate-700 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors"
+              >
+                Hủy
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import Excel Modal -->
+    <div
+      id="importModal"
+      class="fixed inset-0 z-50 hidden overflow-y-auto"
+      aria-labelledby="import-modal-title"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <!-- Backdrop -->
+        <div
+          class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+          onclick="closeImportModal()"
+        ></div>
+
+        <!-- Modal Content -->
+        <div
+          class="inline-block align-bottom bg-white dark:bg-slate-800 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full"
+        >
+          <div class="bg-white dark:bg-slate-800 px-4 pt-5 pb-4 sm:p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
+                Import bệnh nhân từ Excel
+              </h3>
+              <button
+                type="button"
+                onclick="closeImportModal()"
+                class="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300"
+              >
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <!-- Download Template -->
+            <div
+              class="mb-4 p-4 bg-primary/10 rounded-lg border border-primary/20"
+            >
+              <div class="flex items-center">
+                <span class="material-symbols-outlined text-primary mr-2"
+                  >info</span
+                >
+                <span class="text-sm text-primary"
+                  >Tải file mẫu để đảm bảo định dạng đúng</span
+                >
+              </div>
+              <a
+                href="/api/users/template"
+                download
+                class="mt-2 inline-flex items-center text-sm text-primary hover:text-primary-dark font-medium"
+              >
+                <span class="material-symbols-outlined text-[18px] mr-1"
+                  >download</span
+                >
+                Tải file mẫu Excel
+              </a>
+            </div>
+
+            <!-- Upload Area -->
+            <div
+              id="uploadArea"
+              class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer"
+              ondragover="handleDragOver(event)"
+              ondragleave="handleDragLeave(event)"
+              ondrop="handleDrop(event)"
+              onclick="document.getElementById('fileInput').click()"
+            >
+              <input
+                type="file"
+                id="fileInput"
+                accept=".xlsx,.xls"
+                class="hidden"
+                onchange="handleFileSelect(event)"
+              />
+              <span class="material-symbols-outlined text-[48px] text-slate-400"
+                >cloud_upload</span
+              >
+              <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                <span class="font-medium text-primary">Click để chọn file</span>
+                hoặc kéo thả vào đây
+              </p>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-500">
+                Chỉ chấp nhận file Excel (.xlsx, .xls)
+              </p>
+            </div>
+
+            <!-- Selected File Info -->
+            <div
+              id="selectedFileInfo"
+              class="hidden mt-4 p-4 bg-slate-50 dark:bg-slate-700 rounded-lg"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <span
+                    class="material-symbols-outlined text-[32px] text-emerald-600"
+                    >description</span
+                  >
+                  <div class="ml-3">
+                    <p
+                      id="fileName"
+                      class="text-sm font-medium text-slate-900 dark:text-white"
+                    ></p>
+                    <p
+                      id="fileSize"
+                      class="text-xs text-slate-500 dark:text-slate-400"
+                    ></p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onclick="clearSelectedFile()"
+                  class="text-slate-400 hover:text-red-500"
+                >
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Import Progress -->
+            <div id="importProgress" class="hidden mt-4">
+              <div class="flex items-center justify-between mb-2">
+                <span
+                  class="text-sm font-medium text-slate-700 dark:text-slate-300"
+                  >Đang import...</span
+                >
+                <span
+                  id="progressPercent"
+                  class="text-sm text-slate-500 dark:text-slate-400"
+                  >0%</span
+                >
+              </div>
+              <div
+                class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2"
+              >
+                <div
+                  id="progressBar"
+                  class="bg-primary h-2 rounded-full transition-all"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Import Results -->
+            <div id="importResults" class="hidden mt-4 p-4 rounded-lg">
+              <div
+                id="resultSummary"
+                class="flex items-center justify-between mb-4"
+              >
+                <!-- Will be filled by JavaScript -->
+              </div>
+              <div id="errorList" class="hidden mt-3 max-h-40 overflow-y-auto">
+                <h4
+                  class="text-sm font-medium text-red-700 dark:text-red-400 mb-2"
+                >
+                  Chi tiết lỗi:
+                </h4>
+                <ul
+                  id="errorListItems"
+                  class="text-sm text-red-600 dark:text-red-400 space-y-1"
+                >
+                  <!-- Error items will be added here -->
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="bg-slate-50 dark:bg-slate-900/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3"
+          >
+            <button
+              type="button"
+              id="importBtn"
+              onclick="handleImport()"
+              disabled
+              class="w-full inline-flex justify-center rounded-lg border border-transparent px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary sm:w-auto sm:text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span id="importBtnText">Import</span>
+              <svg
+                id="importBtnLoading"
+                class="hidden animate-spin ml-2 h-5 w-5 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            </button>
+            <button
+              type="button"
+              onclick="closeImportModal()"
+              class="mt-3 w-full inline-flex justify-center rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 bg-white dark:bg-slate-700 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div
+      id="deleteModal"
+      class="fixed inset-0 z-50 hidden overflow-y-auto"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <div
+          class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+          onclick="closeDeleteModal()"
+        ></div>
+        <div
+          class="inline-block align-bottom bg-white dark:bg-slate-800 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full"
+        >
+          <div class="bg-white dark:bg-slate-800 px-4 pt-5 pb-4 sm:p-6">
+            <div class="sm:flex sm:items-start">
+              <div
+                class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-10 sm:w-10"
+              >
+                <span
+                  class="material-symbols-outlined text-red-600 dark:text-red-400"
+                  >warning</span
+                >
+              </div>
+              <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                <h3
+                  class="text-lg font-semibold text-slate-900 dark:text-white"
+                >
+                  Xác nhận vô hiệu hóa bệnh nhân
+                </h3>
+                <div class="mt-2">
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Bạn có chắc chắn muốn vô hiệu hóa tài khoản
+                    <span
+                      id="deleteUserName"
+                      class="font-medium text-slate-900 dark:text-white"
+                    ></span
+                    >? Bệnh nhân sẽ không thể đăng nhập sau khi bị vô hiệu hóa.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="bg-slate-50 dark:bg-slate-900/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3"
+          >
+            <button
+              type="button"
+              id="confirmDeleteBtn"
+              onclick="confirmDelete()"
+              class="w-full inline-flex justify-center rounded-lg border border-transparent px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 sm:w-auto sm:text-sm transition-colors"
+            >
+              Xóa
+            </button>
+            <button
+              type="button"
+              onclick="closeDeleteModal()"
+              class="mt-3 w-full inline-flex justify-center rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 bg-white dark:bg-slate-700 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors"
+            >
+              Hủy
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div
+      id="toast"
+      class="fixed bottom-4 right-4 z-50 hidden transform transition-all duration-300 translate-y-full opacity-0"
+    >
+      <div
+        class="bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 p-4 flex items-center space-x-3"
+      >
+        <div id="toastIcon" class="flex-shrink-0"></div>
+        <div>
+          <p
+            id="toastMessage"
+            class="text-sm font-medium text-slate-900 dark:text-white"
+          ></p>
+        </div>
+        <button
+          onclick="hideToast()"
+          class="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300"
+        >
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/modules/receptionist/users.js"></script>
+    <script>
+      // Toggle mobile sidebar
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const backdrop = document.getElementById("sidebarBackdrop");
+        sidebar.classList.toggle("-translate-x-full");
+        backdrop.classList.toggle("hidden");
+      }
+    </script>
+  </body>
+</html>

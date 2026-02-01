@@ -536,7 +536,38 @@ CREATE TABLE IF NOT EXISTS knowledge_articles (
 COMMENT='Bang luu bai viet kien thuc y te';
 
 -- ============================================
--- 8. THONG BAO & PHAN HOI
+-- 8. QUAN LY KHAO SAT (SURVEY MANAGEMENT)
+-- ============================================
+
+-- Bang SURVEYS - Quan ly cac form khao sat (Google Form, Typeform, etc.)
+-- Dung de le tan tao va quan ly cac link khao sat hien thi tren landing page
+CREATE TABLE IF NOT EXISTS surveys (
+    id                  BIGINT          AUTO_INCREMENT PRIMARY KEY,
+    title               VARCHAR(200)    NOT NULL COMMENT 'Tieu de khao sat',
+    description         TEXT            COMMENT 'Mo ta khao sat',
+    form_url            VARCHAR(500)    NOT NULL COMMENT 'Duong dan form (Google Form, Typeform...)',
+    icon_type           VARCHAR(50)     DEFAULT 'survey' COMMENT 'Loai icon: survey, health, feedback, register',
+    icon_color          VARCHAR(50)     DEFAULT '#3B82F6' COMMENT 'Ma mau icon',
+    tag                 VARCHAR(50)     DEFAULT 'Khao sat' COMMENT 'Nhan hien thi',
+    tag_color           VARCHAR(50)     DEFAULT '#3B82F6' COMMENT 'Ma mau nhan',
+    display_order       INT             DEFAULT 0 COMMENT 'Thu tu hien thi',
+    response_count      INT             DEFAULT 0 COMMENT 'So luong phan hoi',
+    is_active           BOOLEAN         DEFAULT TRUE COMMENT 'Trang thai hoat dong',
+    show_on_landing     BOOLEAN         DEFAULT TRUE COMMENT 'Hien thi tren trang chu',
+    created_by          BIGINT          COMMENT 'Nguoi tao khao sat',
+    created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_survey_created_by 
+        FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_surveys_active (is_active),
+    INDEX idx_surveys_landing (show_on_landing, is_active),
+    INDEX idx_surveys_order (display_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+COMMENT='Bang luu cac form khao sat (Google Form, Typeform) de hien thi tren landing page';
+
+-- ============================================
+-- 9. THONG BAO & PHAN HOI
 -- ============================================
 
 -- Bang NOTIFICATIONS - Thong bao cho nguoi dung
@@ -589,7 +620,7 @@ CREATE TABLE IF NOT EXISTS feedbacks (
 COMMENT='Bang luu phan hoi tu nguoi dung';
 
 -- ============================================
--- 9. DU LIEU MAU (SAMPLE DATA)
+-- 10. DU LIEU MAU (SAMPLE DATA)
 -- ============================================
 
 -- Tao tai khoan Admin mac dinh
@@ -601,7 +632,7 @@ INSERT INTO user_info (user_id, full_name) VALUES
 (1, 'Quan tri vien he thong');
 
 -- ============================================
--- 10. VIEWS HUU ICH
+-- 11. VIEWS HUU ICH
 -- ============================================
 
 -- View hien thi thong tin user day du (ket hop users + user_info)
@@ -734,7 +765,7 @@ DELIMITER ;
 -- ============================================
 -- THONG TIN SCHEMA
 -- ============================================
--- Tong so bang: 22 (theo Entity classes hien tai)
+-- Tong so bang: 23 (theo Entity classes hien tai)
 -- 1. users                  - Thong tin tai khoan (User.java)
 -- 2. user_info              - Thong tin ca nhan (UserInfo.java)
 -- 3. patient_documents      - Tai lieu benh nhan (PatientDocument.java)
@@ -742,7 +773,7 @@ DELIMITER ;
 -- 5. family_medical_history - Tien su benh gia dinh (FamilyMedicalHistory.java)
 -- 6. medical_reports        - Bao cao y te (MedicalReport.java)
 -- 7. health_forecasts       - Du bao suc khoe (HealthForecast.java)
--- 8. survey_templates       - Mau khao sat (SurveyTemplate.java)
+-- 8. survey_templates       - Mau khao sat AI Callbot (SurveyTemplate.java)
 -- 9. call_campaigns         - Chien dich goi dien (CallCampaign.java)
 -- 10. call_logs             - Lich su cuoc goi AI Bot (CallLog.java)
 -- 11. web_call_logs         - Lich su cuoc goi Web (WebCallLog.java)
@@ -755,6 +786,7 @@ DELIMITER ;
 -- 18. checkup_schedules     - Lich tai kham (CheckupSchedule.java)
 -- 19. knowledge_categories  - Danh muc kien thuc (KnowledgeCategory.java)
 -- 20. knowledge_articles    - Bai viet kien thuc (KnowledgeArticle.java)
--- 21. notifications         - Thong bao (Notification.java)
--- 22. feedbacks             - Phan hoi (Feedback.java)
+-- 21. surveys               - Khao sat form (Survey.java) - Google Form, Typeform
+-- 22. notifications         - Thong bao (Notification.java)
+-- 23. feedbacks             - Phan hoi (Feedback.java)
 -- ============================================
