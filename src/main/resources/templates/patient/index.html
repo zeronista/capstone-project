@@ -602,9 +602,13 @@
           // Update prescriptions
           if (prescriptionsRes.ok) {
             const prescriptions = await prescriptionsRes.json();
-            updatePrescriptionsList(prescriptions.data || prescriptions);
+            const prescriptionList =
+              prescriptions.data ||
+              prescriptions.content ||
+              (Array.isArray(prescriptions) ? prescriptions : []);
+            updatePrescriptionsList(prescriptionList);
             document.getElementById("statPrescriptions").textContent =
-              prescriptions.totalElements || prescriptions.length || 0;
+              prescriptions.totalElements || prescriptionList.length || 0;
           } else {
             document.getElementById("prescriptionsList").innerHTML =
               renderEmptyState("prescriptions", "Chưa có đơn thuốc nào");
@@ -651,7 +655,11 @@
 
       function updatePrescriptionsList(prescriptions) {
         const list = document.getElementById("prescriptionsList");
-        if (!prescriptions || prescriptions.length === 0) {
+        if (
+          !prescriptions ||
+          !Array.isArray(prescriptions) ||
+          prescriptions.length === 0
+        ) {
           list.innerHTML = renderEmptyState(
             "prescriptions",
             "Chưa có đơn thuốc nào",

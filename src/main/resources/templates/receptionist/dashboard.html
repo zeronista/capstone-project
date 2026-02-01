@@ -205,11 +205,20 @@
           <span class="material-symbols-outlined text-[22px]">settings</span>
           <span>Cài đặt</span>
         </a>
+
+        <a
+          href="/receptionist/profile"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-outlined text-[22px]">person</span>
+          <span>Hồ sơ cá nhân</span>
+        </a>
       </nav>
 
       <!-- User Profile -->
       <div class="p-3 border-t border-slate-200 dark:border-slate-800">
-        <div
+        <a
+          href="/receptionist/profile"
           class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-all"
         >
           <div
@@ -229,15 +238,16 @@
             </p>
             <p class="text-xs text-slate-500 dark:text-slate-400">Lễ tân</p>
           </div>
-          <form th:action="@{/auth/logout}" method="post" class="m-0">
-            <button
-              type="submit"
-              class="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-400 hover:text-red-500 transition-colors"
-            >
-              <span class="material-symbols-outlined text-[20px]">logout</span>
-            </button>
-          </form>
-        </div>
+        </a>
+        <form th:action="@{/auth/logout}" method="post" class="mt-2">
+          <button
+            type="submit"
+            class="w-full flex items-center justify-center gap-2 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-500 hover:text-red-500 transition-colors text-sm"
+          >
+            <span class="material-symbols-outlined text-[20px]">logout</span>
+            <span>Đăng xuất</span>
+          </button>
+        </form>
       </div>
     </aside>
 

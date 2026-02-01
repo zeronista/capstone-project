@@ -1,216 +1,412 @@
-<!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" class="scroll-smooth">
-<head th:replace="~{fragments/layout :: head(title='Quản lý người dùng')}"></head>
-<body class="bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100 min-h-screen">
-    <!-- Sidebar Backdrop -->
+<!doctype html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head
+    th:replace="~{fragments/layout :: head(title='Quản lý người dùng')}"
+  ></head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans h-screen flex overflow-hidden"
+  >
+    <!-- Mobile Sidebar Backdrop -->
     <div th:replace="~{fragments/layout :: sidebar-backdrop}"></div>
-    
-    <!-- Admin Sidebar -->
-    <div th:replace="~{fragments/layout :: admin-sidebar}"></div>
 
-    <!-- Main Content Area -->
-    <div class="lg:ml-64 min-h-screen transition-all duration-300">
-        <!-- Header -->
-        <div th:replace="~{fragments/layout :: header(title='Quản lý người dùng')}"></div>
-        
-        <!-- Main Content -->
-        <main class="p-4 md:p-6 lg:p-8">
-        <!-- Page Header -->
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Quản lý người dùng</h1>
-                    <p class="text-gray-500 dark:text-gray-400 mt-1">Quản lý bệnh nhân và nhân viên trong hệ thống</p>
-                </div>
-                <div class="flex flex-wrap gap-3 mt-4 md:mt-0">
-                    <button class="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
-                        <span class="material-symbols-outlined text-lg">upload</span>
-                        Import Excel
-                    </button>
-                    <button class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white font-medium rounded-xl transition-colors duration-200 shadow-lg shadow-primary/25">
-                        <span class="material-symbols-outlined text-lg">person_add</span>
-                        Thêm người dùng
-                    </button>
-                </div>
+    <!-- Admin Sidebar -->
+    <aside th:replace="~{fragments/layout :: admin-sidebar}"></aside>
+
+    <!-- Main Content -->
+    <main
+      class="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800"
+    >
+      <!-- Header -->
+      <header
+        th:replace="~{fragments/layout :: header(title='Quản lý người dùng')}"
+      ></header>
+
+      <!-- Content Area -->
+      <div class="flex-1 overflow-y-auto p-4 lg:p-6">
+        <div class="max-w-7xl mx-auto flex flex-col gap-6">
+          <!-- Page Header -->
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between"
+          >
+            <div>
+              <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+                Quản lý người dùng
+              </h1>
+              <p class="text-slate-500 dark:text-slate-400 mt-1">
+                Quản lý bệnh nhân và nhân viên trong hệ thống
+              </p>
             </div>
-        
-        <!-- Stats -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow duration-200">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Tổng bệnh nhân</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">1,284</p>
-                </div>
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow duration-200">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Bác sĩ</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">45</p>
-                </div>
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow duration-200">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Y tá</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">78</p>
-                </div>
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow duration-200">
-                    <p class="text-sm text-gray-500 dark:text-gray-400">Nhân viên khác</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">32</p>
-                </div>
+            <div class="flex flex-wrap gap-3 mt-4 md:mt-0">
+              <button
+                class="inline-flex items-center gap-2 px-4 py-2.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-200"
+              >
+                <span class="material-symbols-outlined text-lg">upload</span>
+                Import Excel
+              </button>
+              <button
+                class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white font-medium rounded-xl transition-colors duration-200 shadow-lg shadow-primary/25"
+              >
+                <span class="material-symbols-outlined text-lg"
+                  >person_add</span
+                >
+                Thêm người dùng
+              </button>
             </div>
-            
-            <!-- Tabs -->
-            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div class="border-b border-gray-200 dark:border-gray-700">
-                    <div class="flex gap-0">
-                        <button class="px-6 py-4 text-primary font-medium border-b-2 border-primary">Bệnh nhân</button>
-                        <button class="px-6 py-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-medium border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600 transition-colors duration-200">Nhân viên</button>
-                    </div>
-                </div>
-                
-                <!-- Filters -->
-                <div class="p-4 border-b border-gray-100 dark:border-gray-700">
-                    <div class="flex flex-col lg:flex-row lg:items-center gap-4">
-                        <div class="flex-1">
-                            <div class="relative">
-                                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">search</span>
-                                <input type="text" placeholder="Tìm theo tên, mã bệnh nhân, số điện thoại..." 
-                                    class="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
-                            </div>
-                        </div>
-                        <div class="flex gap-3">
-                            <select class="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary">
-                                <option>Tất cả giới tính</option>
-                                <option>Nam</option>
-                                <option>Nữ</option>
-                            </select>
-                            <select class="px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary">
-                                <option>Tất cả độ tuổi</option>
-                                <option>0-18 tuổi</option>
-                                <option>19-40 tuổi</option>
-                                <option>41-60 tuổi</option>
-                                <option>Trên 60 tuổi</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Users Grid -->
-                <div class="p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <!-- User Card 1 -->
-                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 hover:shadow-md transition-all duration-200 border border-transparent hover:border-primary/20">
-                            <div class="flex items-start gap-4">
-                                <div class="w-14 h-14 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center flex-shrink-0">
-                                    <span class="text-white font-bold text-lg">TH</span>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center justify-between">
-                                        <h4 class="font-semibold text-gray-900 dark:text-white truncate">Trần Văn Hùng</h4>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400">Nam, 45 tuổi</span>
-                                    </div>
-                                    <p class="text-sm text-primary font-medium mt-0.5">BN-2026-0142</p>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">0912 345 678</p>
-                                    <div class="flex items-center gap-2 mt-3">
-                                        <span class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded">Điều trị</span>
-                                        <span class="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded">Tim mạch</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                                <span class="text-xs text-gray-500 dark:text-gray-400">Khám gần nhất: 21/01/2026</span>
-                                <div class="flex gap-1">
-                                    <button class="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors duration-200" title="Xem hồ sơ">
-                                        <span class="material-symbols-outlined text-lg">visibility</span>
-                                    </button>
-                                    <button class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200" title="Chỉnh sửa">
-                                        <span class="material-symbols-outlined text-lg">edit</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- User Card 2 -->
-                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 hover:shadow-md transition-all duration-200 border border-transparent hover:border-primary/20">
-                            <div class="flex items-start gap-4">
-                                <div class="w-14 h-14 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <span class="text-white font-bold text-lg">LM</span>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center justify-between">
-                                        <h4 class="font-semibold text-gray-900 dark:text-white truncate">Lê Thị Mai</h4>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400">Nữ, 32 tuổi</span>
-                                    </div>
-                                    <p class="text-sm text-primary font-medium mt-0.5">BN-2026-0141</p>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">0987 654 321</p>
-                                    <div class="flex items-center gap-2 mt-3">
-                                        <span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-medium rounded">Đang khám</span>
-                                        <span class="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded">Nội tiết</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                                <span class="text-xs text-gray-500 dark:text-gray-400">Khám gần nhất: 21/01/2026</span>
-                                <div class="flex gap-1">
-                                    <button class="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors duration-200" title="Xem hồ sơ">
-                                        <span class="material-symbols-outlined text-lg">visibility</span>
-                                    </button>
-                                    <button class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200" title="Chỉnh sửa">
-                                        <span class="material-symbols-outlined text-lg">edit</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- User Card 3 -->
-                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 hover:shadow-md transition-all duration-200 border border-transparent hover:border-primary/20">
-                            <div class="flex items-start gap-4">
-                                <div class="w-14 h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <span class="text-white font-bold text-lg">PD</span>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center justify-between">
-                                        <h4 class="font-semibold text-gray-900 dark:text-white truncate">Phạm Văn Đức</h4>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400">Nam, 58 tuổi</span>
-                                    </div>
-                                    <p class="text-sm text-primary font-medium mt-0.5">BN-2026-0140</p>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">0901 234 567</p>
-                                    <div class="flex items-center gap-2 mt-3">
-                                        <span class="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded">Tái khám</span>
-                                        <span class="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded">Thần kinh</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                                <span class="text-xs text-gray-500 dark:text-gray-400">Khám gần nhất: 20/01/2026</span>
-                                <div class="flex gap-1">
-                                    <button class="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors duration-200" title="Xem hồ sơ">
-                                        <span class="material-symbols-outlined text-lg">visibility</span>
-                                    </button>
-                                    <button class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200" title="Chỉnh sửa">
-                                        <span class="material-symbols-outlined text-lg">edit</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Pagination -->
-                    <div class="flex items-center justify-between mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Hiển thị 1-6 của 1,284 bệnh nhân</p>
-                        <div class="flex items-center gap-2">
-                            <button class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 disabled:opacity-50" disabled>
-                                <span class="material-symbols-outlined">chevron_left</span>
-                            </button>
-                            <button class="w-9 h-9 bg-primary text-white rounded-lg font-medium">1</button>
-                            <button class="w-9 h-9 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors duration-200">2</button>
-                            <button class="w-9 h-9 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors duration-200">3</button>
-                            <span class="text-gray-400 dark:text-gray-500">...</span>
-                            <button class="w-9 h-9 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors duration-200">214</button>
-                            <button class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200">
-                                <span class="material-symbols-outlined">chevron_right</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:shadow-md transition-shadow duration-200"
+            >
+              <p class="text-sm text-slate-500 dark:text-slate-400">
+                Tổng bệnh nhân
+              </p>
+              <p class="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                1,284
+              </p>
             </div>
-        </main>
-    </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:shadow-md transition-shadow duration-200"
+            >
+              <p class="text-sm text-slate-500 dark:text-slate-400">Bác sĩ</p>
+              <p class="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                45
+              </p>
+            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:shadow-md transition-shadow duration-200"
+            >
+              <p class="text-sm text-slate-500 dark:text-slate-400">Y tá</p>
+              <p class="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                78
+              </p>
+            </div>
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-700 p-4 hover:shadow-md transition-shadow duration-200"
+            >
+              <p class="text-sm text-slate-500 dark:text-slate-400">
+                Nhân viên khác
+              </p>
+              <p class="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+                32
+              </p>
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div
+            class="bg-white dark:bg-[#1a2634] rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+          >
+            <div class="border-b border-slate-200 dark:border-slate-700">
+              <div class="flex gap-0">
+                <button
+                  class="px-6 py-4 text-primary font-medium border-b-2 border-primary"
+                >
+                  Bệnh nhân
+                </button>
+                <button
+                  class="px-6 py-4 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 font-medium border-b-2 border-transparent hover:border-slate-300 dark:hover:border-slate-600 transition-colors duration-200"
+                >
+                  Nhân viên
+                </button>
+              </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="p-4 border-b border-slate-100 dark:border-slate-700">
+              <div class="flex flex-col lg:flex-row lg:items-center gap-4">
+                <div class="flex-1">
+                  <div class="relative">
+                    <span
+                      class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+                      >search</span
+                    >
+                    <input
+                      type="text"
+                      placeholder="Tìm theo tên, mã bệnh nhân, số điện thoại..."
+                      class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                <div class="flex gap-3">
+                  <select
+                    class="px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option>Tất cả giới tính</option>
+                    <option>Nam</option>
+                    <option>Nữ</option>
+                  </select>
+                  <select
+                    class="px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option>Tất cả độ tuổi</option>
+                    <option>0-18 tuổi</option>
+                    <option>19-40 tuổi</option>
+                    <option>41-60 tuổi</option>
+                    <option>Trên 60 tuổi</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Users Grid -->
+            <div class="p-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- User Card 1 -->
+                <div
+                  class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 hover:shadow-md transition-all duration-200 border border-transparent hover:border-primary/20"
+                >
+                  <div class="flex items-start gap-4">
+                    <div
+                      class="w-14 h-14 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center flex-shrink-0"
+                    >
+                      <span class="text-white font-bold text-lg">TH</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center justify-between">
+                        <h4
+                          class="font-semibold text-slate-900 dark:text-white truncate"
+                        >
+                          Trần Văn Hùng
+                        </h4>
+                        <span class="text-xs text-slate-500 dark:text-slate-400"
+                          >Nam, 45 tuổi</span
+                        >
+                      </div>
+                      <p class="text-sm text-primary font-medium mt-0.5">
+                        BN-2026-0142
+                      </p>
+                      <p
+                        class="text-sm text-slate-500 dark:text-slate-400 mt-1"
+                      >
+                        0912 345 678
+                      </p>
+                      <div class="flex items-center gap-2 mt-3">
+                        <span
+                          class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded"
+                          >Điều trị</span
+                        >
+                        <span
+                          class="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded"
+                          >Tim mạch</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="flex items-center justify-between mt-4 pt-4 border-t border-slate-200 dark:border-slate-600"
+                  >
+                    <span class="text-xs text-slate-500 dark:text-slate-400"
+                      >Khám gần nhất: 21/01/2026</span
+                    >
+                    <div class="flex gap-1">
+                      <button
+                        class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors duration-200"
+                        title="Xem hồ sơ"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >visibility</span
+                        >
+                      </button>
+                      <button
+                        class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors duration-200"
+                        title="Chỉnh sửa"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >edit</span
+                        >
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- User Card 2 -->
+                <div
+                  class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 hover:shadow-md transition-all duration-200 border border-transparent hover:border-primary/20"
+                >
+                  <div class="flex items-start gap-4">
+                    <div
+                      class="w-14 h-14 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0"
+                    >
+                      <span class="text-white font-bold text-lg">LM</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center justify-between">
+                        <h4
+                          class="font-semibold text-slate-900 dark:text-white truncate"
+                        >
+                          Lê Thị Mai
+                        </h4>
+                        <span class="text-xs text-slate-500 dark:text-slate-400"
+                          >Nữ, 32 tuổi</span
+                        >
+                      </div>
+                      <p class="text-sm text-primary font-medium mt-0.5">
+                        BN-2026-0141
+                      </p>
+                      <p
+                        class="text-sm text-slate-500 dark:text-slate-400 mt-1"
+                      >
+                        0987 654 321
+                      </p>
+                      <div class="flex items-center gap-2 mt-3">
+                        <span
+                          class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-medium rounded"
+                          >Đang khám</span
+                        >
+                        <span
+                          class="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded"
+                          >Nội tiết</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="flex items-center justify-between mt-4 pt-4 border-t border-slate-200 dark:border-slate-600"
+                  >
+                    <span class="text-xs text-slate-500 dark:text-slate-400"
+                      >Khám gần nhất: 21/01/2026</span
+                    >
+                    <div class="flex gap-1">
+                      <button
+                        class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors duration-200"
+                        title="Xem hồ sơ"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >visibility</span
+                        >
+                      </button>
+                      <button
+                        class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors duration-200"
+                        title="Chỉnh sửa"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >edit</span
+                        >
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- User Card 3 -->
+                <div
+                  class="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 hover:shadow-md transition-all duration-200 border border-transparent hover:border-primary/20"
+                >
+                  <div class="flex items-start gap-4">
+                    <div
+                      class="w-14 h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center flex-shrink-0"
+                    >
+                      <span class="text-white font-bold text-lg">PD</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center justify-between">
+                        <h4
+                          class="font-semibold text-slate-900 dark:text-white truncate"
+                        >
+                          Phạm Văn Đức
+                        </h4>
+                        <span class="text-xs text-slate-500 dark:text-slate-400"
+                          >Nam, 58 tuổi</span
+                        >
+                      </div>
+                      <p class="text-sm text-primary font-medium mt-0.5">
+                        BN-2026-0140
+                      </p>
+                      <p
+                        class="text-sm text-slate-500 dark:text-slate-400 mt-1"
+                      >
+                        0901 234 567
+                      </p>
+                      <div class="flex items-center gap-2 mt-3">
+                        <span
+                          class="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded"
+                          >Tái khám</span
+                        >
+                        <span
+                          class="px-2 py-0.5 bg-primary/10 text-primary text-xs font-medium rounded"
+                          >Thần kinh</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="flex items-center justify-between mt-4 pt-4 border-t border-slate-200 dark:border-slate-600"
+                  >
+                    <span class="text-xs text-slate-500 dark:text-slate-400"
+                      >Khám gần nhất: 20/01/2026</span
+                    >
+                    <div class="flex gap-1">
+                      <button
+                        class="p-1.5 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors duration-200"
+                        title="Xem hồ sơ"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >visibility</span
+                        >
+                      </button>
+                      <button
+                        class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-600 rounded-lg transition-colors duration-200"
+                        title="Chỉnh sửa"
+                      >
+                        <span class="material-symbols-outlined text-lg"
+                          >edit</span
+                        >
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pagination -->
+              <div
+                class="flex items-center justify-between mt-6 pt-6 border-t border-slate-200 dark:border-slate-700"
+              >
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                  Hiển thị 1-6 của 1,284 bệnh nhân
+                </p>
+                <div class="flex items-center gap-2">
+                  <button
+                    class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200 disabled:opacity-50"
+                    disabled
+                  >
+                    <span class="material-symbols-outlined">chevron_left</span>
+                  </button>
+                  <button
+                    class="w-9 h-9 bg-primary text-white rounded-lg font-medium"
+                  >
+                    1
+                  </button>
+                  <button
+                    class="w-9 h-9 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors duration-200"
+                  >
+                    2
+                  </button>
+                  <button
+                    class="w-9 h-9 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors duration-200"
+                  >
+                    3
+                  </button>
+                  <span class="text-slate-400 dark:text-slate-500">...</span>
+                  <button
+                    class="w-9 h-9 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors duration-200"
+                  >
+                    214
+                  </button>
+                  <button
+                    class="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200"
+                  >
+                    <span class="material-symbols-outlined">chevron_right</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
 
     <!-- Scripts Fragment -->
     <div th:replace="~{fragments/layout :: scripts}"></div>
+  </body>
 </html>

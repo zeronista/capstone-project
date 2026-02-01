@@ -1,710 +1,1142 @@
 <!doctype html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org" class="scroll-smooth">
-  <head
-    th:replace="~{fragments/layout :: head(title='Thông Tin Cá Nhân')}"
-  ></head>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Hồ sơ Bệnh nhân - ABClinic</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/jpeg" th:href="@{/images/Logo.jpg}" />
+
+    <!-- Theme Initialization (MUST be first to prevent flash) -->
+    <script>
+      (function () {
+        const theme = localStorage.getItem("theme");
+        if (
+          theme === "dark" ||
+          (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
+          document.documentElement.classList.remove("light");
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+          document.documentElement.classList.add("light");
+        }
+      })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0d7cf2",
+              "primary-dark": "#0a62bf",
+              "background-light": "#f5f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              display: ["Roboto", "sans-serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 24px;
+      }
+      .material-symbols-outlined.fill {
+        font-variation-settings: "FILL" 1;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      /* Sidebar Transition States */
+      .sidebar-hidden {
+        transform: translateX(-100%);
+      }
+      .sidebar-open {
+        transform: translateX(0);
+      }
+      @media (min-width: 1024px) {
+        .sidebar-hidden {
+          transform: translateX(0);
+        }
+      }
+    </style>
+  </head>
   <body
-    class="bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100 min-h-screen"
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display h-screen flex overflow-hidden"
   >
-    <!-- Sidebar Backdrop -->
+    <!-- Mobile Sidebar Backdrop -->
     <div th:replace="~{fragments/layout :: sidebar-backdrop}"></div>
 
     <!-- Patient Sidebar -->
-    <div th:replace="~{fragments/layout :: patient-sidebar}"></div>
+    <aside th:replace="~{fragments/layout :: patient-sidebar}"></aside>
 
-    <!-- Main Content Area -->
-    <div class="lg:ml-64 min-h-screen transition-all duration-300">
+    <!-- Main Content -->
+    <main
+      class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark overflow-y-auto"
+    >
       <!-- Header -->
-      <div
-        th:replace="~{fragments/layout :: header(title='Thông Tin Cá Nhân')}"
-      ></div>
-
-      <!-- Main Content -->
-      <main class="p-4 md:p-6 lg:p-8">
-        <!-- Page Title -->
-        <div class="mb-6">
-          <h1
-            class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white"
+      <header
+        class="h-16 flex items-center justify-between px-6 bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 shrink-0 sticky top-0 z-10"
+      >
+        <button
+          data-sidebar-toggle
+          class="lg:hidden flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors mr-2"
+        >
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <div class="flex items-center gap-2">
+          <a
+            th:href="@{/patient}"
+            class="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors"
           >
-            Thông Tin Cá Nhân
+            <span class="material-symbols-outlined text-[20px]">home</span>
+          </a>
+          <span class="text-slate-300 dark:text-slate-600">/</span>
+          <span class="text-slate-900 dark:text-white font-medium"
+            >Hồ sơ cá nhân</span
+          >
+        </div>
+        <div class="flex items-center gap-3">
+          <!-- Dark Mode Toggle -->
+          <button
+            id="darkModeToggle"
+            class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
+          >
+            <span class="material-symbols-outlined text-[20px] dark:hidden"
+              >dark_mode</span
+            >
+            <span
+              class="material-symbols-outlined text-[20px] hidden dark:block"
+              >light_mode</span
+            >
+          </button>
+          <!-- Logout -->
+          <a
+            th:href="@{/auth/logout}"
+            class="flex items-center justify-center size-10 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 transition-colors"
+            title="Đăng xuất"
+          >
+            <span class="material-symbols-outlined text-[20px]">logout</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="p-6 space-y-6">
+        <!-- Page Title -->
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+            Hồ sơ Bệnh nhân
           </h1>
-          <p class="mt-1 text-gray-600 dark:text-gray-400">
-            Quản lý thông tin hồ sơ của bạn
+          <p class="text-slate-500 dark:text-slate-400 mt-1">
+            Quản lý thông tin cá nhân và bảo mật tài khoản
           </p>
         </div>
 
-        <!-- Profile Content -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- Avatar Section -->
-          <div class="lg:col-span-1">
+          <!-- Profile Card -->
+          <div class="lg:col-span-1 space-y-6">
+            <!-- Avatar & Basic Info -->
             <div
-              class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-700 p-6"
             >
               <div class="text-center">
                 <!-- Avatar -->
                 <div class="relative inline-block group">
                   <img
-                    id="avatarPreview"
-                    th:src="${avatarUrl != null ? avatarUrl : '/images/default-avatar.png'}"
-                    src="/images/default-avatar.png"
+                    id="avatarImg"
+                    th:src="${avatarUrl != null ? avatarUrl : ''}"
+                    src=""
                     alt="Avatar"
-                    class="w-32 h-32 rounded-full object-cover border-4 border-primary/20 shadow-lg"
+                    class="w-28 h-28 rounded-full object-cover border-4 border-blue-200 dark:border-blue-800 shadow-lg"
+                    th:classappend="${avatarUrl == null ? 'hidden' : ''}"
                   />
-                  <label
-                    for="avatarInput"
-                    class="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  <div
+                    id="avatarPlaceholder"
+                    class="w-28 h-28 bg-gradient-to-br from-blue-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg"
+                    th:classappend="${avatarUrl != null ? 'hidden' : ''}"
                   >
-                    <span class="material-symbols-outlined text-white text-3xl"
+                    <span
+                      class="text-white font-bold text-3xl"
+                      id="avatarInitials"
+                      th:text="${user != null && user.userInfo != null && user.userInfo.fullName != null ? #strings.substring(user.userInfo.fullName, 0, 1) : 'BN'}"
+                      >BN</span
+                    >
+                  </div>
+                  <button
+                    id="avatarUploadBtn"
+                    class="absolute bottom-0 right-0 w-9 h-9 bg-white dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 rounded-full flex items-center justify-center shadow-sm hover:bg-primary hover:text-white hover:border-primary transition-all duration-200"
+                  >
+                    <span class="material-symbols-outlined text-[18px]"
                       >photo_camera</span
                     >
-                  </label>
+                  </button>
                   <input
                     type="file"
                     id="avatarInput"
-                    accept="image/*"
+                    accept="image/jpeg,image/jpg,image/png"
                     class="hidden"
                   />
                 </div>
 
                 <!-- Name & Role -->
                 <h2
-                  class="mt-4 text-xl font-semibold text-gray-900 dark:text-white"
-                  th:text="${user != null ? user.fullName : 'Bệnh nhân'}"
+                  id="profileName"
+                  class="text-xl font-bold text-slate-900 dark:text-white mt-4"
+                  th:text="${user != null && user.userInfo != null ? user.userInfo.fullName : 'Bệnh nhân'}"
                 >
-                  Nguyễn Văn A
+                  Đang tải...
                 </h2>
-                <p class="text-gray-600 dark:text-gray-400">Bệnh nhân</p>
-
-                <!-- Stats -->
-                <div class="mt-6 grid grid-cols-2 gap-4">
-                  <div class="bg-primary/10 dark:bg-primary/20 rounded-lg p-3">
-                    <span
-                      class="material-symbols-outlined text-primary text-2xl"
-                      >calendar_month</span
-                    >
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                      Lịch hẹn
-                    </p>
-                    <p
-                      class="text-lg font-bold text-gray-900 dark:text-white"
-                      th:text="${appointmentCount != null ? appointmentCount : 0}"
-                    >
-                      0
-                    </p>
-                  </div>
-                  <div
-                    class="bg-green-500/10 dark:bg-green-500/20 rounded-lg p-3"
+                <p
+                  class="text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1 mt-1"
+                >
+                  <span class="material-symbols-outlined text-[18px]"
+                    >person</span
                   >
-                    <span
-                      class="material-symbols-outlined text-green-500 text-2xl"
-                      >medical_information</span
-                    >
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                      Đơn thuốc
-                    </p>
-                    <p
-                      class="text-lg font-bold text-gray-900 dark:text-white"
-                      th:text="${prescriptionCount != null ? prescriptionCount : 0}"
-                    >
-                      0
-                    </p>
-                  </div>
+                  Bệnh nhân
+                </p>
+
+                <!-- Status Badge -->
+                <div id="verificationBadge" class="mt-3">
+                  <!-- Dynamic content -->
+                </div>
+              </div>
+
+              <!-- Profile Completion -->
+              <div
+                class="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <span
+                    class="text-sm font-medium text-slate-700 dark:text-slate-300"
+                    >Hoàn thiện hồ sơ</span
+                  >
+                  <span
+                    id="completionPercent"
+                    class="text-sm font-bold text-primary"
+                    >0%</span
+                  >
+                </div>
+                <div
+                  class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden"
+                >
+                  <div
+                    id="completionBar"
+                    class="bg-primary h-full rounded-full transition-all duration-500"
+                    style="width: 0%"
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-700 p-6"
+            >
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">
+                Thống kê
+              </h3>
+              <div class="grid grid-cols-2 gap-4">
+                <div
+                  class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-3xl"
+                    >calendar_month</span
+                  >
+                  <p
+                    id="statAppointments"
+                    class="text-2xl font-bold text-slate-900 dark:text-white mt-2"
+                    th:text="${appointmentCount != null ? appointmentCount : 0}"
+                  >
+                    0
+                  </p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Lịch hẹn
+                  </p>
+                </div>
+                <div
+                  class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-green-600 dark:text-green-400 text-3xl"
+                    >prescriptions</span
+                  >
+                  <p
+                    id="statPrescriptions"
+                    class="text-2xl font-bold text-slate-900 dark:text-white mt-2"
+                    th:text="${prescriptionCount != null ? prescriptionCount : 0}"
+                  >
+                    0
+                  </p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Đơn thuốc
+                  </p>
+                </div>
+                <div
+                  class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-purple-600 dark:text-purple-400 text-3xl"
+                    >medical_services</span
+                  >
+                  <p
+                    id="statTreatments"
+                    class="text-2xl font-bold text-slate-900 dark:text-white mt-2"
+                    th:text="${treatmentCount != null ? treatmentCount : 0}"
+                  >
+                    0
+                  </p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Điều trị
+                  </p>
+                </div>
+                <div
+                  class="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 text-center"
+                >
+                  <span
+                    class="material-symbols-outlined text-orange-600 dark:text-orange-400 text-3xl"
+                    >confirmation_number</span
+                  >
+                  <p
+                    id="statTickets"
+                    class="text-2xl font-bold text-slate-900 dark:text-white mt-2"
+                    th:text="${ticketCount != null ? ticketCount : 0}"
+                  >
+                    0
+                  </p>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Yêu cầu hỗ trợ
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Profile Form -->
-          <div class="lg:col-span-2">
+          <div class="lg:col-span-2 space-y-6">
+            <!-- Tab Navigation -->
             <div
-              class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+              class="bg-white dark:bg-[#1a2634] rounded-xl border border-slate-200 dark:border-slate-700"
             >
-              <!-- Tab Navigation -->
-              <div
-                class="flex border-b border-gray-200 dark:border-gray-700 mb-6"
-              >
+              <div class="flex border-b border-slate-200 dark:border-slate-700">
                 <button
                   id="tab-personal"
                   onclick="switchTab('personal')"
-                  class="tab-btn active px-4 py-2 text-sm font-medium border-b-2 border-primary text-primary"
+                  class="tab-btn flex-1 py-4 text-sm font-medium border-b-2 border-primary text-primary flex items-center justify-center gap-2 transition-colors"
                 >
-                  <span
-                    class="material-symbols-outlined align-middle mr-1 text-lg"
+                  <span class="material-symbols-outlined text-[20px]"
                     >person</span
                   >
                   Thông tin cá nhân
                 </button>
                 <button
-                  id="tab-security"
-                  onclick="switchTab('security')"
-                  class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-primary"
-                >
-                  <span
-                    class="material-symbols-outlined align-middle mr-1 text-lg"
-                    >security</span
-                  >
-                  Bảo mật
-                </button>
-                <button
                   id="tab-health"
                   onclick="switchTab('health')"
-                  class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-primary"
+                  class="tab-btn flex-1 py-4 text-sm font-medium border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-primary flex items-center justify-center gap-2 transition-colors"
                 >
-                  <span
-                    class="material-symbols-outlined align-middle mr-1 text-lg"
+                  <span class="material-symbols-outlined text-[20px]"
                     >favorite</span
                   >
                   Sức khỏe
                 </button>
+                <button
+                  id="tab-security"
+                  onclick="switchTab('security')"
+                  class="tab-btn flex-1 py-4 text-sm font-medium border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-primary flex items-center justify-center gap-2 transition-colors"
+                >
+                  <span class="material-symbols-outlined text-[20px]"
+                    >security</span
+                  >
+                  Bảo mật
+                </button>
               </div>
 
-              <!-- Personal Information Form -->
-              <form
-                id="panel-personal"
-                th:action="@{/profile/update}"
-                method="post"
-                class="space-y-6"
-              >
-                <input
-                  type="hidden"
-                  th:name="${_csrf.parameterName}"
-                  th:value="${_csrf.token}"
-                />
-
-                <!-- Row 1 -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <!-- Full Name -->
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                      <span
-                        class="material-symbols-outlined align-middle mr-1 text-lg"
-                        >badge</span
-                      >
-                      Họ và tên
-                    </label>
-                    <input
-                      type="text"
-                      name="fullName"
-                      th:value="${user != null ? user.fullName : ''}"
-                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition"
-                      required
-                    />
-                  </div>
-                  <!-- Email -->
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                      <span
-                        class="material-symbols-outlined align-middle mr-1 text-lg"
-                        >email</span
-                      >
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      th:value="${user != null ? user.email : ''}"
-                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                      readonly
-                    />
-                  </div>
-                </div>
-
-                <!-- Row 2 -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <!-- Phone -->
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                      <span
-                        class="material-symbols-outlined align-middle mr-1 text-lg"
-                        >phone</span
-                      >
-                      Số điện thoại
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      th:value="${user != null ? user.phoneNumber : ''}"
-                      pattern="[0-9]{10,11}"
-                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition"
-                    />
-                  </div>
-                  <!-- Date of Birth -->
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                      <span
-                        class="material-symbols-outlined align-middle mr-1 text-lg"
-                        >cake</span
-                      >
-                      Ngày sinh
-                    </label>
-                    <input
-                      type="date"
-                      name="dateOfBirth"
-                      th:value="${user != null ? user.dateOfBirth : ''}"
-                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition"
-                    />
-                  </div>
-                </div>
-
-                <!-- Row 3 -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <!-- Gender -->
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                      <span
-                        class="material-symbols-outlined align-middle mr-1 text-lg"
-                        >wc</span
-                      >
-                      Giới tính
-                    </label>
-                    <select
-                      name="gender"
-                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition"
-                    >
-                      <option value="">-- Chọn --</option>
-                      <option
-                        value="MALE"
-                        th:selected="${user != null and user.gender == 'MALE'}"
-                      >
-                        Nam
-                      </option>
-                      <option
-                        value="FEMALE"
-                        th:selected="${user != null and user.gender == 'FEMALE'}"
-                      >
-                        Nữ
-                      </option>
-                      <option
-                        value="OTHER"
-                        th:selected="${user != null and user.gender == 'OTHER'}"
-                      >
-                        Khác
-                      </option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Address -->
-                <div>
-                  <label
-                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                  >
-                    <span
-                      class="material-symbols-outlined align-middle mr-1 text-lg"
-                      >location_on</span
-                    >
-                    Địa chỉ
-                  </label>
-                  <textarea
-                    name="address"
-                    rows="3"
-                    th:text="${user != null ? user.address : ''}"
-                    class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition resize-none"
-                  ></textarea>
-                </div>
-
-                <!-- Submit Button -->
-                <div class="flex justify-end">
-                  <button
-                    type="submit"
-                    class="inline-flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg shadow-sm transition-colors"
-                  >
-                    <span class="material-symbols-outlined text-lg">save</span>
-                    Lưu thay đổi
-                  </button>
-                </div>
-              </form>
-
-              <!-- Security Panel (Hidden by default) -->
-              <div id="panel-security" class="hidden space-y-6">
-                <form
-                  th:action="@{/profile/change-password}"
-                  method="post"
-                  class="space-y-6"
-                >
-                  <input
-                    type="hidden"
-                    th:name="${_csrf.parameterName}"
-                    th:value="${_csrf.token}"
-                  />
-
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                      <span
-                        class="material-symbols-outlined align-middle mr-1 text-lg"
-                        >lock</span
-                      >
-                      Mật khẩu hiện tại
-                    </label>
-                    <input
-                      type="password"
-                      name="currentPassword"
-                      required
-                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                      <span
-                        class="material-symbols-outlined align-middle mr-1 text-lg"
-                        >lock_reset</span
-                      >
-                      Mật khẩu mới
-                    </label>
-                    <input
-                      type="password"
-                      name="newPassword"
-                      minlength="6"
-                      required
-                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                      <span
-                        class="material-symbols-outlined align-middle mr-1 text-lg"
-                        >check_circle</span
-                      >
-                      Xác nhận mật khẩu mới
-                    </label>
-                    <input
-                      type="password"
-                      name="confirmPassword"
-                      minlength="6"
-                      required
-                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition"
-                    />
-                  </div>
-
-                  <div class="flex justify-end">
-                    <button
-                      type="submit"
-                      class="inline-flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg shadow-sm transition-colors"
-                    >
-                      <span class="material-symbols-outlined text-lg">key</span>
-                      Đổi mật khẩu
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              <!-- Health Info Panel (Hidden by default) -->
-              <div id="panel-health" class="hidden space-y-6">
-                <form
-                  th:action="@{/profile/update-health}"
-                  method="post"
-                  class="space-y-6"
-                >
-                  <input
-                    type="hidden"
-                    th:name="${_csrf.parameterName}"
-                    th:value="${_csrf.token}"
-                  />
-
-                  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Personal Information Panel -->
+              <div id="panel-personal" class="p-6">
+                <form id="profileForm" class="space-y-5">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                       <label
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                       >
-                        <span
-                          class="material-symbols-outlined align-middle mr-1 text-lg"
-                          >water_drop</span
-                        >
-                        Nhóm máu
+                        Họ và tên <span class="text-red-500">*</span>
                       </label>
-                      <select
-                        name="bloodType"
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition"
+                      <input
+                        type="text"
+                        id="fullName"
+                        th:value="${user != null && user.userInfo != null ? user.userInfo.fullName : ''}"
+                        required
+                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                       >
-                        <option value="">-- Chọn --</option>
+                        Email <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        th:value="${user != null ? user.email : ''}"
+                        readonly
+                        class="w-full px-4 py-3 bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-500 dark:text-slate-400 cursor-not-allowed"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                        >Số điện thoại</label
+                      >
+                      <input
+                        type="tel"
+                        id="phoneNumber"
+                        th:value="${user != null ? user.phoneNumber : ''}"
+                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                        >Ngày sinh</label
+                      >
+                      <input
+                        type="date"
+                        id="dateOfBirth"
+                        th:value="${user != null && user.userInfo != null ? user.userInfo.dateOfBirth : ''}"
+                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                        >Giới tính</label
+                      >
+                      <select
+                        id="gender"
+                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      >
+                        <option value="">-- Chọn giới tính --</option>
                         <option
-                          value="A+"
-                          th:selected="${healthInfo?.bloodType == 'A+'}"
+                          value="MALE"
+                          th:selected="${user != null && user.userInfo != null && user.userInfo.gender != null && user.userInfo.gender.name() == 'MALE'}"
                         >
-                          A+
+                          Nam
                         </option>
                         <option
-                          value="A-"
-                          th:selected="${healthInfo?.bloodType == 'A-'}"
+                          value="FEMALE"
+                          th:selected="${user != null && user.userInfo != null && user.userInfo.gender != null && user.userInfo.gender.name() == 'FEMALE'}"
                         >
-                          A-
+                          Nữ
                         </option>
                         <option
-                          value="B+"
-                          th:selected="${healthInfo?.bloodType == 'B+'}"
+                          value="OTHER"
+                          th:selected="${user != null && user.userInfo != null && user.userInfo.gender != null && user.userInfo.gender.name() == 'OTHER'}"
                         >
-                          B+
-                        </option>
-                        <option
-                          value="B-"
-                          th:selected="${healthInfo?.bloodType == 'B-'}"
-                        >
-                          B-
-                        </option>
-                        <option
-                          value="AB+"
-                          th:selected="${healthInfo?.bloodType == 'AB+'}"
-                        >
-                          AB+
-                        </option>
-                        <option
-                          value="AB-"
-                          th:selected="${healthInfo?.bloodType == 'AB-'}"
-                        >
-                          AB-
-                        </option>
-                        <option
-                          value="O+"
-                          th:selected="${healthInfo?.bloodType == 'O+'}"
-                        >
-                          O+
-                        </option>
-                        <option
-                          value="O-"
-                          th:selected="${healthInfo?.bloodType == 'O-'}"
-                        >
-                          O-
+                          Khác
                         </option>
                       </select>
                     </div>
                     <div>
                       <label
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                        >CCCD/CMND</label
+                      >
+                      <input
+                        type="text"
+                        id="identityNumber"
+                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      />
+                    </div>
+                    <div class="md:col-span-2">
+                      <label
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                        >Địa chỉ</label
+                      >
+                      <textarea
+                        id="address"
+                        rows="2"
+                        th:text="${user != null && user.userInfo != null ? user.userInfo.address : ''}"
+                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
+                      ></textarea>
+                    </div>
+                  </div>
+                  <div
+                    class="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700"
+                  >
+                    <button
+                      type="button"
+                      onclick="resetForm()"
+                      class="px-5 py-2.5 text-slate-600 dark:text-slate-400 font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      Hủy thay đổi
+                    </button>
+                    <button
+                      type="submit"
+                      class="px-5 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors shadow-lg shadow-primary/25"
+                    >
+                      Lưu thay đổi
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Health Information Panel -->
+              <div id="panel-health" class="p-6 hidden">
+                <form id="healthForm" class="space-y-5">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                       >
                         <span
-                          class="material-symbols-outlined align-middle mr-1 text-lg"
+                          class="material-symbols-outlined text-[18px] align-middle mr-1"
+                          >water_drop</span
+                        >
+                        Nhóm máu
+                      </label>
+                      <select
+                        id="bloodType"
+                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      >
+                        <option value="">-- Chọn --</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                      >
+                        <span
+                          class="material-symbols-outlined text-[18px] align-middle mr-1"
                           >height</span
                         >
                         Chiều cao (cm)
                       </label>
                       <input
                         type="number"
-                        name="height"
+                        id="height"
                         min="50"
                         max="300"
                         step="0.1"
-                        th:value="${healthInfo?.height}"
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition"
+                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                       />
                     </div>
                     <div>
                       <label
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                       >
                         <span
-                          class="material-symbols-outlined align-middle mr-1 text-lg"
+                          class="material-symbols-outlined text-[18px] align-middle mr-1"
                           >monitor_weight</span
                         >
                         Cân nặng (kg)
                       </label>
                       <input
                         type="number"
-                        name="weight"
+                        id="weight"
                         min="1"
                         max="500"
                         step="0.1"
-                        th:value="${healthInfo?.weight}"
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition"
+                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                       />
                     </div>
                   </div>
 
                   <div>
                     <label
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                     >
                       <span
-                        class="material-symbols-outlined align-middle mr-1 text-lg"
+                        class="material-symbols-outlined text-[18px] align-middle mr-1"
                         >medication</span
                       >
                       Dị ứng
                     </label>
                     <textarea
-                      name="allergies"
+                      id="allergies"
                       rows="2"
-                      th:text="${healthInfo?.allergies}"
                       placeholder="Liệt kê các loại dị ứng (nếu có)"
-                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary transition resize-none"
+                      class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
                     ></textarea>
                   </div>
 
                   <div>
                     <label
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                      class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                     >
                       <span
-                        class="material-symbols-outlined align-middle mr-1 text-lg"
+                        class="material-symbols-outlined text-[18px] align-middle mr-1"
                         >healing</span
                       >
                       Bệnh mãn tính
                     </label>
                     <textarea
-                      name="chronicDiseases"
+                      id="chronicDiseases"
                       rows="2"
-                      th:text="${healthInfo?.chronicDiseases}"
                       placeholder="Liệt kê các bệnh mãn tính (nếu có)"
-                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-primary focus:border-primary transition resize-none"
+                      class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
                     ></textarea>
                   </div>
 
-                  <div class="flex justify-end">
+                  <div
+                    class="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700"
+                  >
+                    <button
+                      type="button"
+                      class="px-5 py-2.5 text-slate-600 dark:text-slate-400 font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      Hủy thay đổi
+                    </button>
                     <button
                       type="submit"
-                      class="inline-flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg shadow-sm transition-colors"
+                      class="px-5 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors shadow-lg shadow-primary/25"
                     >
-                      <span class="material-symbols-outlined text-lg"
-                        >save</span
-                      >
-                      Cập nhật thông tin sức khỏe
+                      Lưu thay đổi
                     </button>
                   </div>
                 </form>
               </div>
+
+              <!-- Security Panel -->
+              <div id="panel-security" class="p-6 hidden">
+                <!-- Email Verification -->
+                <div class="mb-6">
+                  <div
+                    class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-xl"
+                  >
+                    <div class="flex items-center gap-4">
+                      <div
+                        id="emailIconWrapper"
+                        class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center"
+                      >
+                        <span
+                          class="material-symbols-outlined text-blue-600 dark:text-blue-400"
+                          >mail</span
+                        >
+                      </div>
+                      <div>
+                        <p class="font-medium text-slate-900 dark:text-white">
+                          Email xác thực
+                        </p>
+                        <p
+                          id="emailStatusText"
+                          class="text-sm text-slate-500 dark:text-slate-400"
+                        >
+                          Đang tải...
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      id="resendEmailBtn"
+                      class="hidden px-4 py-2 text-primary font-medium rounded-lg hover:bg-primary/10 transition-colors"
+                    >
+                      Gửi lại email
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Change Password -->
+                <div class="mb-6">
+                  <h4
+                    class="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2"
+                  >
+                    <span class="material-symbols-outlined">lock</span>
+                    Đổi mật khẩu
+                  </h4>
+                  <form id="passwordForm" class="space-y-4">
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                      >
+                        Mật khẩu hiện tại <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        id="currentPassword"
+                        required
+                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                      >
+                        Mật khẩu mới <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        id="newPassword"
+                        required
+                        minlength="6"
+                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                      >
+                        Xác nhận mật khẩu mới
+                        <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="password"
+                        id="confirmPassword"
+                        required
+                        minlength="6"
+                        class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                      />
+                    </div>
+                    <div class="flex justify-end">
+                      <button
+                        type="submit"
+                        class="px-5 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-dark transition-colors shadow-lg shadow-primary/25"
+                      >
+                        Đổi mật khẩu
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                <!-- Active Sessions -->
+                <div>
+                  <div
+                    class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-xl"
+                  >
+                    <div class="flex items-center gap-4">
+                      <div
+                        class="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-lg flex items-center justify-center"
+                      >
+                        <span
+                          class="material-symbols-outlined text-slate-600 dark:text-slate-400"
+                          >devices</span
+                        >
+                      </div>
+                      <div>
+                        <p class="font-medium text-slate-900 dark:text-white">
+                          Phiên đăng nhập
+                        </p>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">
+                          Quản lý các thiết bị đã đăng nhập
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      class="px-4 py-2 text-red-600 font-medium rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    >
+                      Đăng xuất tất cả
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </main>
+      </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 z-50 hidden">
+      <div
+        class="bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 p-4 flex items-center gap-3"
+      >
+        <span id="toastIcon" class="material-symbols-outlined text-green-500"
+          >check_circle</span
+        >
+        <p id="toastMessage" class="text-slate-900 dark:text-white">
+          Thành công!
+        </p>
+      </div>
     </div>
 
-    <!-- Scripts Fragment -->
-    <div th:replace="~{fragments/layout :: scripts}"></div>
-
-    <!-- Page-specific Script -->
     <script>
-      // Tab switching functionality
+      // Tab switching
       function switchTab(tabName) {
-        // Hide all panels
-        document.querySelectorAll('[id^="panel-"]').forEach((panel) => {
-          panel.classList.add("hidden");
-        });
-
-        // Remove active state from all tabs
         document.querySelectorAll(".tab-btn").forEach((btn) => {
           btn.classList.remove("border-primary", "text-primary");
           btn.classList.add(
             "border-transparent",
-            "text-gray-500",
-            "dark:text-gray-400",
+            "text-slate-500",
+            "dark:text-slate-400",
+          );
+        });
+        document
+          .querySelectorAll('[id^="panel-"]')
+          .forEach((panel) => panel.classList.add("hidden"));
+
+        document
+          .getElementById("tab-" + tabName)
+          .classList.add("border-primary", "text-primary");
+        document
+          .getElementById("tab-" + tabName)
+          .classList.remove(
+            "border-transparent",
+            "text-slate-500",
+            "dark:text-slate-400",
+          );
+        document.getElementById("panel-" + tabName).classList.remove("hidden");
+      }
+
+      // Dark mode toggle
+      document
+        .getElementById("darkModeToggle")
+        .addEventListener("click", () => {
+          document.documentElement.classList.toggle("dark");
+          localStorage.setItem(
+            "theme",
+            document.documentElement.classList.contains("dark")
+              ? "dark"
+              : "light",
           );
         });
 
-        // Show selected panel
-        document.getElementById("panel-" + tabName).classList.remove("hidden");
+      // Load dark mode preference
+      (function () {
+        const theme = localStorage.getItem("theme");
+        if (
+          theme === "dark" ||
+          (!theme && window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      })();
 
-        // Add active state to selected tab
-        const activeTab = document.getElementById("tab-" + tabName);
-        activeTab.classList.remove(
-          "border-transparent",
-          "text-gray-500",
-          "dark:text-gray-400",
-        );
-        activeTab.classList.add("border-primary", "text-primary");
+      // Load profile data
+      let profileData = null;
+
+      async function loadProfile() {
+        try {
+          const response = await fetch("/api/profile");
+          const result = await response.json();
+
+          if (result.success) {
+            profileData = result.data;
+            updateUI(profileData);
+          }
+        } catch (error) {
+          console.error("Error loading profile:", error);
+        }
       }
 
-      // Avatar preview functionality
+      function updateUI(data) {
+        // Avatar
+        if (data.avatarUrl) {
+          document.getElementById("avatarImg").src = data.avatarUrl;
+          document.getElementById("avatarImg").classList.remove("hidden");
+          document.getElementById("avatarPlaceholder").classList.add("hidden");
+        } else {
+          document.getElementById("avatarInitials").textContent = getInitials(
+            data.fullName,
+          );
+        }
+
+        // Name
+        document.getElementById("profileName").textContent =
+          data.fullName || "Chưa cập nhật";
+
+        // Form fields
+        document.getElementById("fullName").value = data.fullName || "";
+        document.getElementById("email").value = data.email || "";
+        document.getElementById("phoneNumber").value = data.phoneNumber || "";
+        document.getElementById("dateOfBirth").value = data.dateOfBirth || "";
+        document.getElementById("gender").value = data.gender || "";
+        document.getElementById("address").value = data.address || "";
+        if (document.getElementById("identityNumber")) {
+          document.getElementById("identityNumber").value =
+            data.identityNumber || "";
+        }
+
+        // Profile completion
+        const completion = calculateCompletion(data);
+        document.getElementById("completionPercent").textContent =
+          completion + "%";
+        document.getElementById("completionBar").style.width = completion + "%";
+
+        // Verification badge
+        updateVerificationBadge(data.emailVerified);
+
+        // Email status
+        updateEmailStatus(data.email, data.emailVerified);
+      }
+
+      function getInitials(name) {
+        if (!name) return "BN";
+        return name
+          .split(" ")
+          .map((w) => w[0])
+          .join("")
+          .substring(0, 2)
+          .toUpperCase();
+      }
+
+      function calculateCompletion(data) {
+        const fields = [
+          "fullName",
+          "email",
+          "phoneNumber",
+          "dateOfBirth",
+          "gender",
+          "address",
+        ];
+        const filled = fields.filter((f) => data[f]).length;
+        return Math.round((filled / fields.length) * 100);
+      }
+
+      function updateVerificationBadge(verified) {
+        const badge = document.getElementById("verificationBadge");
+        if (verified) {
+          badge.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-sm font-medium rounded-full">
+            <span class="material-symbols-outlined text-[16px]">verified</span>
+            Đã xác thực
+          </span>`;
+        } else {
+          badge.innerHTML = `<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 text-sm font-medium rounded-full">
+            <span class="material-symbols-outlined text-[16px]">warning</span>
+            Chưa xác thực
+          </span>`;
+        }
+      }
+
+      function updateEmailStatus(email, verified) {
+        const statusText = document.getElementById("emailStatusText");
+        const iconWrapper = document.getElementById("emailIconWrapper");
+        const resendBtn = document.getElementById("resendEmailBtn");
+
+        if (verified) {
+          statusText.innerHTML = `<span class="text-green-600 dark:text-green-400">${email} - Đã xác thực</span>`;
+          iconWrapper.className =
+            "w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center";
+          iconWrapper.innerHTML =
+            '<span class="material-symbols-outlined text-green-600 dark:text-green-400">verified</span>';
+          resendBtn.classList.add("hidden");
+        } else {
+          statusText.innerHTML = `<span class="text-yellow-600 dark:text-yellow-400">${email} - Chưa xác thực</span>`;
+          iconWrapper.className =
+            "w-12 h-12 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg flex items-center justify-center";
+          iconWrapper.innerHTML =
+            '<span class="material-symbols-outlined text-yellow-600 dark:text-yellow-400">mail</span>';
+          resendBtn.classList.remove("hidden");
+        }
+      }
+
+      // Form submission
       document
-        .getElementById("avatarInput")
-        .addEventListener("change", function (e) {
-          const file = e.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-              document.getElementById("avatarPreview").src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+        .getElementById("profileForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
 
-            // Upload avatar
-            const formData = new FormData();
-            formData.append("avatar", file);
+          const formData = {
+            fullName: document.getElementById("fullName").value,
+            phoneNumber: document.getElementById("phoneNumber").value,
+            dateOfBirth: document.getElementById("dateOfBirth").value,
+            gender: document.getElementById("gender").value,
+            address: document.getElementById("address").value,
+            identityNumber:
+              document.getElementById("identityNumber")?.value || "",
+          };
 
-            const csrfToken = document.querySelector('[name="_csrf"]')?.value;
-
-            fetch("/profile/upload-avatar", {
+          try {
+            const response = await fetch("/api/profile/update", {
               method: "POST",
-              headers: {
-                "X-CSRF-TOKEN": csrfToken,
-              },
-              body: formData,
-            })
-              .then((response) => response.json())
-              .then((data) => {
-                if (data.success) {
-                  showToast("Cập nhật ảnh đại diện thành công!", "success");
-                } else {
-                  showToast(
-                    "Có lỗi xảy ra: " +
-                      (data.message || "Không thể cập nhật ảnh"),
-                    "error",
-                  );
-                }
-              })
-              .catch((error) => {
-                console.error("Error:", error);
-                showToast("Có lỗi xảy ra khi upload ảnh", "error");
-              });
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(formData),
+            });
+
+            const result = await response.json();
+            if (result.success) {
+              showToast("Cập nhật thông tin thành công!", "success");
+              loadProfile();
+            } else {
+              showToast(result.message || "Có lỗi xảy ra", "error");
+            }
+          } catch (error) {
+            showToast("Lỗi khi cập nhật thông tin", "error");
           }
         });
 
-      // Toast notification function (if not already defined)
-      function showToast(message, type = "info") {
-        const toast = document.createElement("div");
-        const bgColor =
-          type === "success"
-            ? "bg-green-500"
-            : type === "error"
-              ? "bg-red-500"
-              : "bg-primary";
-        const icon =
-          type === "success"
-            ? "check_circle"
-            : type === "error"
-              ? "error"
-              : "info";
+      // Password form
+      document
+        .getElementById("passwordForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
 
-        toast.className = `fixed bottom-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2 animate-fade-in`;
-        toast.innerHTML = `<span class="material-symbols-outlined">${icon}</span><span>${message}</span>`;
+          const newPassword = document.getElementById("newPassword").value;
+          const confirmPassword =
+            document.getElementById("confirmPassword").value;
 
-        document.body.appendChild(toast);
+          if (newPassword !== confirmPassword) {
+            showToast("Mật khẩu xác nhận không khớp", "error");
+            return;
+          }
 
-        setTimeout(() => {
-          toast.classList.add("opacity-0", "transition-opacity");
-          setTimeout(() => toast.remove(), 300);
-        }, 3000);
+          try {
+            const response = await fetch("/api/profile/change-password", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                currentPassword:
+                  document.getElementById("currentPassword").value,
+                newPassword: newPassword,
+              }),
+            });
+
+            const result = await response.json();
+            if (result.success) {
+              showToast("Đổi mật khẩu thành công!", "success");
+              document.getElementById("passwordForm").reset();
+            } else {
+              showToast(result.message || "Có lỗi xảy ra", "error");
+            }
+          } catch (error) {
+            showToast("Lỗi khi đổi mật khẩu", "error");
+          }
+        });
+
+      // Avatar upload
+      document
+        .getElementById("avatarUploadBtn")
+        .addEventListener("click", () => {
+          document.getElementById("avatarInput").click();
+        });
+
+      document
+        .getElementById("avatarInput")
+        .addEventListener("change", async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          if (file.size > 5 * 1024 * 1024) {
+            showToast("File quá lớn. Tối đa 5MB", "error");
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("file", file);
+
+          try {
+            const response = await fetch("/api/profile/avatar", {
+              method: "POST",
+              body: formData,
+            });
+
+            const result = await response.json();
+            if (result.success) {
+              showToast("Cập nhật ảnh đại diện thành công!", "success");
+              loadProfile();
+            } else {
+              showToast(result.message || "Có lỗi xảy ra", "error");
+            }
+          } catch (error) {
+            showToast("Lỗi khi upload ảnh", "error");
+          }
+        });
+
+      // Resend verification email
+      document
+        .getElementById("resendEmailBtn")
+        .addEventListener("click", async () => {
+          try {
+            const response = await fetch("/api/profile/resend-verification", {
+              method: "POST",
+            });
+            const result = await response.json();
+            showToast(result.message, result.success ? "success" : "error");
+          } catch (error) {
+            showToast("Lỗi khi gửi email", "error");
+          }
+        });
+
+      // Reset form
+      function resetForm() {
+        if (profileData) {
+          updateUI(profileData);
+        }
       }
+
+      // Toast notification
+      function showToast(message, type = "success") {
+        const toast = document.getElementById("toast");
+        const icon = document.getElementById("toastIcon");
+        const msg = document.getElementById("toastMessage");
+
+        msg.textContent = message;
+        if (type === "success") {
+          icon.textContent = "check_circle";
+          icon.className = "material-symbols-outlined text-green-500";
+        } else {
+          icon.textContent = "error";
+          icon.className = "material-symbols-outlined text-red-500";
+        }
+
+        toast.classList.remove("hidden");
+        setTimeout(() => toast.classList.add("hidden"), 3000);
+      }
+
+      // Sidebar toggle (for mobile)
+      document
+        .querySelector("[data-sidebar-toggle]")
+        ?.addEventListener("click", () => {
+          const sidebar = document.querySelector("[data-sidebar]");
+          const backdrop = document.querySelector("[data-sidebar-backdrop]");
+          sidebar?.classList.toggle("sidebar-hidden");
+          sidebar?.classList.toggle("sidebar-open");
+          backdrop?.classList.toggle("hidden");
+        });
+
+      document
+        .querySelector("[data-sidebar-backdrop]")
+        ?.addEventListener("click", () => {
+          const sidebar = document.querySelector("[data-sidebar]");
+          const backdrop = document.querySelector("[data-sidebar-backdrop]");
+          sidebar?.classList.add("sidebar-hidden");
+          sidebar?.classList.remove("sidebar-open");
+          backdrop?.classList.add("hidden");
+        });
+
+      // Initialize
+      loadProfile();
     </script>
-
-    <style>
-      @keyframes fade-in {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .animate-fade-in {
-        animation: fade-in 0.3s ease-out;
-      }
-    </style>
   </body>
 </html>

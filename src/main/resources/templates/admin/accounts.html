@@ -773,10 +773,12 @@
 
         tbody.innerHTML = accounts
           .map((account) => {
-            const initials = getInitials(account.fullName);
+            const fullName = account.fullName || "Chưa cập nhật";
+            const initials = getInitials(fullName);
             const roleInfo = getRoleInfo(account.role);
             const statusInfo = getStatusInfo(account.enabled);
             const createdDate = formatDate(account.createdAt);
+            const escapedName = fullName.replace(/'/g, "\\'");
 
             return `
             <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
@@ -789,7 +791,7 @@
                     <span class="text-white font-semibold text-sm">${initials}</span>
                   </div>
                   <div class="min-w-0">
-                    <p class="font-medium text-slate-900 dark:text-white truncate">${account.fullName}</p>
+                    <p class="font-medium text-slate-900 dark:text-white truncate">${fullName}</p>
                     <p class="text-sm text-slate-500 dark:text-slate-400 truncate">${account.email || account.phone || "-"}</p>
                   </div>
                 </div>
@@ -807,7 +809,7 @@
               <td class="px-5 py-4 text-sm text-slate-600 dark:text-slate-400">${createdDate}</td>
               <td class="px-5 py-4">
                 <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onclick="openAssignRoleModal(${account.id}, '${account.fullName.replace(/'/g, "\\'")}', '${account.role}')" 
+                  <button onclick="openAssignRoleModal(${account.id}, '${escapedName}', '${account.role}')" 
                     class="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Phân quyền">
                     <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span>
                   </button>

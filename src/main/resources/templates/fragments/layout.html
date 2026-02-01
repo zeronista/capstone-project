@@ -40,11 +40,30 @@
         rel="stylesheet"
       />
 
-      <!-- Tailwind CSS with ABClinic Config -->
-      <script th:src="@{/js/tailwind-config.js}"></script>
+      <!-- Theme Initialization (MUST be first to prevent flash) -->
+      <script>
+        (function () {
+          const theme = localStorage.getItem("theme");
+          if (
+            theme === "dark" ||
+            (!theme &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches)
+          ) {
+            document.documentElement.classList.remove("light");
+            document.documentElement.classList.add("dark");
+          } else {
+            document.documentElement.classList.remove("dark");
+            document.documentElement.classList.add("light");
+          }
+        })();
+      </script>
+
+      <!-- Tailwind CSS CDN (MUST be loaded BEFORE config) -->
       <script
         src="https://cdn.tailwindcss.com?plugins=forms,container-queries"
       ></script>
+      <!-- Tailwind Config (MUST be loaded AFTER CDN) -->
+      <script th:src="@{/js/tailwind-config.js}"></script>
 
       <!-- ABClinic Styles -->
       <link th:href="@{/css/app.css}" rel="stylesheet" />
