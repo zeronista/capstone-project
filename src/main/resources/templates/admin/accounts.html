@@ -23,47 +23,86 @@
       <!-- Content Area -->
       <div class="flex-1 overflow-y-auto p-4 lg:p-6">
         <div class="max-w-7xl mx-auto flex flex-col gap-6">
-          
           <!-- Welcome Hero Section -->
-          <div class="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-blue-500 to-cyan-500 rounded-2xl p-6 lg:p-8 shadow-xl">
+          <div
+            class="relative overflow-hidden bg-gradient-to-r from-indigo-600 via-blue-500 to-cyan-500 rounded-2xl p-6 lg:p-8 shadow-xl"
+          >
             <!-- Background Pattern -->
             <div class="absolute inset-0 opacity-10">
-              <svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <svg
+                class="w-full h-full"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+              >
                 <defs>
-                  <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                    <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" stroke-width="0.5"/>
+                  <pattern
+                    id="grid"
+                    width="10"
+                    height="10"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <path
+                      d="M 10 0 L 0 0 0 10"
+                      fill="none"
+                      stroke="white"
+                      stroke-width="0.5"
+                    />
                   </pattern>
                 </defs>
-                <rect width="100%" height="100%" fill="url(#grid)"/>
+                <rect width="100%" height="100%" fill="url(#grid)" />
               </svg>
             </div>
             <!-- Decorative Circles -->
-            <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
-            <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-cyan-300/20 rounded-full blur-2xl"></div>
-            
-            <div class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div
+              class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"
+            ></div>
+            <div
+              class="absolute -bottom-10 -left-10 w-32 h-32 bg-cyan-300/20 rounded-full blur-2xl"
+            ></div>
+
+            <div
+              class="relative flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+            >
               <div class="flex items-center gap-4">
                 <!-- Avatar -->
-                <div class="w-16 h-16 lg:w-20 lg:h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30 shadow-lg">
-                  <span class="material-symbols-outlined text-white text-[36px] lg:text-[40px]">admin_panel_settings</span>
+                <div
+                  class="w-16 h-16 lg:w-20 lg:h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30 shadow-lg"
+                >
+                  <span
+                    class="material-symbols-outlined text-white text-[36px] lg:text-[40px]"
+                    >admin_panel_settings</span
+                  >
                 </div>
                 <div>
-                  <p class="text-indigo-100 text-sm font-medium mb-1" id="greetingText">Quản lý hệ thống</p>
-                  <h1 class="text-2xl lg:text-3xl font-bold text-white">Quản lý tài khoản</h1>
-                  <p class="text-indigo-100 text-sm mt-1">Quản lý tất cả tài khoản trong hệ thống ABClinic 🔐</p>
+                  <p
+                    class="text-indigo-100 text-sm font-medium mb-1"
+                    id="greetingText"
+                  >
+                    Quản lý hệ thống
+                  </p>
+                  <h1 class="text-2xl lg:text-3xl font-bold text-white">
+                    Quản lý tài khoản
+                  </h1>
+                  <p class="text-indigo-100 text-sm mt-1">
+                    Quản lý tất cả tài khoản trong hệ thống ABClinic 🔐
+                  </p>
                 </div>
               </div>
-              
+
               <!-- Quick Actions -->
               <div class="flex flex-wrap gap-3">
                 <button
-                  class="group flex items-center gap-2 px-5 py-3 bg-white/20 backdrop-blur-sm text-white border border-white/30 rounded-xl font-semibold hover:bg-white/30 transition-all">
-                  <span class="material-symbols-outlined text-[20px]">download</span>
+                  class="group flex items-center gap-2 px-5 py-3 bg-white/20 backdrop-blur-sm text-white border border-white/30 rounded-xl font-semibold hover:bg-white/30 transition-all"
+                >
+                  <span class="material-symbols-outlined text-[20px]"
+                    >download</span
+                  >
                   Xuất Excel
                 </button>
                 <button
                   onclick="openCreateAccountModal()"
-                  class="group flex items-center gap-2 px-5 py-3 bg-white text-indigo-600 rounded-xl font-semibold hover:bg-indigo-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                  class="group flex items-center gap-2 px-5 py-3 bg-white text-indigo-600 rounded-xl font-semibold hover:bg-indigo-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                >
                   <span class="material-symbols-outlined text-[20px]">add</span>
                   Thêm tài khoản
                 </button>
@@ -74,63 +113,136 @@
           <!-- Stats Cards -->
           <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Total Accounts -->
-            <div class="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:-translate-y-1">
+            <div
+              class="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:-translate-y-1"
+            >
               <div class="flex items-center justify-between mb-3">
-                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform">
-                  <span class="material-symbols-outlined text-white text-[24px]">groups</span>
+                <div
+                  class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform"
+                >
+                  <span class="material-symbols-outlined text-white text-[24px]"
+                    >groups</span
+                  >
                 </div>
-                <span class="text-xs font-medium text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">Tổng</span>
+                <span
+                  class="text-xs font-medium text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full"
+                  >Tổng</span
+                >
               </div>
-              <h3 id="statTotal" class="text-3xl font-bold text-slate-900 dark:text-white">0</h3>
-              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Tổng tài khoản</p>
+              <h3
+                id="statTotal"
+                class="text-3xl font-bold text-slate-900 dark:text-white"
+              >
+                0
+              </h3>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Tổng tài khoản
+              </p>
             </div>
 
             <!-- Active -->
-            <div class="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:-translate-y-1">
+            <div
+              class="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:-translate-y-1"
+            >
               <div class="flex items-center justify-between mb-3">
-                <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
-                  <span class="material-symbols-outlined text-white text-[24px]">check_circle</span>
+                <div
+                  class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform"
+                >
+                  <span class="material-symbols-outlined text-white text-[24px]"
+                    >check_circle</span
+                  >
                 </div>
-                <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-full">Hoạt động</span>
+                <span
+                  class="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-full"
+                  >Hoạt động</span
+                >
               </div>
-              <h3 id="statActive" class="text-3xl font-bold text-slate-900 dark:text-white">0</h3>
-              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Đang hoạt động</p>
+              <h3
+                id="statActive"
+                class="text-3xl font-bold text-slate-900 dark:text-white"
+              >
+                0
+              </h3>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Đang hoạt động
+              </p>
             </div>
 
             <!-- Inactive -->
-            <div class="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:-translate-y-1">
+            <div
+              class="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:-translate-y-1"
+            >
               <div class="flex items-center justify-between mb-3">
-                <div class="w-12 h-12 bg-gradient-to-br from-slate-400 to-slate-600 rounded-xl flex items-center justify-center shadow-lg shadow-slate-500/30 group-hover:scale-110 transition-transform">
-                  <span class="material-symbols-outlined text-white text-[24px]">block</span>
+                <div
+                  class="w-12 h-12 bg-gradient-to-br from-slate-400 to-slate-600 rounded-xl flex items-center justify-center shadow-lg shadow-slate-500/30 group-hover:scale-110 transition-transform"
+                >
+                  <span class="material-symbols-outlined text-white text-[24px]"
+                    >block</span
+                  >
                 </div>
-                <span class="text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">Vô hiệu</span>
+                <span
+                  class="text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full"
+                  >Vô hiệu</span
+                >
               </div>
-              <h3 id="statInactive" class="text-3xl font-bold text-slate-900 dark:text-white">0</h3>
-              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Vô hiệu hóa</p>
+              <h3
+                id="statInactive"
+                class="text-3xl font-bold text-slate-900 dark:text-white"
+              >
+                0
+              </h3>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Vô hiệu hóa
+              </p>
             </div>
 
             <!-- Pending -->
-            <div class="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:-translate-y-1">
+            <div
+              class="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:-translate-y-1"
+            >
               <div class="flex items-center justify-between mb-3">
-                <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform">
-                  <span class="material-symbols-outlined text-white text-[24px]">hourglass_empty</span>
+                <div
+                  class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform"
+                >
+                  <span class="material-symbols-outlined text-white text-[24px]"
+                    >hourglass_empty</span
+                  >
                 </div>
-                <span class="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded-full">Chờ</span>
+                <span
+                  class="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded-full"
+                  >Chờ</span
+                >
               </div>
-              <h3 id="statPending" class="text-3xl font-bold text-slate-900 dark:text-white">0</h3>
-              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Chờ xác thực</p>
+              <h3
+                id="statPending"
+                class="text-3xl font-bold text-slate-900 dark:text-white"
+              >
+                0
+              </h3>
+              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                Chờ xác thực
+              </p>
             </div>
           </div>
 
           <!-- Accounts Table Card -->
-          <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+          <div
+            class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden"
+          >
             <!-- Filters Section -->
             <div class="p-5 border-b border-slate-100 dark:border-slate-700">
-              <div class="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
+              <div
+                class="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center"
+              >
                 <!-- Search -->
                 <div class="relative w-full lg:max-w-xs group">
-                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span class="material-symbols-outlined text-slate-400 group-focus-within:text-indigo-500 transition-colors text-[20px]">search</span>
+                  <div
+                    class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                  >
+                    <span
+                      class="material-symbols-outlined text-slate-400 group-focus-within:text-indigo-500 transition-colors text-[20px]"
+                      >search</span
+                    >
                   </div>
                   <input
                     id="searchInput"
@@ -155,8 +267,13 @@
                       <option value="STAFF">Nhân viên</option>
                       <option value="PATIENT">Bệnh nhân</option>
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                      <span class="material-symbols-outlined text-slate-400 text-[18px]">expand_more</span>
+                    <div
+                      class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3"
+                    >
+                      <span
+                        class="material-symbols-outlined text-slate-400 text-[18px]"
+                        >expand_more</span
+                      >
                     </div>
                   </div>
 
@@ -170,8 +287,13 @@
                       <option value="inactive">Vô hiệu hóa</option>
                       <option value="pending">Chờ xác thực</option>
                     </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-                      <span class="material-symbols-outlined text-slate-400 text-[18px]">expand_more</span>
+                    <div
+                      class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3"
+                    >
+                      <span
+                        class="material-symbols-outlined text-slate-400 text-[18px]"
+                        >expand_more</span
+                      >
                     </div>
                   </div>
                 </div>
@@ -182,19 +304,45 @@
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse">
                 <thead>
-                  <tr class="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-700/30">
+                  <tr
+                    class="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-700/30"
+                  >
                     <th class="px-5 py-4 w-12">
                       <input
                         type="checkbox"
                         class="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                       />
                     </th>
-                    <th class="px-5 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Người dùng</th>
-                    <th class="px-5 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Vai trò</th>
-                    <th class="px-5 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Trạng thái</th>
-                    <th class="px-5 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Đăng nhập cuối</th>
-                    <th class="px-5 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Ngày tạo</th>
-                    <th class="px-5 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-right">Thao tác</th>
+                    <th
+                      class="px-5 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider"
+                    >
+                      Người dùng
+                    </th>
+                    <th
+                      class="px-5 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider"
+                    >
+                      Vai trò
+                    </th>
+                    <th
+                      class="px-5 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider"
+                    >
+                      Trạng thái
+                    </th>
+                    <th
+                      class="px-5 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider"
+                    >
+                      Đăng nhập cuối
+                    </th>
+                    <th
+                      class="px-5 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider"
+                    >
+                      Ngày tạo
+                    </th>
+                    <th
+                      class="px-5 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-right"
+                    >
+                      Thao tác
+                    </th>
                   </tr>
                 </thead>
                 <tbody
@@ -205,10 +353,19 @@
                   <tr id="loadingRow">
                     <td colspan="7" class="px-6 py-12 text-center">
                       <div class="flex flex-col items-center justify-center">
-                        <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30 animate-pulse mb-3">
-                          <span class="material-symbols-outlined text-white text-[24px]">hourglass_empty</span>
+                        <div
+                          class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30 animate-pulse mb-3"
+                        >
+                          <span
+                            class="material-symbols-outlined text-white text-[24px]"
+                            >hourglass_empty</span
+                          >
                         </div>
-                        <p class="text-slate-500 dark:text-slate-400 font-medium">Đang tải dữ liệu...</p>
+                        <p
+                          class="text-slate-500 dark:text-slate-400 font-medium"
+                        >
+                          Đang tải dữ liệu...
+                        </p>
                       </div>
                     </td>
                   </tr>
@@ -217,9 +374,18 @@
             </div>
 
             <!-- Pagination -->
-            <div class="p-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between bg-gradient-to-r from-slate-50/80 to-white dark:from-slate-800 dark:to-slate-800">
-              <p id="paginationInfo" class="text-sm text-slate-500 dark:text-slate-400">
-                Hiển thị <span class="font-semibold text-slate-700 dark:text-slate-300">0</span> tài khoản
+            <div
+              class="p-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between bg-gradient-to-r from-slate-50/80 to-white dark:from-slate-800 dark:to-slate-800"
+            >
+              <p
+                id="paginationInfo"
+                class="text-sm text-slate-500 dark:text-slate-400"
+              >
+                Hiển thị
+                <span class="font-semibold text-slate-700 dark:text-slate-300"
+                  >0</span
+                >
+                tài khoản
               </p>
               <div class="flex gap-2">
                 <button
@@ -227,7 +393,9 @@
                   class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 text-sm font-medium disabled:opacity-50 transition-all flex items-center gap-1"
                   disabled
                 >
-                  <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+                  <span class="material-symbols-outlined text-[16px]"
+                    >chevron_left</span
+                  >
                   Trước
                 </button>
                 <button
@@ -235,7 +403,9 @@
                   class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 text-sm font-medium transition-all flex items-center gap-1"
                 >
                   Sau
-                  <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                  <span class="material-symbols-outlined text-[16px]"
+                    >chevron_right</span
+                  >
                 </button>
               </div>
             </div>
