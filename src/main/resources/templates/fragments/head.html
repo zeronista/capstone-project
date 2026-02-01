@@ -1,0 +1,118 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+    ABClinic - Head Fragment
+    Contains common <head> elements for all pages
+    
+    @version 2.0.0 - Refactored
+    @date February 1, 2026
+    -->
+  </head>
+  <body>
+    <!-- ==================================================================================
+         HEAD FRAGMENT - Common head elements
+         ================================================================================== -->
+    <th:block th:fragment="head(title)">
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title th:text="${title} + ' - ABClinic'">ABClinic</title>
+
+      <!-- Google Fonts - Roboto (Primary) -->
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+      <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&amp;display=swap"
+        rel="stylesheet"
+      />
+
+      <!-- Material Symbols Outlined -->
+      <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet"
+      />
+
+      <!-- Theme Initialization (MUST be first to prevent flash) -->
+      <script>
+        (function () {
+          const theme = localStorage.getItem("theme");
+          if (
+            theme === "dark" ||
+            (!theme &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches)
+          ) {
+            document.documentElement.classList.remove("light");
+            document.documentElement.classList.add("dark");
+          } else {
+            document.documentElement.classList.remove("dark");
+            document.documentElement.classList.add("light");
+          }
+        })();
+      </script>
+
+      <!-- Tailwind CSS CDN (MUST be loaded BEFORE config) -->
+      <script
+        src="https://cdn.tailwindcss.com?plugins=forms,container-queries"
+      ></script>
+      <!-- Tailwind Config (MUST be loaded AFTER CDN) -->
+      <script th:src="@{/js/config/tailwind-config.js}"></script>
+
+      <!-- ABClinic Styles -->
+      <link th:href="@{/css/core/app.css}" rel="stylesheet" />
+
+      <style>
+        /* Material Symbols Default Settings */
+        .material-symbols-outlined {
+          font-variation-settings:
+            "FILL" 0,
+            "wght" 400,
+            "GRAD" 0,
+            "opsz" 24;
+          font-size: 24px;
+        }
+        .material-symbols-outlined.fill {
+          font-variation-settings: "FILL" 1;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+
+        /* Sidebar Transition States */
+        .sidebar-hidden {
+          transform: translateX(-100%);
+        }
+        .sidebar-open {
+          transform: translateX(0);
+        }
+        @media (min-width: 1024px) {
+          .sidebar-hidden {
+            transform: translateX(0);
+          }
+          .sidebar-collapsed {
+            width: 4.5rem !important;
+          }
+          .sidebar-collapsed .sidebar-text {
+            display: none;
+          }
+          .sidebar-collapsed .sidebar-logo-text {
+            display: none;
+          }
+        }
+      </style>
+    </th:block>
+  </body>
+</html>

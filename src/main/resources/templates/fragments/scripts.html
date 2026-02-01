@@ -1,0 +1,68 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+    ABClinic - Scripts Fragment
+    Contains common JavaScript includes
+    
+    @version 2.0.0 - Refactored
+    @date February 1, 2026
+    -->
+  </head>
+  <body>
+    <!-- ==================================================================================
+         SCRIPTS FRAGMENT - Common JS includes
+         ================================================================================== -->
+    <th:block th:fragment="scripts">
+      <!-- Sidebar Controller -->
+      <script th:src="@{/js/core/sidebar-controller.js}"></script>
+
+      <!-- Theme Initialization -->
+      <script>
+        // Initialize theme from localStorage
+        (function () {
+          const theme = localStorage.getItem("theme");
+          if (
+            theme === "dark" ||
+            (!theme &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches)
+          ) {
+            document.documentElement.classList.add("dark");
+          }
+        })();
+      </script>
+    </th:block>
+
+    <!-- Core App Scripts -->
+    <th:block th:fragment="core-scripts">
+      <script th:src="@{/js/core/app.js}"></script>
+      <script th:src="@{/js/core/api-client.js}"></script>
+    </th:block>
+
+    <!-- Admin Module Scripts -->
+    <th:block th:fragment="admin-scripts">
+      <script th:src="@{/js/modules/admin/accounts.js}"></script>
+    </th:block>
+
+    <!-- Doctor Module Scripts -->
+    <th:block th:fragment="doctor-scripts">
+      <script th:src="@{/js/modules/doctor/sidebar-controller.js}"></script>
+    </th:block>
+
+    <!-- Patient Module Scripts -->
+    <th:block th:fragment="patient-scripts">
+      <script th:src="@{/js/modules/patient/portal.js}"></script>
+    </th:block>
+
+    <!-- Reports Scripts -->
+    <th:block th:fragment="reports-scripts">
+      <script th:src="@{/js/modules/reports/dashboard-charts.js}"></script>
+    </th:block>
+
+    <!-- Stringee SDK -->
+    <th:block th:fragment="stringee-sdk">
+      <script th:src="@{/js/vendor/stringee/sdk.bundle.min.js}"></script>
+    </th:block>
+  </body>
+</html>

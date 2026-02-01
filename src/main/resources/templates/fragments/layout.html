@@ -63,10 +63,10 @@
         src="https://cdn.tailwindcss.com?plugins=forms,container-queries"
       ></script>
       <!-- Tailwind Config (MUST be loaded AFTER CDN) -->
-      <script th:src="@{/js/tailwind-config.js}"></script>
+      <script th:src="@{/js/config/tailwind-config.js}"></script>
 
       <!-- ABClinic Styles -->
-      <link th:href="@{/css/app.css}" rel="stylesheet" />
+      <link th:href="@{/css/core/app.css}" rel="stylesheet" />
 
       <style>
         /* Material Symbols Default Settings */
@@ -758,7 +758,7 @@
          ================================================================================== -->
     <th:block th:fragment="scripts">
       <!-- Sidebar Controller -->
-      <script th:src="@{/js/sidebar-controller.js}"></script>
+      <script th:src="@{/js/core/sidebar-controller.js}"></script>
 
       <!-- Theme Initialization -->
       <script>
