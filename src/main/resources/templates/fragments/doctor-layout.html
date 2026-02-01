@@ -138,17 +138,16 @@
             class="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
           >
             <div
-              class="bg-center bg-no-repeat bg-cover rounded-full size-10 shrink-0"
-              th:style="${doctor != null && doctor.avatarUrl != null} ? 'background-image: url(' + ${doctor.avatarUrl} + ')' : 'background: linear-gradient(135deg, #0d7cf2 0%, #0a62bf 100%)'"
+              class="bg-primary rounded-full size-10 shrink-0 flex items-center justify-center text-white font-semibold"
             >
-              <div
-                th:if="${doctor == null || doctor.avatarUrl == null}"
-                class="w-full h-full flex items-center justify-center text-white font-bold text-sm"
+              <span
+                th:if="${doctor != null}"
+                th:text="${doctor.userInfo != null && doctor.userInfo.fullName != null} ? ${doctor.userInfo.fullName.substring(0,1)} : 'BS'"
+                >BS</span
               >
-                BS
-              </div>
+              <span th:unless="${doctor != null}">BS</span>
             </div>
-            <div class="overflow-hidden flex-1">
+            <div class="overflow-hidden sidebar-text flex-1">
               <p
                 class="text-sm font-bold text-slate-900 dark:text-white truncate"
                 th:text="${doctor != null && doctor.userInfo != null} ? ${doctor.userInfo.fullName} : 'BS. Doctor'"
@@ -159,11 +158,17 @@
                 Bác sĩ
               </p>
             </div>
-            <span class="material-symbols-outlined text-slate-400 text-[18px]"
-              >chevron_right</span
-            >
           </div>
         </a>
+        <form th:action="@{/auth/logout}" method="post" class="mt-3">
+          <button
+            type="submit"
+            class="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+          >
+            <span class="material-symbols-outlined text-[20px]">logout</span>
+            <span class="sidebar-text">Đăng xuất</span>
+          </button>
+        </form>
       </div>
     </aside>
   </body>
