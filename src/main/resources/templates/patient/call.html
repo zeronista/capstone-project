@@ -553,6 +553,31 @@
       }
 
       function setupCallEvents(call) {
+        // Event: Nhan luong am thanh tu remote
+        call.on("addremotestream", (stream) => {
+          addLog("Da nhan luong am thanh tu remote", "success");
+          console.log("Remote stream received:", stream);
+          
+          // Gan stream vao audio element
+          const remoteAudio = document.getElementById("remoteAudio");
+          if (remoteAudio) {
+            if (stream instanceof MediaStream) {
+              remoteAudio.srcObject = stream;
+            } else if (stream && stream.stream instanceof MediaStream) {
+              remoteAudio.srcObject = stream.stream;
+            } else if (stream && typeof stream.play === 'function') {
+              // Fallback cho Stringee SDK cu
+              stream.play(remoteAudio);
+            }
+          }
+        });
+
+        // Event: Luong local da san sang
+        call.on("addlocalstream", (stream) => {
+          addLog("Luong local da san sang", "info");
+          console.log("Local stream added:", stream);
+        });
+
         call.on("signalingstate", (state) => {
           addLog("Call state: " + state.reason, "info");
 

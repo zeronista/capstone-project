@@ -677,13 +677,33 @@
       // Setup call events
       function setupCallEvents(call) {
         call.on("addremotestream", function (stream) {
-          console.log("Remote stream received");
+          console.log("Remote stream received:", stream);
+
+          // Xoa video element cu neu co
+          const oldElement = document.querySelector("#remote_videos video");
+          if (oldElement) {
+            oldElement.remove();
+          }
 
           const videoElement = document.createElement("video");
           videoElement.setAttribute("autoplay", "");
           videoElement.setAttribute("playsinline", "");
+          videoElement.setAttribute("id", "remoteAudio");
+          videoElement.style.display = "none"; // An vi chi can am thanh
           document.getElementById("remote_videos").appendChild(videoElement);
-          stream.play(videoElement);
+          
+          // Gan MediaStream vao srcObject (cach dung cua Web API)
+          // Stringee SDK co the tra ve MediaStream truc tiep hoac object co stream property
+          if (stream instanceof MediaStream) {
+            videoElement.srcObject = stream;
+          } else if (stream && stream.stream instanceof MediaStream) {
+            videoElement.srcObject = stream.stream;
+          } else if (stream && typeof stream.play === 'function') {
+            // Fallback cho Stringee SDK cu
+            stream.play(videoElement);
+          } else {
+            console.warn("Khong the xu ly remote stream:", stream);
+          }
 
           // Start recording if enabled
           if (document.getElementById("enableRecording").checked) {

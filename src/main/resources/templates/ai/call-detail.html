@@ -649,25 +649,49 @@
       }
 
       function settingCallEvents(call) {
-        // Event: Nhận luồng âm thanh từ remote
+        // Event: Nhan luong am thanh tu remote
+        // Stringee SDK tra ve MediaStream object, can gan vao srcObject cua video/audio element
         call.on("addremotestream", (stream) => {
-          addLog("Đã nhận luồng âm thanh từ remote", "success");
+          addLog("Da nhan luong am thanh tu remote", "success");
+          console.log("Remote stream received:", stream);
+          
+          // Xoa video element cu neu co
+          const oldElement = document.getElementById("remoteAudio");
+          if (oldElement) {
+            oldElement.remove();
+          }
+          
+          // Tao video element moi de phat am thanh
           var videoElement = document.createElement("video");
           videoElement.setAttribute("autoplay", "");
           videoElement.setAttribute("playsinline", "");
           videoElement.setAttribute("id", "remoteAudio");
+          videoElement.style.display = "none"; // An vi chi can am thanh
           document.getElementById("remote_videos").appendChild(videoElement);
-          stream.play(videoElement);
+          
+          // Gan MediaStream vao srcObject (cach dung cua Web API)
+          // Stringee SDK co the tra ve MediaStream truc tiep hoac object co stream property
+          if (stream instanceof MediaStream) {
+            videoElement.srcObject = stream;
+          } else if (stream && stream.stream instanceof MediaStream) {
+            videoElement.srcObject = stream.stream;
+          } else if (stream && typeof stream.play === 'function') {
+            // Fallback cho Stringee SDK cu
+            stream.play(videoElement);
+          } else {
+            console.warn("Khong the xu ly remote stream:", stream);
+            addLog("Loi: Khong the phat am thanh tu remote", "error");
+          }
 
-          // Tự động bắt đầu ghi âm nếu được bật
+          // Tu dong bat dau ghi am neu duoc bat
           if (document.getElementById("autoRecordCheckbox").checked) {
             setTimeout(() => startRecording(), 500);
           }
         });
 
-        // Event: Luồng local đã sẵn sàng
+        // Event: Luong local da san sang
         call.on("addlocalstream", (stream) => {
-          addLog("Luồng local đã sẵn sàng", "info");
+          addLog("Luong local da san sang", "info");
           console.log("Local stream added:", stream);
         });
 
@@ -1086,32 +1110,40 @@
             );
 
             // Filter recordings related to this patient
-            // Format tên file: YYYYMMDD_HHMMSS_user_X_callId.webm
-            // Hoặc: call_user_X_to_user_Y_timestamp.webm (format cũ)
+            // Format ten file: call_user_X_to_user_Y_timestamp.webm
+            // Trong do Y la patient.id (stringee userId cua benh nhan)
             const patientRecordings = result.recordings.filter((r) => {
               const filename = r.filename || "";
+              const key = r.key || "";
 
-              // Pattern mới: tìm _user_2_ hoặc _user_2. (kết thúc bằng dấu chấm)
-              const newPattern = `_user_${patient.id}_`;
-              const newPatternEnd = `_user_${patient.id}.`;
-
-              // Pattern cũ: call_user_X_to_user_Y
-              const oldPattern1 = `_user_${patient.id}_to_`;
-              const oldPattern2 = `_to_user_${patient.id}_`;
+              // Pattern: _to_user_Y_ hoac _to_user_Y. (Y la patient id hoac stringee user id)
+              // Patient co the la user_2 hoac chi la so 2
+              const patientUserId = `user_${patient.id}`;
+              
+              // Tim trong filename va key de dam bao match duoc
+              const searchString = filename + " " + key;
+              
+              // Pattern 1: _to_user_Y_ (Y tiep tuc la phan khac)
+              const pattern1 = `_to_${patientUserId}_`;
+              // Pattern 2: _to_user_Y. (Y la cuoi truoc extension)
+              const pattern2 = `_to_${patientUserId}.`;
+              // Pattern 3: Chi so patient id (truong hop cu)
+              const pattern3 = `_user_${patient.id}_`;
+              const pattern4 = `_user_${patient.id}.`;
 
               const matches =
-                filename.includes(newPattern) ||
-                filename.includes(newPatternEnd) ||
-                filename.includes(oldPattern1) ||
-                filename.includes(oldPattern2);
+                searchString.includes(pattern1) ||
+                searchString.includes(pattern2) ||
+                searchString.includes(pattern3) ||
+                searchString.includes(pattern4);
 
               // Debug log
-              if (result.recordings.length <= 5) {
-                // Only log if not too many files
-                console.log(
-                  `File: ${filename}, PatientID: ${patient.id}, Matches: ${matches}`,
-                );
-              }
+              console.log(
+                `== clearCheckExistCall ==`,
+              );
+              console.log(
+                `File: ${filename}, PatientID: ${patient.id}, Matches: ${matches}`,
+              );
 
               return matches;
             });

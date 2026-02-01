@@ -186,14 +186,26 @@ public class S3Service {
         
         // Tao cau truc folder theo user va ngay
         String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmmss"));
         String originalFilename = file.getOriginalFilename();
-        String extension = originalFilename != null && originalFilename.contains(".") 
-            ? originalFilename.substring(originalFilename.lastIndexOf(".")) 
-            : ".webm";
         
-        // Cau truc: voice/{userId}/{yyyyMMdd}/{HHmmss}_{callId}.webm
-        String fileName = "voice/" + userId + "/" + date + "/" + timestamp + "_" + callId + extension;
+        // Giu lai original filename neu co chua thong tin ve cuoc goi (call_user_X_to_user_Y)
+        // Neu khong co thi tao filename moi voi timestamp va callId
+        String finalFilename;
+        if (originalFilename != null && originalFilename.contains("_to_user_")) {
+            // Original filename chua thong tin patient, giu nguyen
+            // Loai bo ky tu khong hop le trong filename
+            finalFilename = originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
+        } else {
+            // Tao filename moi voi timestamp va callId
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmmss"));
+            String extension = originalFilename != null && originalFilename.contains(".") 
+                ? originalFilename.substring(originalFilename.lastIndexOf(".")) 
+                : ".webm";
+            finalFilename = timestamp + "_" + callId + extension;
+        }
+        
+        // Cau truc: voice/{userId}/{yyyyMMdd}/{filename}
+        String fileName = "voice/" + userId + "/" + date + "/" + finalFilename;
 
         logger.info("Uploading recording: {} (size: {} bytes, user: {}, callId: {})", 
                 fileName, file.getSize(), userId, callId);
