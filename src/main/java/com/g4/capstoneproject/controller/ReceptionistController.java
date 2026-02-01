@@ -44,7 +44,7 @@ public class ReceptionistController {
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         String username = userDetails.getUsername();
-        User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+        User receptionist = userRepository.findByEmailOrPhoneNumberWithUserInfo(username).orElse(null);
 
         if (receptionist != null) {
             // Statistics

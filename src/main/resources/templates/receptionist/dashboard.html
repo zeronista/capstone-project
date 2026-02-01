@@ -225,14 +225,14 @@
             class="size-10 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white font-bold text-sm shadow-sm"
           >
             <span
-              th:text="${receptionist != null ? receptionist.userInfo.fullName?.substring(0,1) : 'R'}"
+              th:text="${receptionist != null && receptionist.userInfo != null && receptionist.userInfo.fullName != null ? receptionist.userInfo.fullName.substring(0,1) : 'R'}"
               >R</span
             >
           </div>
           <div class="flex-1 min-w-0">
             <p
               class="text-sm font-semibold text-slate-900 dark:text-white truncate"
-              th:text="${receptionist != null ? receptionist.userInfo.fullName : 'Receptionist'}"
+              th:text="${receptionist != null && receptionist.userInfo != null ? receptionist.userInfo.fullName : 'Receptionist'}"
             >
               Receptionist
             </p>
@@ -398,7 +398,7 @@
                     </p>
                     <h1 class="text-2xl lg:text-3xl font-bold text-white">
                       <span
-                        th:text="${receptionist != null ? receptionist.userInfo.fullName : 'Receptionist'}"
+                        th:text="${receptionist != null && receptionist.userInfo != null ? receptionist.userInfo.fullName : 'Receptionist'}"
                         >Receptionist</span
                       >!
                     </h1>

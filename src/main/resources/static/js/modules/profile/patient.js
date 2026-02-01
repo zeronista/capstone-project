@@ -93,7 +93,7 @@ function displayProfile(data) {
     
     // Form fields
     document.getElementById('fullName').value = data.fullName || '';
-    document.getElementById('phoneNumber').value = data.phoneNumber || '';
+    document.getElementById('phoneNumber').value = data.phone || ''; // FIX: use 'phone' from API
     document.getElementById('email').value = data.email || '';
     document.getElementById('dateOfBirth').value = data.dateOfBirth || '';
     document.getElementById('gender').value = data.gender || '';

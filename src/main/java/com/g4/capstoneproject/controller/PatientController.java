@@ -1,5 +1,6 @@
 package com.g4.capstoneproject.controller;
 
+import com.g4.capstoneproject.dto.ProfileResponse;
 import com.g4.capstoneproject.entity.PatientDocument;
 import com.g4.capstoneproject.entity.Prescription;
 import com.g4.capstoneproject.entity.Ticket;
@@ -10,6 +11,7 @@ import com.g4.capstoneproject.repository.TicketRepository;
 import com.g4.capstoneproject.repository.TreatmentPlanRepository;
 import com.g4.capstoneproject.repository.UserRepository;
 import com.g4.capstoneproject.service.PatientDocumentService;
+import com.g4.capstoneproject.service.ProfileService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,7 @@ public class PatientController {
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
     private final PatientDocumentService patientDocumentService;
+    private final ProfileService profileService;
     
     /**
      * GET /api/patient/prescriptions - Lấy danh sách đơn thuốc của bệnh nhân
@@ -171,25 +174,22 @@ public class PatientController {
                 return ResponseEntity.status(401).body(Map.of("success", false, "message", "Chưa đăng nhập"));
             }
             
-            User user = userRepository.findByIdWithUserInfo(userId).orElse(null);
-            if (user == null) {
-                return ResponseEntity.status(404).body(Map.of("success", false, "message", "Không tìm thấy người dùng"));
-            }
+            ProfileResponse profile = profileService.getProfile(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
             
-            // Build response with flattened structure for frontend compatibility
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("id", user.getId());
-            response.put("email", user.getEmail());
-            response.put("phoneNumber", user.getPhoneNumber());
-            response.put("fullName", user.getFullName());
-            response.put("dateOfBirth", user.getDateOfBirth());
-            response.put("gender", user.getGender() != null ? user.getGender().toString() : null);
-            response.put("address", user.getAddress());
-            response.put("avatarUrl", user.getAvatarUrl());
-            response.put("emailVerified", user.getEmailVerified());
-            response.put("createdAt", user.getCreatedAt());
-            response.put("role", user.getRole().toString());
+            response.put("id", profile.getId());
+            response.put("email", profile.getEmail());
+            response.put("phoneNumber", profile.getPhone()); // Map 'phone' to 'phoneNumber' for backward compatibility
+            response.put("fullName", profile.getFullName());
+            response.put("dateOfBirth", profile.getDateOfBirth());
+            response.put("gender", profile.getGender() != null ? profile.getGender().toString() : null);
+            response.put("address", profile.getAddress());
+            response.put("avatarUrl", profile.getAvatar());
+            response.put("emailVerified", profile.getIsVerified()); // Map 'isVerified' to 'emailVerified' for backward compatibility
+            response.put("createdAt", profile.getCreatedAt());
+            response.put("role", profile.getRole().toString());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -313,6 +313,30 @@ public class PatientController {
     /**
      * POST /api/patient/documents/upload - Upload tài liệu mới
      */
+    /**
+     * Danh sach cac content type duoc phep upload
+     */
+    private static final java.util.Set<String> ALLOWED_CONTENT_TYPES = java.util.Set.of(
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "text/plain"
+    );
+    
+    /**
+     * Danh sach cac extension file duoc phep
+     */
+    private static final java.util.Set<String> ALLOWED_EXTENSIONS = java.util.Set.of(
+        ".pdf", ".doc", ".docx", ".xls", ".xlsx", 
+        ".jpg", ".jpeg", ".png", ".gif", ".webp", ".txt"
+    );
+    
     @PostMapping("/documents/upload")
     public ResponseEntity<Map<String, Object>> uploadDocument(
             @RequestParam("file") MultipartFile file,
@@ -322,17 +346,34 @@ public class PatientController {
         try {
             Long userId = (Long) session.getAttribute("userId");
             if (userId == null) {
-                return ResponseEntity.status(401).body(Map.of("success", false, "message", "Chưa đăng nhập"));
+                return ResponseEntity.status(401).body(Map.of("success", false, "message", "Chua dang nhap"));
             }
             
-            // Validate file
-            if (file.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui lòng chọn file"));
+            // Validate file khong rong
+            if (file == null || file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Vui long chon file"));
             }
             
             // Validate file size (max 10MB)
             if (file.getSize() > 10 * 1024 * 1024) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "File không được vượt quá 10MB"));
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "File khong duoc vuot qua 10MB"));
+            }
+            
+            // Validate content type
+            String contentType = file.getContentType();
+            if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, 
+                    "message", "Loai file khong duoc ho tro. Chi chap nhan: PDF, Word, Excel, anh (JPG, PNG, GIF, WebP)"));
+            }
+            
+            // Validate file extension
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename != null) {
+                String extension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+                if (!ALLOWED_EXTENSIONS.contains(extension)) {
+                    return ResponseEntity.badRequest().body(Map.of("success", false,
+                        "message", "Dinh dang file khong hop le. Chi chap nhan: PDF, Word, Excel, anh"));
+                }
             }
             
             // Parse document type
@@ -341,22 +382,31 @@ public class PatientController {
                 docType = PatientDocument.DocumentType.valueOf(documentType.toUpperCase());
             } catch (IllegalArgumentException e) {
                 return ResponseEntity.badRequest().body(Map.of("success", false, 
-                        "message", "Loại tài liệu không hợp lệ. Các loại hợp lệ: MEDICAL_HISTORY, PRESCRIPTION, TEST_RESULT, OTHER"));
+                        "message", "Loai tai lieu khong hop le. Cac loai hop le: MEDICAL_HISTORY, PRESCRIPTION, TEST_RESULT, OTHER"));
+            }
+            
+            // Lam sach description neu co
+            String cleanDescription = description;
+            if (cleanDescription != null) {
+                cleanDescription = cleanDescription.trim();
+                if (cleanDescription.length() > 500) {
+                    cleanDescription = cleanDescription.substring(0, 500);
+                }
             }
             
             // Upload document
-            PatientDocument document = patientDocumentService.uploadDocument(userId, file, docType, description);
+            PatientDocument document = patientDocumentService.uploadDocument(userId, file, docType, cleanDescription);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("message", "Upload tài liệu thành công");
+            response.put("message", "Upload tai lieu thanh cong");
             response.put("documentId", document.getId());
             response.put("fileName", document.getFileName());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error uploading document", e);
-            return ResponseEntity.status(500).body(Map.of("success", false, "message", "Lỗi upload: " + e.getMessage()));
+            return ResponseEntity.status(500).body(Map.of("success", false, "message", "Loi upload: " + e.getMessage()));
         }
     }
     

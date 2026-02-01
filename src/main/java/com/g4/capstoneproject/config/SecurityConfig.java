@@ -80,8 +80,11 @@ public class SecurityConfig {
                                                                 // Allow Swagger UI
                                                                 "/v3/api-docs/**",
                                                                 "/swagger-ui/**",
-                                                                // Allow Stringee webhook callbacks
+                                                                // Allow Stringee webhook callbacks and uploads
                                                                 "/api/stringee/webhook/**",
+                                                                "/api/stringee/event",
+                                                                "/api/stringee/answer",
+                                                                "/api/stringee/upload-recording",
                                                                 // Allow patient document upload (multipart form)
                                                                 "/api/patient/documents/**",
                                                                 // Allow profile update and avatar (for patient portal)

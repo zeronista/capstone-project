@@ -31,6 +31,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
         Optional<User> findByEmailOrPhoneNumber(String email, String phoneNumber);
 
         /**
+         * Tìm user theo email hoặc số điện thoại với userInfo được load
+         */
+        @Query("SELECT u FROM User u LEFT JOIN FETCH u.userInfo WHERE u.email = :emailOrPhone OR u.phoneNumber = :emailOrPhone")
+        Optional<User> findByEmailOrPhoneNumberWithUserInfo(@Param("emailOrPhone") String emailOrPhone);
+
+        /**
          * Tìm user theo Google ID (cho OAuth)
          */
         Optional<User> findByGoogleId(String googleId);

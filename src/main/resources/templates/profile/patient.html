@@ -232,6 +232,20 @@
                 <div id="verificationBadge" class="mt-3">
                   <!-- Dynamic content -->
                 </div>
+
+                <!-- Stringee ID -->
+                <div class="mt-3">
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                    Stringee ID
+                  </p>
+                  <p
+                    id="stringeeId"
+                    class="text-sm font-mono text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-3 py-2 rounded-lg"
+                    th:text="'user_' + ${user != null ? user.id : ''}"
+                  >
+                    user_undefined
+                  </p>
+                </div>
               </div>
 
               <!-- Profile Completion -->
@@ -879,7 +893,7 @@
         // Form fields
         document.getElementById("fullName").value = data.fullName || "";
         document.getElementById("email").value = data.email || "";
-        document.getElementById("phoneNumber").value = data.phoneNumber || "";
+        document.getElementById("phoneNumber").value = data.phone || ""; // FIX: use 'phone' from API
         document.getElementById("dateOfBirth").value = data.dateOfBirth || "";
         document.getElementById("gender").value = data.gender || "";
         document.getElementById("address").value = data.address || "";
@@ -888,17 +902,22 @@
             data.identityNumber || "";
         }
 
+        // Stringee ID
+        if (document.getElementById("stringeeId")) {
+          document.getElementById("stringeeId").textContent = "user_" + data.id;
+        }
+
         // Profile completion
         const completion = calculateCompletion(data);
         document.getElementById("completionPercent").textContent =
           completion + "%";
         document.getElementById("completionBar").style.width = completion + "%";
 
-        // Verification badge
-        updateVerificationBadge(data.emailVerified);
+        // Verification badge - FIX: use 'isVerified' from API
+        updateVerificationBadge(data.isVerified);
 
-        // Email status
-        updateEmailStatus(data.email, data.emailVerified);
+        // Email status - FIX: use 'isVerified' from API
+        updateEmailStatus(data.email, data.isVerified);
       }
 
       function getInitials(name) {
@@ -915,7 +934,7 @@
         const fields = [
           "fullName",
           "email",
-          "phoneNumber",
+          "phone", // FIX: use 'phone' to match API response
           "dateOfBirth",
           "gender",
           "address",

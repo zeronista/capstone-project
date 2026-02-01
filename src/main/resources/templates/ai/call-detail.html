@@ -649,30 +649,84 @@
       }
 
       function settingCallEvents(call) {
+        // Event: Nhận luồng âm thanh từ remote
         call.on("addremotestream", (stream) => {
-          addLog("Đã nhận luồng âm thanh", "success");
+          addLog("Đã nhận luồng âm thanh từ remote", "success");
           var videoElement = document.createElement("video");
           videoElement.setAttribute("autoplay", "");
           videoElement.setAttribute("playsinline", "");
           videoElement.setAttribute("id", "remoteAudio");
           document.getElementById("remote_videos").appendChild(videoElement);
           stream.play(videoElement);
+
+          // Tự động bắt đầu ghi âm nếu được bật
+          if (document.getElementById("autoRecordCheckbox").checked) {
+            setTimeout(() => startRecording(), 500);
+          }
         });
 
+        // Event: Luồng local đã sẵn sàng
+        call.on("addlocalstream", (stream) => {
+          addLog("Luồng local đã sẵn sàng", "info");
+          console.log("Local stream added:", stream);
+        });
+
+        // Event: Trạng thái media thay đổi
+        call.on("mediastate", (state) => {
+          console.log("Media state:", state);
+          addLog("Media: " + state.reason, "info");
+        });
+
+        // Event: Trạng thái signaling thay đổi (quan trọng nhất)
         call.on("signalingstate", (state) => {
+          console.log("Signaling state:", state.code, state.reason);
           addLog("Trạng thái: " + state.reason, "info");
-          if (state.code === 3) {
-            showCallStatus("Đang trong cuộc gọi", "connected");
-            startCallDurationTimer();
-            if (document.getElementById("autoRecordCheckbox").checked) {
-              setTimeout(() => startRecording(), 500);
-            }
+
+          switch (state.code) {
+            case 1: // Calling
+              showCallStatus("Đang gọi...", "calling");
+              break;
+            case 2: // Ringing
+              showCallStatus("Đang đổ chuông...", "calling");
+              break;
+            case 3: // Answered - đã bắt máy
+              showCallStatus("Đang trong cuộc gọi", "connected");
+              startCallDurationTimer();
+              break;
+            case 4: // Busy
+              addLog("Máy bận", "warning");
+              showCallStatus("Máy bận", "ended");
+              setTimeout(() => resetUI(), 2000);
+              break;
+            case 5: // Ended
+            case 6: // Ended
+              addLog("Cuộc gọi đã kết thúc", "success");
+              showCallStatus("Đã kết thúc", "ended");
+              setTimeout(() => resetUI(), 2000);
+              break;
           }
-          if (state.code === 6) {
-            addLog("Cuộc gọi đã kết thúc", "success");
-            showCallStatus("Đã kết thúc", "ended");
-            setTimeout(() => resetUI(), 2000);
+        });
+
+        // Event: Thông tin cuộc gọi
+        call.on("info", (info) => {
+          console.log("Call info:", info);
+        });
+
+        // Event: Thiết bị khác xử lý cuộc gọi
+        call.on("otherdevice", (data) => {
+          console.log("Other device event:", data);
+          if (data.type === "answer" || data.type === "reject") {
+            addLog("Cuộc gọi được xử lý từ thiết bị khác", "info");
+            resetUI();
           }
+        });
+
+        // Event: Lỗi cuộc gọi
+        call.on("error", (error) => {
+          console.error("Call error:", error);
+          addLog("Lỗi: " + (error.message || "Không xác định"), "error");
+          showCallStatus("Lỗi", "ended");
+          setTimeout(() => resetUI(), 2000);
         });
       }
 
@@ -764,59 +818,171 @@
         currentCall = null;
       }
 
+      // Kiem tra trinh duyet co ho tro MediaRecorder khong
+      function isRecordingSupported() {
+        return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+      }
+      
+      // Kiem tra mimeType duoc ho tro
+      function getSupportedMimeType() {
+        const mimeTypes = [
+          'audio/webm;codecs=opus',
+          'audio/webm',
+          'audio/ogg;codecs=opus',
+          'audio/mp4'
+        ];
+        for (const mimeType of mimeTypes) {
+          if (MediaRecorder.isTypeSupported(mimeType)) {
+            return mimeType;
+          }
+        }
+        return null;
+      }
+
       async function startRecording() {
         try {
-          if (mediaRecorder && mediaRecorder.state === "recording") return;
-          addLog("Đang khởi tạo ghi âm...", "info");
-          localStream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-          });
-          audioContext = new (window.AudioContext ||
-            window.webkitAudioContext)();
+          // Kiem tra ho tro
+          if (!isRecordingSupported()) {
+            addLog("Trinh duyet khong ho tro ghi am. Vui long su dung Chrome hoac Firefox.", "error");
+            return;
+          }
+          
+          if (mediaRecorder && mediaRecorder.state === "recording") {
+            addLog("Dang ghi am...", "warning");
+            return;
+          }
+          
+          addLog("Dang khoi tao ghi am...", "info");
+          
+          // Yeu cau quyen truy cap microphone
+          try {
+            localStream = await navigator.mediaDevices.getUserMedia({
+              audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true
+              }
+            });
+          } catch (err) {
+            if (err.name === 'NotAllowedError') {
+              addLog("Nguoi dung tu choi quyen truy cap microphone", "error");
+            } else if (err.name === 'NotFoundError') {
+              addLog("Khong tim thay microphone", "error");
+            } else {
+              addLog("Loi truy cap microphone: " + err.message, "error");
+            }
+            return;
+          }
+          
+          // Tao audio context de mix local + remote audio
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
           const destination = audioContext.createMediaStreamDestination();
           const localSource = audioContext.createMediaStreamSource(localStream);
           localSource.connect(destination);
+          
+          // Thu ket noi remote audio neu co
           const remoteAudio = document.getElementById("remoteAudio");
           if (remoteAudio && remoteAudio.srcObject) {
             try {
-              const remoteSource = audioContext.createMediaStreamSource(
-                remoteAudio.srcObject,
-              );
+              const remoteSource = audioContext.createMediaStreamSource(remoteAudio.srcObject);
               remoteSource.connect(destination);
-            } catch (e) {}
+              addLog("Da ket noi remote audio vao recording", "success");
+            } catch (e) {
+              addLog("Khong the ket noi remote audio: " + e.message, "warning");
+            }
           }
+          
           mixedStream = destination.stream;
           recordedChunks = [];
+          
+          // Kiem tra mimeType duoc ho tro
+          const mimeType = getSupportedMimeType();
+          if (!mimeType) {
+            addLog("Trinh duyet khong ho tro dinh dang ghi am", "error");
+            return;
+          }
+          
+          addLog("Su dung dinh dang: " + mimeType, "info");
+          
           mediaRecorder = new MediaRecorder(mixedStream, {
-            mimeType: "audio/webm;codecs=opus",
+            mimeType: mimeType,
+            audioBitsPerSecond: 128000 // 128kbps cho chat luong tot
           });
+          
           mediaRecorder.ondataavailable = (e) => {
-            if (e.data.size > 0) recordedChunks.push(e.data);
-          };
-          mediaRecorder.onstop = async () => {
-            if (localStream) localStream.getTracks().forEach((t) => t.stop());
-            if (audioContext) audioContext.close();
-            if (recordedChunks.length > 0) {
-              const blob = new Blob(recordedChunks, { type: "audio/webm" });
-              await uploadRecording(blob);
+            if (e.data.size > 0) {
+              recordedChunks.push(e.data);
             }
-            if (recordingInterval) clearInterval(recordingInterval);
           };
-          mediaRecorder.start(100);
+          
+          mediaRecorder.onerror = (e) => {
+            addLog("Loi MediaRecorder: " + e.error.message, "error");
+            stopRecording();
+          };
+          
+          mediaRecorder.onstop = async () => {
+            // Giai phong tai nguyen
+            if (localStream) {
+              localStream.getTracks().forEach((t) => t.stop());
+              localStream = null;
+            }
+            if (audioContext) {
+              await audioContext.close();
+              audioContext = null;
+            }
+            if (recordingInterval) {
+              clearInterval(recordingInterval);
+              recordingInterval = null;
+            }
+            
+            // Upload neu co du lieu
+            if (recordedChunks.length > 0) {
+              const blob = new Blob(recordedChunks, { type: mimeType });
+              const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
+              addLog("File ghi am: " + sizeMB + " MB", "info");
+              
+              // Kiem tra kich thuoc file (max 100MB)
+              if (blob.size > 100 * 1024 * 1024) {
+                addLog("File qua lon (>100MB), khong the upload", "error");
+                return;
+              }
+              
+              await uploadRecording(blob);
+            } else {
+              addLog("Khong co du lieu ghi am", "warning");
+            }
+          };
+          
+          // Bat dau ghi am - lay du lieu moi 1 giay
+          mediaRecorder.start(1000);
           recordingStartTime = Date.now();
-          addLog("Đã bắt đầu ghi âm", "success");
+          addLog("Da bat dau ghi am", "success");
+          
+          // Hien thi indicator
           document.getElementById("recordingInfo").classList.remove("hidden");
+          
+          // Cap nhat thoi gian ghi am
           recordingInterval = setInterval(() => {
             const d = Math.floor((Date.now() - recordingStartTime) / 1000);
             document.getElementById("recordingDuration").textContent =
-              Math.floor(d / 60)
-                .toString()
-                .padStart(2, "0") +
+              Math.floor(d / 60).toString().padStart(2, "0") +
               ":" +
               (d % 60).toString().padStart(2, "0");
           }, 1000);
+          
         } catch (err) {
-          addLog("Lỗi ghi âm: " + err.message, "error");
+          addLog("Loi ghi am: " + err.message, "error");
+          console.error("Recording error:", err);
+          
+          // Cleanup khi loi
+          if (localStream) {
+            localStream.getTracks().forEach((t) => t.stop());
+            localStream = null;
+          }
+          if (audioContext) {
+            audioContext.close();
+            audioContext = null;
+          }
         }
       }
 
@@ -829,46 +995,133 @@
       }
 
       async function uploadRecording(blob) {
+        // Kiem tra blob hop le
+        if (!blob || blob.size === 0) {
+          addLog("Khong co du lieu ghi am de upload", "warning");
+          return;
+        }
+        
+        const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
+        addLog("Chuan bi upload file " + sizeMB + " MB...", "info");
+        
+        // Kiem tra kich thuoc file (max 100MB)
+        if (blob.size > 100 * 1024 * 1024) {
+          addLog("File qua lon (>100MB), khong the upload", "error");
+          return;
+        }
+        
         try {
           const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-          const filename = `call_${currentUser.stringeeUserId}_to_user_${patient.id}_${timestamp}.webm`;
-          addLog("Đang upload: " + filename, "info");
+          const extension = blob.type.includes("webm") ? ".webm" : 
+                           blob.type.includes("ogg") ? ".ogg" : 
+                           blob.type.includes("mp4") ? ".mp4" : ".webm";
+          const filename = `call_${currentUser.stringeeUserId}_to_user_${patient.id}_${timestamp}${extension}`;
+          
+          addLog("Dang upload: " + filename, "info");
+          
           const formData = new FormData();
           formData.append("file", blob, filename);
           formData.append("callId", "web_" + Date.now());
           formData.append("userId", currentUser.stringeeUserId);
-          const response = await fetch("/api/stringee/upload-recording", {
-            method: "POST",
-            body: formData,
-          });
-          if (!response.ok) throw new Error("HTTP " + response.status);
-          const result = await response.json();
-          if (result.success) {
-            addLog("Upload thành công!", "success");
-            setTimeout(() => loadRecordings(), 1000);
-          } else {
-            addLog("Upload thất bại", "error");
+          
+          // Upload voi retry
+          let retries = 3;
+          let lastError = null;
+          
+          while (retries > 0) {
+            try {
+              const response = await fetch("/api/stringee/upload-recording", {
+                method: "POST",
+                body: formData,
+              });
+              
+              if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error("HTTP " + response.status + ": " + errorText);
+              }
+              
+              const result = await response.json();
+              
+              if (result.success) {
+                addLog("Upload thanh cong! S3 Key: " + result.s3Key, "success");
+                // Reload danh sach recordings sau 1 giay
+                setTimeout(() => loadRecordings(), 1000);
+                return;
+              } else {
+                throw new Error(result.error || "Upload that bai");
+              }
+            } catch (err) {
+              lastError = err;
+              retries--;
+              if (retries > 0) {
+                addLog("Upload that bai, thu lai (" + retries + " lan con lai)...", "warning");
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Cho 2 giay
+              }
+            }
           }
+          
+          addLog("Upload that bai sau 3 lan thu: " + lastError.message, "error");
+          
         } catch (err) {
-          addLog("Lỗi upload: " + err.message, "error");
+          addLog("Loi upload: " + err.message, "error");
+          console.error("Upload error:", err);
         }
       }
 
       async function loadRecordings() {
         try {
+          // Đảm bảo patient đã được load
+          if (!patient || !patient.id) {
+            addLog("Chưa có thông tin bệnh nhân, chờ load...", "warning");
+            return;
+          }
+
           const response = await fetch("/api/stringee/recordings");
           if (!response.ok) throw new Error("HTTP " + response.status);
           const result = await response.json();
           if (result.success) {
-            // Filter recordings related to this patient
-            const patientRecordings = result.recordings.filter(
-              (r) =>
-                r.filename.includes("_to_user_" + patient.id + "_") ||
-                r.filename.includes("_user_" + patient.id + "_"),
+            addLog(
+              "Tổng số recordings trong S3: " + result.recordings.length,
+              "info",
             );
+
+            // Filter recordings related to this patient
+            // Format tên file: YYYYMMDD_HHMMSS_user_X_callId.webm
+            // Hoặc: call_user_X_to_user_Y_timestamp.webm (format cũ)
+            const patientRecordings = result.recordings.filter((r) => {
+              const filename = r.filename || "";
+
+              // Pattern mới: tìm _user_2_ hoặc _user_2. (kết thúc bằng dấu chấm)
+              const newPattern = `_user_${patient.id}_`;
+              const newPatternEnd = `_user_${patient.id}.`;
+
+              // Pattern cũ: call_user_X_to_user_Y
+              const oldPattern1 = `_user_${patient.id}_to_`;
+              const oldPattern2 = `_to_user_${patient.id}_`;
+
+              const matches =
+                filename.includes(newPattern) ||
+                filename.includes(newPatternEnd) ||
+                filename.includes(oldPattern1) ||
+                filename.includes(oldPattern2);
+
+              // Debug log
+              if (result.recordings.length <= 5) {
+                // Only log if not too many files
+                console.log(
+                  `File: ${filename}, PatientID: ${patient.id}, Matches: ${matches}`,
+                );
+              }
+
+              return matches;
+            });
+
             displayRecordings(patientRecordings);
             addLog(
-              "Đã tải " + patientRecordings.length + " file ghi âm",
+              "Đã tải " +
+                patientRecordings.length +
+                " file ghi âm của bệnh nhân #" +
+                patient.id,
               "success",
             );
           }

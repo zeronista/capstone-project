@@ -216,13 +216,63 @@
                       00:00
                     </p>
 
-                    <div class="flex justify-center">
+                    <!-- Call Control Buttons: Mute, End Call, Speaker -->
+                    <div class="flex justify-center items-center gap-6">
+                      <!-- Mute Button -->
+                      <button
+                        id="muteBtn"
+                        onclick="toggleMute()"
+                        class="group flex flex-col items-center"
+                      >
+                        <div
+                          class="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center shadow-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                        >
+                          <span id="muteIcon" class="material-symbols-outlined text-2xl"
+                            >mic</span
+                          >
+                        </div>
+                        <span
+                          class="text-xs text-slate-500 mt-2"
+                          id="muteLabel"
+                          >Tắt mic</span
+                        >
+                      </button>
+
+                      <!-- End Call Button -->
                       <button
                         onclick="endCall()"
-                        class="w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-all transform hover:scale-105"
+                        class="group flex flex-col items-center"
                       >
-                        <span class="material-symbols-outlined text-3xl"
-                          >call_end</span
+                        <div
+                          class="w-16 h-16 rounded-full bg-red-500 text-white flex items-center justify-center shadow-lg hover:bg-red-600 transition-all transform hover:scale-105"
+                        >
+                          <span class="material-symbols-outlined text-3xl"
+                            >call_end</span
+                          >
+                        </div>
+                        <span
+                          class="text-xs text-slate-500 mt-2"
+                          >Kết thúc</span
+                        >
+                      </button>
+
+                      <!-- Speaker Button -->
+                      <button
+                        id="speakerBtn"
+                        onclick="toggleSpeaker()"
+                        class="group flex flex-col items-center"
+                      >
+                        <div
+                          class="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center shadow-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                        >
+                          <span id="speakerIcon" class="material-symbols-outlined text-2xl"
+                            >volume_up</span
+                          >
+                        </div>
+                        <span
+                          class="text-xs text-slate-500 mt-2"
+                          id="speakerLabel"
+                          >Tắt loa</span
                         >
                       </button>
                     </div>
@@ -409,8 +459,9 @@
             document.getElementById("userAvatar").textContent = getInitials(
               data.fullName || data.email,
             );
+            // Use stringeeUserId if available, otherwise construct from userId
             document.getElementById("stringeeId").textContent =
-              "user_" + data.id;
+              data.stringeeUserId || "user_" + data.userId;
             addLog("Đã đăng nhập: " + (data.fullName || data.email), "success");
             await connectStringee();
           } else {
@@ -441,7 +492,7 @@
             addLog("Đã kết nối Stringee", "success");
             updateStatus("connected", "Đã kết nối");
             document.getElementById("connectionInfo").textContent =
-              "user_" + currentUser.id;
+              currentUser.stringeeUserId || "user_" + currentUser.userId;
           });
 
           stringeeClient.on("authen", (res) => {
@@ -582,22 +633,34 @@
         document.getElementById("incomingState").classList.add("hidden");
         document.getElementById("inCallState").classList.add("hidden");
 
+        // Reset trang thai mute
         isMuted = false;
-        isSpeakerOn = true;
-        document.getElementById("muteIcon").textContent = "mic";
-        document
-          .getElementById("muteBtn")
-          .classList.remove("bg-red-500", "text-white");
-        document
-          .getElementById("muteBtn")
-          .classList.add(
-            "bg-slate-100",
-            "dark:bg-slate-800",
-            "text-slate-600",
-            "dark:text-slate-400",
-          );
+        const muteIcon = document.getElementById("muteIcon");
+        const muteBtn = document.getElementById("muteBtn");
+        const muteLabel = document.getElementById("muteLabel");
+        if (muteIcon) muteIcon.textContent = "mic";
+        if (muteLabel) muteLabel.textContent = "Tat mic";
+        if (muteBtn) {
+          const btnDiv = muteBtn.querySelector("div");
+          if (btnDiv) {
+            btnDiv.classList.remove("bg-red-500", "text-white");
+            btnDiv.classList.add(
+              "bg-slate-100",
+              "dark:bg-slate-800",
+              "text-slate-600",
+              "dark:text-slate-400",
+            );
+          }
+        }
 
-        addLog("Cuộc gọi đã kết thúc", "info");
+        // Reset trang thai speaker
+        isSpeakerOn = true;
+        const speakerIcon = document.getElementById("speakerIcon");
+        const speakerLabel = document.getElementById("speakerLabel");
+        if (speakerIcon) speakerIcon.textContent = "volume_up";
+        if (speakerLabel) speakerLabel.textContent = "Tat loa";
+
+        addLog("Cuoc goi da ket thuc", "info");
       }
 
       function toggleMute() {
@@ -608,46 +671,76 @@
 
         const btn = document.getElementById("muteBtn");
         const icon = document.getElementById("muteIcon");
+        const label = document.getElementById("muteLabel");
+        const btnDiv = btn ? btn.querySelector("div") : null;
 
         if (isMuted) {
-          icon.textContent = "mic_off";
-          btn.classList.remove(
-            "bg-slate-100",
-            "dark:bg-slate-800",
-            "text-slate-600",
-            "dark:text-slate-400",
-          );
-          btn.classList.add("bg-red-500", "text-white");
-          addLog("🔇 Đã tắt mic", "warning");
+          if (icon) icon.textContent = "mic_off";
+          if (label) label.textContent = "Bat mic";
+          if (btnDiv) {
+            btnDiv.classList.remove(
+              "bg-slate-100",
+              "dark:bg-slate-800",
+              "text-slate-600",
+              "dark:text-slate-400",
+            );
+            btnDiv.classList.add("bg-red-500", "text-white");
+          }
+          addLog("Da tat mic", "warning");
         } else {
-          icon.textContent = "mic";
-          btn.classList.remove("bg-red-500", "text-white");
-          btn.classList.add(
-            "bg-slate-100",
-            "dark:bg-slate-800",
-            "text-slate-600",
-            "dark:text-slate-400",
-          );
-          addLog("🎤 Đã bật mic", "info");
+          if (icon) icon.textContent = "mic";
+          if (label) label.textContent = "Tat mic";
+          if (btnDiv) {
+            btnDiv.classList.remove("bg-red-500", "text-white");
+            btnDiv.classList.add(
+              "bg-slate-100",
+              "dark:bg-slate-800",
+              "text-slate-600",
+              "dark:text-slate-400",
+            );
+          }
+          addLog("Da bat mic", "info");
         }
       }
 
       function toggleSpeaker() {
         const audio = document.getElementById("remoteAudio");
+        if (!audio) return;
+        
         isSpeakerOn = !isSpeakerOn;
         audio.muted = !isSpeakerOn;
 
         const btn = document.getElementById("speakerBtn");
         const icon = document.getElementById("speakerIcon");
+        const label = document.getElementById("speakerLabel");
+        const btnDiv = btn ? btn.querySelector("div") : null;
 
         if (isSpeakerOn) {
-          icon.textContent = "volume_up";
-          btn.classList.remove("bg-slate-200", "dark:bg-slate-700");
-          addLog("🔊 Đã bật loa", "info");
+          if (icon) icon.textContent = "volume_up";
+          if (label) label.textContent = "Tat loa";
+          if (btnDiv) {
+            btnDiv.classList.remove("bg-amber-500", "text-white");
+            btnDiv.classList.add(
+              "bg-slate-100",
+              "dark:bg-slate-800",
+              "text-slate-600",
+              "dark:text-slate-400",
+            );
+          }
+          addLog("Da bat loa", "info");
         } else {
-          icon.textContent = "volume_off";
-          btn.classList.add("bg-slate-200", "dark:bg-slate-700");
-          addLog("🔈 Đã tắt loa", "warning");
+          if (icon) icon.textContent = "volume_off";
+          if (label) label.textContent = "Bat loa";
+          if (btnDiv) {
+            btnDiv.classList.remove(
+              "bg-slate-100",
+              "dark:bg-slate-800",
+              "text-slate-600",
+              "dark:text-slate-400",
+            );
+            btnDiv.classList.add("bg-amber-500", "text-white");
+          }
+          addLog("Da tat loa", "warning");
         }
       }
 
