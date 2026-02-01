@@ -50,7 +50,7 @@ public class ProfileController {
         // Phân quyền theo role - redirect đến profile riêng của từng role
         switch (user.getRole()) {
             case PATIENT:
-                return "profile/patient";
+                return "redirect:/patient/profile";
             case DOCTOR:
                 return "redirect:/doctor/profile";
             case RECEPTIONIST:
@@ -60,6 +60,31 @@ public class ProfileController {
             default:
                 return "profile/index";
         }
+    }
+
+    /**
+     * GET /patient/profile - Hiển thị trang profile cho Bệnh nhân
+     */
+    @GetMapping("/patient/profile")
+    public String patientProfile(HttpSession session, Model model) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return "redirect:/auth/login";
+        }
+        User user = userRepository.findByIdWithUserInfo(userId).orElse(null);
+        if (user == null || user.getRole() != User.UserRole.PATIENT) {
+            return "redirect:/auth/login";
+        }
+        
+        // Always add user to model
+        model.addAttribute("user", user);
+        
+        // Get profile with presigned S3 avatar URL
+        profileService.getProfile(userId).ifPresent(profile -> {
+            model.addAttribute("avatarUrl", profile.getAvatar());
+        });
+        
+        return "profile/patient";
     }
 
     /**

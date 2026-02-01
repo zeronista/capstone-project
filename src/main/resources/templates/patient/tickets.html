@@ -1,0 +1,139 @@
+<!doctype html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head(title='Yêu Cầu Hỗ Trợ')}">
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans h-screen flex overflow-hidden"
+  >
+    <!-- Mobile Sidebar Backdrop -->
+    <div th:replace="~{fragments/layout :: sidebar-backdrop}"></div>
+
+    <!-- Patient Sidebar -->
+    <aside th:replace="~{fragments/layout :: patient-sidebar}"></aside>
+
+    <!-- Main Content -->
+    <main
+      class="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800"
+    >
+      <!-- Header -->
+      <header
+        th:replace="~{fragments/layout :: header(title='Yêu Cầu Hỗ Trợ')}"
+      ></header>
+
+      <!-- Content Area -->
+      <div class="flex-1 overflow-y-auto p-4 lg:p-6">
+        <div class="max-w-7xl mx-auto">
+          <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+              Yêu Cầu Hỗ Trợ
+            </h2>
+            <div id="ticketsList">
+              <div class="text-center py-8">
+                <div
+                  class="w-8 h-8 border-3 border-slate-200 dark:border-slate-600 border-t-purple-500 rounded-full animate-spin mx-auto mb-3"
+                ></div>
+                <p class="text-slate-500 dark:text-slate-400">Đang tải...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        loadTickets();
+      });
+
+      async function loadTickets() {
+        try {
+          const response = await fetch("/api/patient/tickets");
+          const data = await response.json();
+
+          if (data.success) {
+            renderTickets(data.tickets || []);
+          } else {
+            showError(data.message);
+          }
+        } catch (error) {
+          console.error("Error loading tickets:", error);
+          showError("Không thể tải danh sách yêu cầu hỗ trợ");
+        }
+      }
+
+      function renderTickets(tickets) {
+        const container = document.getElementById("ticketsList");
+
+        if (tickets.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-12">
+              <span class="material-symbols-outlined text-slate-300 text-6xl mb-4">support_agent</span>
+              <p class="text-slate-500">Chưa có yêu cầu hỗ trợ nào</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="grid gap-4">
+            ${tickets
+              .map(
+                (ticket) => `
+              <div class="border border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                  <div class="flex-1">
+                    <h3 class="font-semibold text-lg">${ticket.subject || "Ticket #" + ticket.id}</h3>
+                    <p class="text-sm text-slate-500 mt-1">
+                      Ngày tạo: ${formatDate(ticket.createdAt)}
+                    </p>
+                    ${ticket.description ? `<p class="text-sm text-slate-600 mt-2">${ticket.description}</p>` : ""}
+                  </div>
+                  <span class="px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(ticket.status)}">
+                    ${getStatusText(ticket.status)}
+                  </span>
+                </div>
+              </div>
+            `
+              )
+              .join("")}
+          </div>
+        `;
+      }
+
+      function formatDate(dateStr) {
+        if (!dateStr) return "N/A";
+        const date = new Date(dateStr);
+        return date.toLocaleDateString("vi-VN");
+      }
+
+      function getStatusBadge(status) {
+        const badges = {
+          OPEN: "bg-yellow-100 text-yellow-700",
+          IN_PROGRESS: "bg-blue-100 text-blue-700",
+          RESOLVED: "bg-green-100 text-green-700",
+          CLOSED: "bg-gray-100 text-gray-700",
+        };
+        return badges[status] || "bg-gray-100 text-gray-700";
+      }
+
+      function getStatusText(status) {
+        const texts = {
+          OPEN: "Đang mở",
+          IN_PROGRESS: "Đang xử lý",
+          RESOLVED: "Đã giải quyết",
+          CLOSED: "Đã đóng",
+        };
+        return texts[status] || status;
+      }
+
+      function showError(message) {
+        document.getElementById("ticketsList").innerHTML = `
+          <div class="text-center py-12">
+            <span class="material-symbols-outlined text-red-500 text-6xl mb-4">error</span>
+            <p class="text-red-500">${message}</p>
+          </div>
+        `;
+      }
+    </script>
+  </body>
+</html>

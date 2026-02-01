@@ -45,7 +45,7 @@
                 <div class="relative inline-block group">
                   <img
                     id="avatarPreview"
-                    th:src="${user.avatarUrl != null ? user.avatarUrl : '/images/default-avatar.png'}"
+                    th:src="${avatarUrl != null ? avatarUrl : '/images/default-avatar.png'}"
                     src="/images/default-avatar.png"
                     alt="Avatar"
                     class="w-32 h-32 rounded-full object-cover border-4 border-primary/20 shadow-lg"
@@ -69,7 +69,7 @@
                 <!-- Name & Role -->
                 <h2
                   class="mt-4 text-xl font-semibold text-gray-900 dark:text-white"
-                  th:text="${user.fullName}"
+                  th:text="${user != null ? user.fullName : 'Bệnh nhân'}"
                 >
                   Nguyễn Văn A
                 </h2>
@@ -187,7 +187,7 @@
                     <input
                       type="text"
                       name="fullName"
-                      th:value="${user.fullName}"
+                      th:value="${user != null ? user.fullName : ''}"
                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition"
                       required
                     />
@@ -206,7 +206,7 @@
                     <input
                       type="email"
                       name="email"
-                      th:value="${user.email}"
+                      th:value="${user != null ? user.email : ''}"
                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                       readonly
                     />
@@ -229,7 +229,7 @@
                     <input
                       type="tel"
                       name="phone"
-                      th:value="${user.phone}"
+                      th:value="${user != null ? user.phoneNumber : ''}"
                       pattern="[0-9]{10,11}"
                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition"
                     />
@@ -248,7 +248,7 @@
                     <input
                       type="date"
                       name="dateOfBirth"
-                      th:value="${user.dateOfBirth}"
+                      th:value="${user != null ? user.dateOfBirth : ''}"
                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition"
                     />
                   </div>
@@ -274,41 +274,23 @@
                       <option value="">-- Chọn --</option>
                       <option
                         value="MALE"
-                        th:selected="${user.gender == 'MALE'}"
+                        th:selected="${user != null and user.gender == 'MALE'}"
                       >
                         Nam
                       </option>
                       <option
                         value="FEMALE"
-                        th:selected="${user.gender == 'FEMALE'}"
+                        th:selected="${user != null and user.gender == 'FEMALE'}"
                       >
                         Nữ
                       </option>
                       <option
                         value="OTHER"
-                        th:selected="${user.gender == 'OTHER'}"
+                        th:selected="${user != null and user.gender == 'OTHER'}"
                       >
                         Khác
                       </option>
                     </select>
-                  </div>
-                  <!-- Identity Number -->
-                  <div>
-                    <label
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                    >
-                      <span
-                        class="material-symbols-outlined align-middle mr-1 text-lg"
-                        >id_card</span
-                      >
-                      CMND/CCCD
-                    </label>
-                    <input
-                      type="text"
-                      name="identityNumber"
-                      th:value="${user.identityNumber}"
-                      class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition"
-                    />
                   </div>
                 </div>
 
@@ -326,7 +308,7 @@
                   <textarea
                     name="address"
                     rows="3"
-                    th:text="${user.address}"
+                    th:text="${user != null ? user.address : ''}"
                     class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition resize-none"
                   ></textarea>
                 </div>

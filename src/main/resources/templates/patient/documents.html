@@ -1,0 +1,247 @@
+<!doctype html>
+<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head(title='Tài Liệu Y Tế')}">
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans h-screen flex overflow-hidden"
+  >
+    <!-- Mobile Sidebar Backdrop -->
+    <div th:replace="~{fragments/layout :: sidebar-backdrop}"></div>
+
+    <!-- Patient Sidebar -->
+    <aside th:replace="~{fragments/layout :: patient-sidebar}"></aside>
+
+    <!-- Main Content -->
+    <main
+      class="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800"
+    >
+      <!-- Header -->
+      <header
+        th:replace="~{fragments/layout :: header(title='Tài Liệu Y Tế')}"
+      ></header>
+
+      <!-- Content Area -->
+      <div class="flex-1 overflow-y-auto p-4 lg:p-6">
+        <div class="max-w-7xl mx-auto">
+          <!-- Upload Section -->
+          <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 mb-6">
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-4">
+              Upload Tài Liệu
+            </h2>
+            <form id="uploadForm" class="space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Chọn file
+                  </label>
+                  <input
+                    type="file"
+                    id="documentFile"
+                    name="file"
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Loại tài liệu
+                  </label>
+                  <select
+                    id="documentType"
+                    name="documentType"
+                    class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-slate-700"
+                  >
+                    <option value="MEDICAL_RECORD">Hồ sơ y tế</option>
+                    <option value="TEST_RESULT">Kết quả xét nghiệm</option>
+                    <option value="PRESCRIPTION">Đơn thuốc</option>
+                    <option value="INSURANCE">Bảo hiểm</option>
+                    <option value="OTHER">Khác</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Mô tả (tùy chọn)
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows="2"
+                  class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-orange-500 dark:bg-slate-700"
+                ></textarea>
+              </div>
+              <div class="flex justify-end">
+                <button
+                  type="submit"
+                  class="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  <span class="material-symbols-outlined align-middle mr-1">upload</span>
+                  Upload
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Documents List -->
+          <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6">
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+              Tài Liệu Y Tế
+            </h2>
+            <div id="documentsList">
+              <div class="text-center py-8">
+                <div
+                  class="w-8 h-8 border-3 border-slate-200 dark:border-slate-600 border-t-orange-500 rounded-full animate-spin mx-auto mb-3"
+                ></div>
+                <p class="text-slate-500 dark:text-slate-400">Đang tải...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        loadDocuments();
+        setupUploadForm();
+      });
+
+      function setupUploadForm() {
+        const form = document.getElementById("uploadForm");
+        form.addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const formData = new FormData();
+          const fileInput = document.getElementById("documentFile");
+          const typeInput = document.getElementById("documentType");
+          const descInput = document.getElementById("description");
+
+          if (!fileInput.files[0]) {
+            showMessage("Vui lòng chọn file", "error");
+            return;
+          }
+
+          formData.append("file", fileInput.files[0]);
+          formData.append("documentType", typeInput.value);
+          if (descInput.value) {
+            formData.append("description", descInput.value);
+          }
+
+          try {
+            const response = await fetch("/api/patient/documents/upload", {
+              method: "POST",
+              body: formData,
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              showMessage("Upload thành công!", "success");
+              form.reset();
+              loadDocuments(); // Reload documents list
+            } else {
+              showMessage(data.message || "Upload thất bại", "error");
+            }
+          } catch (error) {
+            console.error("Error uploading document:", error);
+            showMessage("Lỗi khi upload tài liệu", "error");
+          }
+        });
+      }
+
+      function showMessage(message, type) {
+        // Simple alert for now - can be replaced with better UI notification
+        alert(message);
+      }
+
+      async function loadDocuments() {
+        try {
+          const response = await fetch("/api/patient/documents");
+          const data = await response.json();
+
+          if (data.success) {
+            renderDocuments(data.documents || []);
+          } else {
+            showError(data.message);
+          }
+        } catch (error) {
+          console.error("Error loading documents:", error);
+          showError("Không thể tải danh sách tài liệu");
+        }
+      }
+
+      function renderDocuments(documents) {
+        const container = document.getElementById("documentsList");
+
+        if (documents.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-12">
+              <span class="material-symbols-outlined text-slate-300 text-6xl mb-4">folder_open</span>
+              <p class="text-slate-500">Chưa có tài liệu nào</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="grid gap-4">
+            ${documents
+              .map(
+                (doc) => `
+              <div class="border border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div class="flex justify-between items-start">
+                  <div class="flex items-start gap-3 flex-1">
+                    <span class="material-symbols-outlined text-slate-400 text-4xl">description</span>
+                    <div class="flex-1">
+                      <h3 class="font-semibold text-lg mb-1">${doc.fileName || "Document #" + doc.id}</h3>
+                      <div class="space-y-1 text-sm text-slate-500">
+                        <p><span class="font-medium">Loại:</span> ${doc.documentTypeLabel || doc.documentType}</p>
+                        <p><span class="font-medium">Kích thước:</span> ${doc.fileSizeFormatted || formatFileSize(doc.fileSize)}</p>
+                        <p><span class="font-medium">Ngày tải lên:</span> ${formatDate(doc.uploadDate)}</p>
+                        ${doc.description ? `<p><span class="font-medium">Mô tả:</span> ${doc.description}</p>` : ""}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    ${doc.viewUrl ? `
+                      <a href="${doc.viewUrl}" target="_blank" 
+                         class="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                         title="Xem/Tải xuống">
+                        <span class="material-symbols-outlined">download</span>
+                      </a>
+                    ` : ""}
+                  </div>
+                </div>
+              </div>
+            `
+              )
+              .join("")}
+          </div>
+        `;
+      }
+
+      function formatFileSize(bytes) {
+        if (!bytes) return "N/A";
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+        return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+      }
+
+      function formatDate(dateStr) {
+        if (!dateStr) return "N/A";
+        const date = new Date(dateStr);
+        return date.toLocaleDateString("vi-VN");
+      }
+
+      function showError(message) {
+        document.getElementById("documentsList").innerHTML = `
+          <div class="text-center py-12">
+            <span class="material-symbols-outlined text-red-500 text-6xl mb-4">error</span>
+            <p class="text-red-500">${message}</p>
+          </div>
+        `;
+      }
+    </script>
+  </body>
+</html>

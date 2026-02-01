@@ -238,6 +238,15 @@ public class PatientController {
         }
     }
     
+    /**
+     * GET /api/patient/treatment-plans - Alias cho /api/patient/treatments (để tương thích với frontend)
+     */
+    @GetMapping("/treatment-plans")
+    public ResponseEntity<Map<String, Object>> getMyTreatmentPlans(HttpSession session) {
+        // Delegate to getMyTreatments
+        return getMyTreatments(session);
+    }
+    
     // ========== DOCUMENT MANAGEMENT ==========
     
     /**

@@ -195,4 +195,29 @@ public class PageController {
     public String patientCall() {
         return "patient/call";
     }
+
+    @GetMapping("/patient/prescriptions")
+    public String patientPrescriptions() {
+        return "patient/prescriptions";
+    }
+
+    @GetMapping("/patient/treatments")
+    public String patientTreatments() {
+        return "patient/treatments";
+    }
+
+    @GetMapping("/patient/appointments")
+    public String patientAppointments() {
+        return "patient/appointments";
+    }
+
+    @GetMapping("/patient/tickets")
+    public String patientTickets() {
+        return "patient/tickets";
+    }
+
+    @GetMapping("/patient/documents")
+    public String patientDocuments() {
+        return "patient/documents";
+    }
 }
