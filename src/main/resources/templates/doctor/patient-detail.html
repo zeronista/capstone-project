@@ -1,9 +1,12 @@
 <!doctype html>
-<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Chi tiết Bệnh nhân - ABClinic</title>
+    <!-- Theme Controller - MUST be first to prevent flash -->
+    <script th:src="@{/js/core/theme-controller.js}"></script>
+
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link
@@ -425,9 +428,9 @@
                   >
                     <span
                       class="material-symbols-outlined text-[18px] align-middle mr-1"
-                      >favorite</span
+                      >history</span
                     >
-                    Sinh hiệu
+                    Lịch sử khám bệnh
                   </button>
                   <button
                     onclick="switchTab('treatments')"
@@ -469,7 +472,7 @@
               <div id="contentVitals" class="p-6">
                 <div class="flex items-center justify-between mb-4">
                   <h3 class="text-lg font-bold text-slate-900 dark:text-white">
-                    Chỉ số sinh hiệu gần đây
+                    Lịch sử khám bệnh
                   </h3>
                   <button
                     onclick="openVitalsModal()"
@@ -478,7 +481,7 @@
                     <span class="material-symbols-outlined text-[18px]"
                       >add</span
                     >
-                    Ghi nhận
+                    Thêm mới
                   </button>
                 </div>
                 <div id="vitalsContent" class="overflow-x-auto">
@@ -712,7 +715,10 @@
     </div>
 
     <!-- Sidebar Controller Script -->
-    <script type="module" th:src="@{/js/modules/doctor/sidebar-controller.js}"></script>
+    <script
+      type="module"
+      th:src="@{/js/modules/doctor/sidebar-controller.js}"
+    ></script>
 
     <script th:inline="javascript">
       // Get patient ID from server
@@ -1185,19 +1191,8 @@
       }
 
       // ==================== DARK MODE ====================
-      function toggleDarkMode() {
-        document.documentElement.classList.toggle("dark");
-        localStorage.setItem(
-          "darkMode",
-          document.documentElement.classList.contains("dark"),
-        );
-      }
-
-      function initDarkMode() {
-        if (localStorage.getItem("darkMode") === "true") {
-          document.documentElement.classList.add("dark");
-        }
-      }
+      // Using ThemeController from /js/core/theme-controller.js
+      // toggleDarkMode() is available globally
 
       // ==================== TOAST ====================
       function showToast(message, type = "info") {

@@ -1,7 +1,6 @@
 <!doctype html>
-<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
-  <head th:replace="~{fragments/layout :: head(title='Tài Liệu Y Tế')}">
-  </head>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head(title='Tài Liệu Y Tế')}"> </head>
   <body
     class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans h-screen flex overflow-hidden"
   >
@@ -31,7 +30,9 @@
             <form id="uploadForm" class="space-y-4">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label
+                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  >
                     Chọn file
                   </label>
                   <input
@@ -44,7 +45,9 @@
                   />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label
+                    class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  >
                     Loại tài liệu
                   </label>
                   <select
@@ -60,7 +63,9 @@
                 </div>
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <label
+                  class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >
                   Mô tả (tùy chọn)
                 </label>
                 <textarea
@@ -75,7 +80,9 @@
                   type="submit"
                   class="px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors"
                 >
-                  <span class="material-symbols-outlined align-middle mr-1">upload</span>
+                  <span class="material-symbols-outlined align-middle mr-1"
+                    >upload</span
+                  >
                   Upload
                 </button>
               </div>
@@ -103,10 +110,10 @@
     <script>
       // Map loai tai lieu sang tieng Viet
       const DOCUMENT_TYPE_LABELS = {
-        'MEDICAL_HISTORY': 'Ho so y te',
-        'TEST_RESULT': 'Ket qua xet nghiem',
-        'PRESCRIPTION': 'Don thuoc',
-        'OTHER': 'Khac'
+        MEDICAL_HISTORY: "Ho so y te",
+        TEST_RESULT: "Ket qua xet nghiem",
+        PRESCRIPTION: "Don thuoc",
+        OTHER: "Khac",
       };
 
       document.addEventListener("DOMContentLoaded", function () {
@@ -144,7 +151,8 @@
 
           // Disable button trong khi upload
           submitBtn.disabled = true;
-          submitBtn.innerHTML = '<span class="material-symbols-outlined align-middle mr-1 animate-spin">refresh</span> Dang upload...';
+          submitBtn.innerHTML =
+            '<span class="material-symbols-outlined align-middle mr-1 animate-spin">refresh</span> Dang upload...';
 
           try {
             const response = await fetch("/api/patient/documents/upload", {
@@ -166,22 +174,27 @@
             showMessage("Loi khi upload tai lieu", "error");
           } finally {
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '<span class="material-symbols-outlined align-middle mr-1">upload</span> Upload';
+            submitBtn.innerHTML =
+              '<span class="material-symbols-outlined align-middle mr-1">upload</span> Upload';
           }
         });
       }
 
       function showMessage(message, type) {
         // Tao toast notification
-        const toast = document.createElement('div');
+        const toast = document.createElement("div");
         toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg text-white shadow-lg z-50 transition-opacity duration-300 ${
-          type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+          type === "success"
+            ? "bg-green-500"
+            : type === "error"
+              ? "bg-red-500"
+              : "bg-blue-500"
         }`;
-        toast.innerHTML = `<span class="material-symbols-outlined align-middle mr-2">${type === 'success' ? 'check_circle' : 'error'}</span>${message}`;
+        toast.innerHTML = `<span class="material-symbols-outlined align-middle mr-2">${type === "success" ? "check_circle" : "error"}</span>${message}`;
         document.body.appendChild(toast);
-        
+
         setTimeout(() => {
-          toast.style.opacity = '0';
+          toast.style.opacity = "0";
           setTimeout(() => toast.remove(), 300);
         }, 3000);
       }
@@ -235,13 +248,17 @@
                     </div>
                   </div>
                   <div class="flex gap-2">
-                    ${doc.viewUrl ? `
+                    ${
+                      doc.viewUrl
+                        ? `
                       <a href="${doc.viewUrl}" target="_blank" 
                          class="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
                          title="Xem/Tai xuong">
                         <span class="material-symbols-outlined">download</span>
                       </a>
-                    ` : ""}
+                    `
+                        : ""
+                    }
                     <button onclick="deleteDocument(${doc.id}, '${escapeHtml(doc.fileName)}')" 
                        class="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                        title="Xoa tai lieu">
@@ -250,7 +267,7 @@
                   </div>
                 </div>
               </div>
-            `
+            `,
               )
               .join("")}
           </div>
@@ -265,7 +282,7 @@
 
         try {
           const response = await fetch(`/api/patient/documents/${docId}`, {
-            method: 'DELETE'
+            method: "DELETE",
           });
 
           const data = await response.json();
@@ -293,31 +310,35 @@
 
       // Lay icon cho loai file
       function getFileIcon(filename) {
-        if (!filename) return 'description';
-        const ext = filename.split('.').pop().toLowerCase();
+        if (!filename) return "description";
+        const ext = filename.split(".").pop().toLowerCase();
         const icons = {
-          'pdf': 'picture_as_pdf',
-          'doc': 'description',
-          'docx': 'description',
-          'xls': 'table_chart',
-          'xlsx': 'table_chart',
-          'jpg': 'image',
-          'jpeg': 'image',
-          'png': 'image',
-          'gif': 'image'
+          pdf: "picture_as_pdf",
+          doc: "description",
+          docx: "description",
+          xls: "table_chart",
+          xlsx: "table_chart",
+          jpg: "image",
+          jpeg: "image",
+          png: "image",
+          gif: "image",
         };
-        return icons[ext] || 'description';
+        return icons[ext] || "description";
       }
 
       // Lay badge color cho loai tai lieu
       function getDocTypeBadge(type) {
         const badges = {
-          'MEDICAL_HISTORY': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-          'PRESCRIPTION': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-          'TEST_RESULT': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-          'OTHER': 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+          MEDICAL_HISTORY:
+            "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+          PRESCRIPTION:
+            "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+          TEST_RESULT:
+            "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+          OTHER:
+            "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200",
         };
-        return badges[type] || 'bg-gray-100 text-gray-800';
+        return badges[type] || "bg-gray-100 text-gray-800";
       }
 
       function formatFileSize(bytes) {
@@ -334,8 +355,8 @@
       }
 
       function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
+        if (!text) return "";
+        const div = document.createElement("div");
         div.textContent = text;
         return div.innerHTML;
       }

@@ -1,9 +1,11 @@
 <!doctype html>
-<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Quản lý Survey - ABClinic</title>
+    <!-- Theme Controller - MUST be first to prevent flash -->
+    <script th:src="@{/js/core/theme-controller.js}"></script>
 
     <!-- Favicon -->
     <link rel="icon" type="image/jpeg" th:href="@{/images/Logo.jpg}" />
@@ -506,88 +508,13 @@
             />
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label
-                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
-                >Tag</label
-              >
-              <input
-                type="text"
-                id="tag"
-                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="VD: Hài lòng"
-              />
-            </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
-                >Thứ tự hiển thị</label
-              >
-              <input
-                type="number"
-                id="displayOrder"
-                min="0"
-                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="0"
-              />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label
-                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
-                >Icon</label
-              >
-              <select
-                id="iconType"
-                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="survey">📋 Khảo sát</option>
-                <option value="health">❤️ Sức khỏe</option>
-                <option value="feedback">👍 Đánh giá</option>
-                <option value="register">📝 Đăng ký</option>
-              </select>
-            </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
-                >Màu Icon</label
-              >
-              <input
-                type="color"
-                id="iconColor"
-                value="#3B82F6"
-                class="w-full h-12 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer"
-              />
-            </div>
-          </div>
-
-          <div class="flex items-center gap-6">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                id="isActive"
-                checked
-                class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
-              />
-              <span class="text-sm text-slate-700 dark:text-slate-300"
-                >Hiển thị survey</span
-              >
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                id="showOnLanding"
-                checked
-                class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
-              />
-              <span class="text-sm text-slate-700 dark:text-slate-300"
-                >Hiển thị trên Landing Page</span
-              >
-            </label>
-          </div>
+          <!-- Hidden fields to keep functionality -->
+          <input type="hidden" id="tag" value="Khảo sát" />
+          <input type="hidden" id="displayOrder" value="0" />
+          <input type="hidden" id="iconType" value="survey" />
+          <input type="hidden" id="iconColor" value="#3B82F6" />
+          <input type="hidden" id="isActive" value="true" />
+          <input type="hidden" id="showOnLanding" value="true" />
         </form>
         <div
           class="flex items-center justify-end gap-3 p-6 border-t border-slate-200 dark:border-slate-700"
@@ -1055,19 +982,8 @@
         backdrop.classList.toggle("hidden");
       }
 
-      // Dark mode toggle
-      function toggleDarkMode() {
-        document.documentElement.classList.toggle("dark");
-        localStorage.setItem(
-          "darkMode",
-          document.documentElement.classList.contains("dark"),
-        );
-      }
-
-      // Load dark mode preference
-      if (localStorage.getItem("darkMode") === "true") {
-        document.documentElement.classList.add("dark");
-      }
+      // Dark mode toggle - Using ThemeController from /js/core/theme-controller.js
+      // toggleDarkMode() is available globally
     </script>
   </body>
 </html>

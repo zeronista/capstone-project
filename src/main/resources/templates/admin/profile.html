@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
   <head th:replace="~{fragments/layout :: head(title='Hồ sơ Admin')}"></head>
   <body
     class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans h-screen flex overflow-hidden"
@@ -740,21 +740,12 @@
         document.getElementById("panel-" + tabName).classList.remove("hidden");
       }
 
-      // Dark mode toggle
+      // Dark mode toggle - Using ThemeController from /js/core/theme-controller.js
       document
         .getElementById("darkModeToggle")
         .addEventListener("click", () => {
-          document.documentElement.classList.toggle("dark");
-          localStorage.setItem(
-            "darkMode",
-            document.documentElement.classList.contains("dark"),
-          );
+          ThemeController.toggle();
         });
-
-      // Load dark mode preference
-      if (localStorage.getItem("darkMode") === "true") {
-        document.documentElement.classList.add("dark");
-      }
 
       // Load profile data
       let profileData = null;

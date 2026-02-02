@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
   <head th:replace="~{fragments/layout :: head(title='Trang Bệnh Nhân')}">
   </head>
   <body
@@ -485,40 +485,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Health Tips Section -->
-          <div
-            class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl p-6 text-white shadow-xl"
-          >
-            <div
-              class="flex flex-col lg:flex-row lg:items-center justify-between gap-4"
-            >
-              <div class="flex items-start gap-4">
-                <div
-                  class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shrink-0"
-                >
-                  <span class="material-symbols-outlined text-[28px]"
-                    >tips_and_updates</span
-                  >
-                </div>
-                <div>
-                  <h4 class="font-bold text-lg mb-1">
-                    💡 Mẹo sức khỏe hôm nay
-                  </h4>
-                  <p class="text-white/90">
-                    Uống đủ 2 lít nước mỗi ngày để giữ cơ thể khỏe mạnh và tinh
-                    thần sảng khoái. Hãy nhớ nghỉ ngơi đủ giấc!
-                  </p>
-                </div>
-              </div>
-              <a
-                th:href="@{/patient/documents}"
-                class="shrink-0 px-5 py-2.5 bg-white text-purple-600 rounded-xl font-semibold hover:bg-purple-50 transition-colors shadow-lg"
-              >
-                Xem thêm tài liệu
-              </a>
-            </div>
-          </div>
         </div>
       </div>
     </main>
@@ -960,6 +926,142 @@
             closePrescriptionModal();
           }
         });
+
+      // ===== INCOMING CALL NOTIFICATION =====
+      const STRINGEE_SERVER_ADDRS = [
+        "wss://v1.stringee.com:6899/",
+        "wss://v2.stringee.com:6899/",
+      ];
+      var stringeeClient;
+      var currentIncomingCall = null;
+
+      // Initialize Stringee for incoming call detection
+      async function initCallNotification() {
+        try {
+          const userRes = await fetch("/api/web-call/current-user");
+          if (!userRes.ok) return;
+          const userData = await userRes.json();
+          if (!userData.authenticated) return;
+
+          const tokenRes = await fetch("/api/web-call/token");
+          if (!tokenRes.ok) return;
+          const tokenData = await tokenRes.json();
+
+          stringeeClient = new StringeeClient(STRINGEE_SERVER_ADDRS);
+
+          stringeeClient.on("connect", () => {
+            console.log("Stringee connected for call notification");
+          });
+
+          stringeeClient.on("incomingcall", (incomingCall) => {
+            console.log("Incoming call detected:", incomingCall.fromNumber);
+            currentIncomingCall = incomingCall;
+            showIncomingCallNotification(incomingCall);
+          });
+
+          stringeeClient.connect(tokenData.token);
+        } catch (err) {
+          console.error("Error initializing call notification:", err);
+        }
+      }
+
+      function showIncomingCallNotification(call) {
+        if (document.getElementById("incomingCallNotification")) return;
+
+        const notification = document.createElement("div");
+        notification.id = "incomingCallNotification";
+        notification.className = "fixed top-4 right-4 z-50";
+        notification.innerHTML = `
+          <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border-2 border-emerald-500 p-4 min-w-[320px] animate-pulse">
+            <div class="flex items-center gap-4 mb-4">
+              <div class="relative">
+                <div class="absolute inset-0 rounded-full bg-emerald-500/30 animate-ping"></div>
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-lg">
+                  <span class="material-symbols-outlined text-2xl animate-bounce">call</span>
+                </div>
+              </div>
+              <div class="flex-1">
+                <p class="text-sm text-slate-500 dark:text-slate-400">Cuộc gọi đến</p>
+                <p class="text-lg font-bold text-slate-900 dark:text-white">Nhân viên ABClinic</p>
+                <p class="text-sm text-slate-400">${call.fromNumber}</p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <button onclick="rejectCallNotification()" class="flex-1 px-4 py-2.5 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-xl font-semibold transition-colors flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">call_end</span>
+                Từ chối
+              </button>
+              <button onclick="goToCallPage()" class="flex-1 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">call</span>
+                Trả lời
+              </button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(notification);
+
+        // Play notification sound
+        try {
+          const audio = new Audio("/audio/ringtone.mp3");
+          audio.loop = true;
+          audio.id = "ringtoneAudio";
+          audio.play().catch(() => {});
+          document.body.appendChild(audio);
+        } catch (e) {}
+      }
+
+      function rejectCallNotification() {
+        if (currentIncomingCall) {
+          currentIncomingCall.reject(() => console.log("Call rejected"));
+          currentIncomingCall = null;
+        }
+        removeCallNotification();
+      }
+
+      function goToCallPage() {
+        removeCallNotification();
+        // Disconnect current client so call page can connect
+        if (stringeeClient) {
+          stringeeClient.disconnect();
+          stringeeClient = null;
+        }
+        // Small delay to ensure disconnect completes before redirect
+        setTimeout(() => {
+          window.location.href = "/patient/call";
+        }, 100);
+      }
+
+      function removeCallNotification() {
+        const notification = document.getElementById(
+          "incomingCallNotification",
+        );
+        if (notification) notification.remove();
+        const audio = document.getElementById("ringtoneAudio");
+        if (audio) {
+          audio.pause();
+          audio.remove();
+        }
+      }
+
+      // Cleanup on page unload
+      window.addEventListener("beforeunload", () => {
+        if (stringeeClient) {
+          stringeeClient.disconnect();
+        }
+      });
+
+      // Initialize on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        // Load Stringee SDK dynamically if not present
+        if (typeof StringeeClient === "undefined") {
+          const script = document.createElement("script");
+          script.src = "/js/vendor/stringee/sdk.bundle.min.js";
+          script.onload = () => initCallNotification();
+          document.body.appendChild(script);
+        } else {
+          initCallNotification();
+        }
+      });
     </script>
   </body>
 </html>

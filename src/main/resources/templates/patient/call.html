@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
   <head th:replace="~{fragments/layout :: head(title='Gọi tư vấn')}"></head>
   <body
     class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans h-screen flex overflow-hidden"
@@ -227,13 +227,13 @@
                         <div
                           class="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center shadow-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
                         >
-                          <span id="muteIcon" class="material-symbols-outlined text-2xl"
+                          <span
+                            id="muteIcon"
+                            class="material-symbols-outlined text-2xl"
                             >mic</span
                           >
                         </div>
-                        <span
-                          class="text-xs text-slate-500 mt-2"
-                          id="muteLabel"
+                        <span class="text-xs text-slate-500 mt-2" id="muteLabel"
                           >Tắt mic</span
                         >
                       </button>
@@ -250,8 +250,7 @@
                             >call_end</span
                           >
                         </div>
-                        <span
-                          class="text-xs text-slate-500 mt-2"
+                        <span class="text-xs text-slate-500 mt-2"
                           >Kết thúc</span
                         >
                       </button>
@@ -265,7 +264,9 @@
                         <div
                           class="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center shadow-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
                         >
-                          <span id="speakerIcon" class="material-symbols-outlined text-2xl"
+                          <span
+                            id="speakerIcon"
+                            class="material-symbols-outlined text-2xl"
                             >volume_up</span
                           >
                         </div>
@@ -557,7 +558,7 @@
         call.on("addremotestream", (stream) => {
           addLog("Da nhan luong am thanh tu remote", "success");
           console.log("Remote stream received:", stream);
-          
+
           // Gan stream vao audio element
           const remoteAudio = document.getElementById("remoteAudio");
           if (remoteAudio) {
@@ -565,7 +566,7 @@
               remoteAudio.srcObject = stream;
             } else if (stream && stream.stream instanceof MediaStream) {
               remoteAudio.srcObject = stream.stream;
-            } else if (stream && typeof stream.play === 'function') {
+            } else if (stream && typeof stream.play === "function") {
               // Fallback cho Stringee SDK cu
               stream.play(remoteAudio);
             }
@@ -599,7 +600,10 @@
             case 5: // Ended - cuộc gọi kết thúc bình thường (bên kia gác máy)
               addLog("Cuộc gọi đã kết thúc", "info");
               stopRingtone();
-              showCallEndedNotification("Cuộc gọi đã kết thúc", "Nhân viên tư vấn đã kết thúc cuộc gọi");
+              showCallEndedNotification(
+                "Cuộc gọi đã kết thúc",
+                "Nhân viên tư vấn đã kết thúc cuộc gọi",
+              );
               endCallUI();
               break;
             case 6: // Rejected/Cancelled
@@ -628,10 +632,10 @@
 
         // Ẩn incoming state ngay lập tức để tránh treo UI
         document.getElementById("incomingState").classList.add("hidden");
-        
-        // Hiển thị trạng thái đang kết nối
+
+        // Hiển thị trạng thái đang kết nối - sẽ được cập nhật khi signalingstate = 3
         document.getElementById("inCallState").classList.remove("hidden");
-        document.getElementById("callDuration").textContent = "Đang kết nối...";
+        // Để trống thay vì hiện "Đang kết nối..." vì signalingstate sẽ cập nhật
 
         currentCall.answer((res) => {
           if (res.r === 0) {
@@ -672,6 +676,8 @@
 
         const callerName = document.getElementById("callerName").textContent;
         document.getElementById("inCallName").textContent = callerName;
+        // Đảm bảo hiển thị trạng thái kết nối thành công
+        document.getElementById("callDuration").textContent = "00:00";
       }
 
       function endCallUI() {
@@ -756,7 +762,7 @@
       function toggleSpeaker() {
         const audio = document.getElementById("remoteAudio");
         if (!audio) return;
-        
+
         isSpeakerOn = !isSpeakerOn;
         audio.muted = !isSpeakerOn;
 
@@ -904,7 +910,8 @@
       // Hiển thị notification khi cuộc gọi kết thúc
       function showCallEndedNotification(title, message) {
         const notification = document.createElement("div");
-        notification.className = "fixed top-20 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-bounce-in";
+        notification.className =
+          "fixed top-20 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-bounce-in";
         notification.innerHTML = `
           <span class="material-symbols-outlined text-2xl text-amber-400">call_end</span>
           <div>
@@ -912,14 +919,14 @@
             <p class="text-sm text-slate-300">${message}</p>
           </div>
         `;
-        
+
         document.body.appendChild(notification);
-        
+
         // Auto remove after 4 seconds
         setTimeout(() => {
-          notification.style.opacity = '0';
-          notification.style.transform = 'translate(-50%, -20px)';
-          notification.style.transition = 'all 0.3s ease';
+          notification.style.opacity = "0";
+          notification.style.transform = "translate(-50%, -20px)";
+          notification.style.transition = "all 0.3s ease";
           setTimeout(() => notification.remove(), 300);
         }, 4000);
       }
@@ -927,9 +934,18 @@
 
     <style>
       @keyframes bounce-in {
-        0% { opacity: 0; transform: translate(-50%, -30px); }
-        50% { opacity: 1; transform: translate(-50%, 5px); }
-        100% { opacity: 1; transform: translate(-50%, 0); }
+        0% {
+          opacity: 0;
+          transform: translate(-50%, -30px);
+        }
+        50% {
+          opacity: 1;
+          transform: translate(-50%, 5px);
+        }
+        100% {
+          opacity: 1;
+          transform: translate(-50%, 0);
+        }
       }
       .animate-bounce-in {
         animation: bounce-in 0.4s ease-out;

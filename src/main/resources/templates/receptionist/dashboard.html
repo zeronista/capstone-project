@@ -1,9 +1,11 @@
 <!doctype html>
-<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Bảng điều phối Lễ tân - ABClinic</title>
+    <!-- Theme Controller - MUST be first to prevent flash -->
+    <script th:src="@{/js/core/theme-controller.js}"></script>
 
     <!-- Favicon -->
     <link rel="icon" type="image/jpeg" th:href="@{/images/Logo.jpg}" />
@@ -569,22 +571,24 @@
                 <div
                   class="mt-4 flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center"
                 >
-                  <div class="relative w-full lg:max-w-xs group">
-                    <div
-                      class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-                    >
-                      <span
-                        class="material-symbols-outlined text-slate-400 group-focus-within:text-violet-500 transition-colors text-[20px]"
-                        >search</span
+                  <div class="flex items-center gap-3">
+                    <div class="relative w-full lg:max-w-xs group">
+                      <div
+                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
                       >
+                        <span
+                          class="material-symbols-outlined text-slate-400 group-focus-within:text-violet-500 transition-colors text-[20px]"
+                          >search</span
+                        >
+                      </div>
+                      <input
+                        id="searchInput"
+                        class="block w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl leading-5 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 sm:text-sm transition-all"
+                        placeholder="Tìm kiếm bệnh nhân..."
+                        type="text"
+                        oninput="filterPatients()"
+                      />
                     </div>
-                    <input
-                      id="searchInput"
-                      class="block w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl leading-5 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 sm:text-sm transition-all"
-                      placeholder="Tìm kiếm bệnh nhân..."
-                      type="text"
-                      oninput="filterPatients()"
-                    />
                   </div>
                   <div class="flex flex-wrap items-center gap-2">
                     <button
@@ -746,18 +750,8 @@
       }
 
       // ==================== DARK MODE ====================
-      function toggleDarkMode() {
-        document.documentElement.classList.toggle("dark");
-        localStorage.setItem(
-          "darkMode",
-          document.documentElement.classList.contains("dark"),
-        );
-      }
-
-      // Initialize dark mode
-      if (localStorage.getItem("darkMode") === "true") {
-        document.documentElement.classList.add("dark");
-      }
+      // Using ThemeController from /js/core/theme-controller.js
+      // toggleDarkMode() is available globally
 
       // ==================== GREETING ====================
       function updateGreeting() {
@@ -1139,6 +1133,35 @@
           toggleDesktopSidebar();
         }
       });
+
+      // Sort patients function
+      function sortPatients() {
+        const sortBy = document.getElementById("sortSelect")?.value || "name";
+
+        filteredPatients.sort((a, b) => {
+          switch (sortBy) {
+            case "newest":
+              // Sort by createdAt descending (newest first)
+              const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+              const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+              return dateB - dateA;
+            case "oldest":
+              // Sort by createdAt ascending (oldest first)
+              const dateA2 = a.createdAt ? new Date(a.createdAt) : new Date(0);
+              const dateB2 = b.createdAt ? new Date(b.createdAt) : new Date(0);
+              return dateA2 - dateB2;
+            case "name":
+            default:
+              // Sort by name alphabetically
+              const nameA = a.name || "";
+              const nameB = b.name || "";
+              return nameA.localeCompare(nameB, "vi");
+          }
+        });
+
+        currentPage = 0;
+        renderPatients();
+      }
     </script>
   </body>
 </html>

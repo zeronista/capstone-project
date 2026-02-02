@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gọi Bệnh Nhân - ABClinic</title>
+    <!-- Theme Controller - MUST be first to prevent flash -->
+    <script th:src="@{/js/core/theme-controller.js}"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
@@ -276,6 +278,130 @@
     </style>
   </head>
   <body class="min-h-screen">
+    <!-- Sidebar Menu Overlay -->
+    <div
+      id="sidebarOverlay"
+      class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden"
+      onclick="toggleSidebarMenu()"
+    ></div>
+
+    <!-- Slide-out Sidebar Menu -->
+    <aside
+      id="sidebarMenu"
+      class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#1a2634] border-r border-slate-200 dark:border-slate-800 flex flex-col transform -translate-x-full transition-transform duration-300 ease-in-out"
+    >
+      <!-- Logo -->
+      <div
+        class="h-16 flex items-center gap-3 px-5 border-b border-slate-200 dark:border-slate-800 shrink-0"
+      >
+        <div
+          class="flex size-10 items-center justify-center rounded-xl bg-primary text-white font-bold text-lg shadow-md shadow-primary/30"
+        >
+          AB
+        </div>
+        <span
+          class="text-lg font-bold text-slate-900 dark:text-white tracking-tight"
+          >ABClinic</span
+        >
+        <button
+          class="ml-auto p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
+          onclick="toggleSidebarMenu()"
+        >
+          <span class="material-symbols-rounded text-[20px]">close</span>
+        </button>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 overflow-y-auto p-3 space-y-1">
+        <p
+          class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider"
+        >
+          Menu chính
+        </p>
+
+        <a
+          href="/receptionist/dashboard"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-rounded text-[22px]">dashboard</span>
+          <span>Bảng điều khiển</span>
+        </a>
+
+        <a
+          href="/receptionist/callbot"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium transition-all"
+        >
+          <span class="material-symbols-rounded text-[22px]"
+            >phone_in_talk</span
+          >
+          <span>AI Callbot</span>
+          <span
+            class="ml-auto text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-1.5 py-0.5 rounded font-bold"
+            >NEW</span
+          >
+        </a>
+
+        <a
+          href="/receptionist/users"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-rounded text-[22px]"
+            >personal_injury</span
+          >
+          <span>Quản lý bệnh nhân</span>
+        </a>
+
+        <a
+          href="/receptionist/surveys"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-rounded text-[22px]">quiz</span>
+          <span>Quản lý Survey</span>
+        </a>
+
+        <a
+          href="/receptionist/profile"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+        >
+          <span class="material-symbols-rounded text-[22px]">person</span>
+          <span>Hồ sơ cá nhân</span>
+        </a>
+      </nav>
+
+      <!-- User Profile & Logout -->
+      <div class="p-3 border-t border-slate-200 dark:border-slate-800">
+        <a
+          href="/receptionist/profile"
+          class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-all"
+        >
+          <div
+            class="size-10 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white font-bold text-sm shadow-sm"
+          >
+            R
+          </div>
+          <div class="flex-1 min-w-0">
+            <p
+              class="text-sm font-semibold text-slate-900 dark:text-white truncate"
+            >
+              Lễ tân
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              Receptionist
+            </p>
+          </div>
+        </a>
+        <form th:action="@{/auth/logout}" method="post" class="mt-2">
+          <button
+            type="submit"
+            class="w-full flex items-center justify-center gap-2 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-500 hover:text-red-500 transition-colors text-sm"
+          >
+            <span class="material-symbols-rounded text-[20px]">logout</span>
+            <span>Đăng xuất</span>
+          </button>
+        </form>
+      </div>
+    </aside>
+
     <!-- Main Container -->
     <div
       id="callContainer"
@@ -288,17 +414,34 @@
         <!-- Header -->
         <div class="p-4 border-b border-white/10">
           <div class="flex items-center gap-3 mb-4">
-            <a
-              th:href="@{/receptionist/dashboard}"
-              class="text-white/80 hover:text-white transition-colors"
+            <!-- Menu Button -->
+            <button
+              onclick="toggleSidebarMenu()"
+              class="text-white/80 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
+              title="Menu"
             >
-              <span class="material-symbols-rounded text-2xl">arrow_back</span>
-            </a>
-            <h1 class="text-xl font-semibold text-white">Gọi Bệnh Nhân</h1>
+              <span class="material-symbols-rounded text-2xl">menu</span>
+            </button>
+            <h1 class="text-xl font-semibold text-white flex-1">
+              Gọi Bệnh Nhân
+            </h1>
+            <!-- Dark Mode Toggle -->
+            <button
+              onclick="ThemeController.toggle()"
+              class="text-white/80 hover:text-white transition-colors p-1 rounded-lg hover:bg-white/10"
+              title="Chuyển đổi giao diện"
+            >
+              <span class="material-symbols-rounded text-2xl dark:hidden"
+                >dark_mode</span
+              >
+              <span class="material-symbols-rounded text-2xl hidden dark:inline"
+                >light_mode</span
+              >
+            </button>
           </div>
 
           <!-- Search -->
-          <div class="relative">
+          <div class="relative mb-3">
             <span
               class="material-symbols-rounded absolute left-3 top-1/2 -translate-y-1/2 text-white/50"
               >search</span
@@ -308,6 +451,30 @@
               id="searchPatient"
               placeholder="Tìm bệnh nhân..."
               class="w-full bg-white/10 border border-white/20 rounded-full py-2.5 pl-10 pr-4 text-white placeholder-white/50 focus:outline-none focus:border-white/40"
+            />
+          </div>
+
+          <!-- Sort -->
+          <select
+            id="sortCallsSelect"
+            onchange="sortCallHistory()"
+            class="w-full bg-white/10 border border-white/20 rounded-lg py-2 px-3 text-white text-sm focus:outline-none focus:border-white/40"
+          >
+            <option value="newest" class="bg-slate-800">Mới nhất</option>
+            <option value="oldest" class="bg-slate-800">Cũ nhất</option>
+            <option value="name" class="bg-slate-800">Theo tên</option>
+            <option value="date" class="bg-slate-800">
+              Theo ngày (DD/MM/YYYY)
+            </option>
+          </select>
+
+          <!-- Date Filter -->
+          <div id="dateFilterContainer" class="hidden mt-3">
+            <input
+              type="date"
+              id="dateFilter"
+              onchange="filterByDate()"
+              class="w-full bg-white/10 border border-white/20 rounded-lg py-2 px-3 text-white text-sm focus:outline-none focus:border-white/40"
             />
           </div>
         </div>
@@ -325,6 +492,7 @@
               <!-- Sample patients - will be loaded dynamically -->
               <div
                 class="patient-item flex items-center gap-3 p-3 rounded-xl cursor-pointer"
+                data-call-date="2026-02-02T10:30:00"
                 onclick="selectPatient('Nguyễn Văn An', '0901234567', 'BN001')"
               >
                 <div
@@ -335,6 +503,7 @@
                 <div class="flex-1 min-w-0">
                   <p class="text-white font-medium truncate">Nguyễn Văn An</p>
                   <p class="text-white/60 text-sm">0901234567</p>
+                  <p class="text-white/40 text-xs">02/02/2026 - 10:30</p>
                 </div>
                 <span class="material-symbols-rounded text-green-400"
                   >call_made</span
@@ -343,6 +512,7 @@
 
               <div
                 class="patient-item flex items-center gap-3 p-3 rounded-xl cursor-pointer"
+                data-call-date="2026-02-01T15:45:00"
                 onclick="selectPatient('Trần Thị Bình', '0912345678', 'BN002')"
               >
                 <div
@@ -353,6 +523,7 @@
                 <div class="flex-1 min-w-0">
                   <p class="text-white font-medium truncate">Trần Thị Bình</p>
                   <p class="text-white/60 text-sm">0912345678</p>
+                  <p class="text-white/40 text-xs">01/02/2026 - 15:45</p>
                 </div>
                 <span class="material-symbols-rounded text-red-400"
                   >call_received</span
@@ -361,6 +532,7 @@
 
               <div
                 class="patient-item flex items-center gap-3 p-3 rounded-xl cursor-pointer"
+                data-call-date="2026-01-31T09:15:00"
                 onclick="selectPatient('Lê Hoàng Cường', '0923456789', 'BN003')"
               >
                 <div
@@ -371,6 +543,7 @@
                 <div class="flex-1 min-w-0">
                   <p class="text-white font-medium truncate">Lê Hoàng Cường</p>
                   <p class="text-white/60 text-sm">0923456789</p>
+                  <p class="text-white/40 text-xs">31/01/2026 - 09:15</p>
                 </div>
                 <span class="material-symbols-rounded text-green-400"
                   >call_made</span
@@ -379,6 +552,7 @@
 
               <div
                 class="patient-item flex items-center gap-3 p-3 rounded-xl cursor-pointer"
+                data-call-date="2026-01-30T14:20:00"
                 onclick="selectPatient('Phạm Minh Đức', '0934567890', 'BN004')"
               >
                 <div
@@ -389,6 +563,7 @@
                 <div class="flex-1 min-w-0">
                   <p class="text-white font-medium truncate">Phạm Minh Đức</p>
                   <p class="text-white/60 text-sm">0934567890</p>
+                  <p class="text-white/40 text-xs">30/01/2026 - 14:20</p>
                 </div>
                 <span class="material-symbols-rounded text-yellow-400"
                   >call_missed</span
@@ -397,6 +572,7 @@
 
               <div
                 class="patient-item flex items-center gap-3 p-3 rounded-xl cursor-pointer"
+                data-call-date="2026-01-29T11:00:00"
                 onclick="selectPatient('Hoàng Thị E', '0945678901', 'BN005')"
               >
                 <div
@@ -407,6 +583,7 @@
                 <div class="flex-1 min-w-0">
                   <p class="text-white font-medium truncate">Hoàng Thị E</p>
                   <p class="text-white/60 text-sm">0945678901</p>
+                  <p class="text-white/40 text-xs">29/01/2026 - 11:00</p>
                 </div>
                 <span class="material-symbols-rounded text-green-400"
                   >call_made</span
@@ -584,7 +761,7 @@
           <!-- End Call Button -->
           <button
             class="control-btn bg-red-500 text-white w-16 h-16 mt-12 shadow-lg shadow-red-500/30"
-            onclick="endCall()"
+            onclick="hangupCall()"
           >
             <span class="material-symbols-rounded text-3xl">call_end</span>
           </button>
@@ -663,7 +840,7 @@
           <!-- End Call Button -->
           <button
             class="control-btn bg-red-500 text-white w-16 h-16 mt-8 shadow-lg shadow-red-500/30"
-            onclick="endCall()"
+            onclick="hangupCall()"
           >
             <span class="material-symbols-rounded text-3xl">call_end</span>
           </button>
@@ -791,6 +968,8 @@
       let isMuted = false;
       let isSpeakerOn = false;
       let isRecording = false;
+      let callAnswered = false; // Track if call was answered
+      let localHangup = false; // Track if local user (receptionist) ended the call
 
       // Recording variables
       let mediaRecorder = null;
@@ -952,15 +1131,24 @@
               break;
             case 4: // Answered
               document.getElementById("ringTone").pause();
+              callAnswered = true; // Mark call as answered
               setState("connected");
               startCallTimer();
               // Auto start recording when call connects
               setTimeout(() => startRecording(), 1000);
               break;
-            case 5: // Busy
-            case 6: // Ended
+            case 5: // Busy - bệnh nhân không nghe máy
               document.getElementById("ringTone").pause();
-              endCall();
+              endCall(false, "busy");
+              break;
+            case 6: // Ended - cuộc gọi kết thúc
+              document.getElementById("ringTone").pause();
+              // Nếu cuộc gọi đã được trả lời và không phải local hangup -> bệnh nhân kết thúc
+              if (callAnswered && !localHangup) {
+                endCall(true, "remote_hangup"); // Remote (bệnh nhân) kết thúc cuộc gọi
+              } else {
+                endCall(false, "ended");
+              }
               break;
           }
         });
@@ -968,8 +1156,8 @@
         currentCall.makeCall();
       }
 
-      // End call
-      function endCall() {
+      // End call - gọi từ nút kết thúc của lễ tân
+      function endCall(isRemoteHangup = false, reason = "ended") {
         document.getElementById("ringTone").pause();
 
         // Stop recording if active
@@ -984,16 +1172,33 @@
 
         stopCallTimer();
 
-        // Update ended state
-        document.getElementById("endedName").textContent =
-          currentPatientName || "Cuộc gọi kết thúc";
+        // Update ended state với thông báo phù hợp
+        let endMessage = currentPatientName || "Cuộc gọi kết thúc";
+        if (isRemoteHangup && callAnswered) {
+          // Bệnh nhân đã bắt máy và chủ động kết thúc cuộc gọi
+          endMessage = "Bệnh nhân đã kết thúc cuộc gọi";
+        } else if (reason === "busy") {
+          endMessage = "Bệnh nhân không nghe máy";
+        }
+
+        document.getElementById("endedName").textContent = endMessage;
         document.getElementById("endedDuration").textContent =
           "Thời lượng: " + document.getElementById("callDuration").textContent;
+
+        // Reset tracking variables
+        callAnswered = false;
+        localHangup = false;
 
         setState("ended");
 
         // Log call to server
         logCall();
+      }
+
+      // Hàm gọi khi lễ tân chủ động kết thúc cuộc gọi
+      function hangupCall() {
+        localHangup = true; // Đánh dấu lễ tân chủ động kết thúc
+        endCall(false, "local_hangup");
       }
 
       // Log call to server
@@ -1393,6 +1598,87 @@
           selectPatient(name || "Bệnh nhân #" + patientId, phone, patientId);
         }
       });
+
+      // Sort call history function
+      function sortCallHistory() {
+        const sortBy =
+          document.getElementById("sortCallsSelect")?.value || "newest";
+        const container = document.getElementById("recentPatients");
+        const items = Array.from(container.querySelectorAll(".patient-item"));
+        const dateFilterContainer = document.getElementById(
+          "dateFilterContainer",
+        );
+
+        // Show/hide date filter based on selection
+        if (sortBy === "date") {
+          dateFilterContainer.classList.remove("hidden");
+        } else {
+          dateFilterContainer.classList.add("hidden");
+        }
+
+        items.sort((a, b) => {
+          const nameA = a.querySelector("p.font-medium")?.textContent || "";
+          const nameB = b.querySelector("p.font-medium")?.textContent || "";
+          // Get date from data attribute or use index as fallback
+          const dateA = a.dataset.callDate
+            ? new Date(a.dataset.callDate)
+            : new Date();
+          const dateB = b.dataset.callDate
+            ? new Date(b.dataset.callDate)
+            : new Date();
+          const indexA = items.indexOf(a);
+          const indexB = items.indexOf(b);
+
+          switch (sortBy) {
+            case "newest":
+              return dateB - dateA || indexA - indexB;
+            case "oldest":
+              return dateA - dateB || indexB - indexA;
+            case "date":
+              return dateB - dateA; // Sort by date descending
+            case "name":
+            default:
+              return nameA.localeCompare(nameB, "vi");
+          }
+        });
+
+        items.forEach((item) => container.appendChild(item));
+      }
+
+      // Filter by specific date
+      function filterByDate() {
+        const selectedDate = document.getElementById("dateFilter").value;
+        const container = document.getElementById("recentPatients");
+        const items = container.querySelectorAll(".patient-item");
+
+        if (!selectedDate) {
+          // Show all if no date selected
+          items.forEach((item) => (item.style.display = "flex"));
+          return;
+        }
+
+        const filterDate = new Date(selectedDate).toDateString();
+
+        items.forEach((item) => {
+          const itemDate = item.dataset.callDate
+            ? new Date(item.dataset.callDate).toDateString()
+            : new Date().toDateString();
+
+          if (itemDate === filterDate) {
+            item.style.display = "flex";
+          } else {
+            item.style.display = "none";
+          }
+        });
+      }
+
+      // Toggle sidebar menu
+      function toggleSidebarMenu() {
+        const sidebar = document.getElementById("sidebarMenu");
+        const overlay = document.getElementById("sidebarOverlay");
+        sidebar.classList.toggle("-translate-x-full");
+        overlay.classList.toggle("hidden");
+      }
     </script>
   </body>
 </html>

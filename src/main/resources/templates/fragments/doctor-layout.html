@@ -2,6 +2,51 @@
 <html xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
+    <style>
+      /* Doctor Sidebar Collapsed State Styles */
+      @media (min-width: 1024px) {
+        .sidebar-collapsed {
+          width: 4.5rem !important;
+        }
+        .sidebar-collapsed .sidebar-text {
+          display: none;
+        }
+        .sidebar-collapsed .doctor-menu-item {
+          justify-content: center;
+          padding-left: 0.75rem;
+          padding-right: 0.75rem;
+          position: relative;
+        }
+        .sidebar-collapsed .doctor-menu-item:hover::after {
+          content: attr(title);
+          position: absolute;
+          left: 100%;
+          top: 50%;
+          transform: translateY(-50%);
+          margin-left: 0.5rem;
+          padding: 0.5rem 0.75rem;
+          background-color: #1e293b;
+          color: white;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+          white-space: nowrap;
+          z-index: 50;
+          pointer-events: none;
+          box-shadow:
+            0 4px 6px -1px rgba(0, 0, 0, 0.1),
+            0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .sidebar-collapsed .p-4 > a > .overflow-hidden {
+          display: none;
+        }
+        .sidebar-collapsed .p-4 > a > div.bg-primary {
+          margin: 0 auto;
+        }
+        .sidebar-collapsed form button .sidebar-text {
+          display: none;
+        }
+      }
+    </style>
   </head>
   <body>
     <!-- Mobile Sidebar Backdrop Fragment -->

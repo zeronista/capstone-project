@@ -1,7 +1,6 @@
 <!doctype html>
-<html class="light" lang="vi" xmlns:th="http://www.thymeleaf.org">
-  <head th:replace="~{fragments/layout :: head(title='Lịch Hẹn')}">
-  </head>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{fragments/layout :: head(title='Lịch Hẹn')}"> </head>
   <body
     class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-sans h-screen flex overflow-hidden"
   >
@@ -29,7 +28,10 @@
             </h2>
             <div id="appointmentsList">
               <div class="text-center py-12">
-                <span class="material-symbols-outlined text-slate-300 text-6xl mb-4">calendar_month</span>
+                <span
+                  class="material-symbols-outlined text-slate-300 text-6xl mb-4"
+                  >calendar_month</span
+                >
                 <p class="text-slate-500">Chức năng đang được phát triển</p>
                 <p class="text-sm text-slate-400 mt-2">Vui lòng quay lại sau</p>
               </div>
