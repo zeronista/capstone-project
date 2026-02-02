@@ -30,7 +30,7 @@ public class KnowledgeArticle {
     @Column(columnDefinition = "TEXT")
     private String summary;
 
-    @Column(nullable = false, columnDefinition = "LONGTEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)

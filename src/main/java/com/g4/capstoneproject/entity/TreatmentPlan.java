@@ -58,7 +58,7 @@ public class TreatmentPlan {
     @Column(name = "ai_suggested")
     private Boolean aiSuggested = false;
     
-    @Column(name = "ai_suggestion_data", columnDefinition = "JSON")
+    @Column(name = "ai_suggestion_data", columnDefinition = "JSONB")
     private String aiSuggestionData; // Lưu gợi ý từ AI
     
     @OneToMany(mappedBy = "treatmentPlan", cascade = CascadeType.ALL, orphanRemoval = true)

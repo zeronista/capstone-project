@@ -28,7 +28,7 @@ public class SurveyTemplate {
     @Column(columnDefinition = "TEXT")
     private String description;
     
-    @Column(name = "questions_json", columnDefinition = "JSON")
+    @Column(name = "questions_json", columnDefinition = "JSONB")
     private String questionsJson; // JSON chứa danh sách câu hỏi
     
     @Builder.Default

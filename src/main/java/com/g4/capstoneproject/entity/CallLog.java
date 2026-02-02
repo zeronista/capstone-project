@@ -73,7 +73,7 @@ public class CallLog {
     @JoinColumn(name = "handled_by")
     private User handledBy; // Lễ tân/Bác sĩ tiếp nhận
     
-    @Column(name = "survey_responses", columnDefinition = "JSON")
+    @Column(name = "survey_responses", columnDefinition = "JSONB")
     private String surveyResponses; // Lưu câu trả lời khảo sát dạng JSON
     
     @CreationTimestamp

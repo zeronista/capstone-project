@@ -53,7 +53,7 @@ public class HealthForecast {
      * - overallRisk: mức độ rủi ro tổng thể (LOW, MODERATE, HIGH, VERY_HIGH)
      */
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "risk_scores", columnDefinition = "JSON")
+    @Column(name = "risk_scores", columnDefinition = "JSONB")
     private Map<String, Object> riskScores;
 
     // ========== Predictions (JSON) ==========
@@ -66,7 +66,7 @@ public class HealthForecast {
      * - estimatedConditions: danh sách các bệnh có nguy cơ cao
      */
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "predictions", columnDefinition = "JSON")
+    @Column(name = "predictions", columnDefinition = "JSONB")
     private Map<String, Object> predictions;
 
     // ========== Risk Factors (JSON) ==========
@@ -80,7 +80,7 @@ public class HealthForecast {
      * - medications: thuốc đang dùng
      */
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "risk_factors", columnDefinition = "JSON")
+    @Column(name = "risk_factors", columnDefinition = "JSONB")
     private Map<String, Object> riskFactors;
 
     // ========== Recommendations ==========
@@ -101,7 +101,7 @@ public class HealthForecast {
      * Lưu dưới dạng JSON để tham chiếu nhanh
      */
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "vital_signs_snapshot", columnDefinition = "JSON")
+    @Column(name = "vital_signs_snapshot", columnDefinition = "JSONB")
     private Map<String, Object> vitalSignsSnapshot;
 
     // ========== Bác sĩ tạo dự báo ==========
