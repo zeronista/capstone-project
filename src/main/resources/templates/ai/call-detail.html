@@ -299,6 +299,30 @@
                   Trả lời
                 </button>
               </div>
+
+              <!-- Call Controls (Mute & Speaker) - Hiện khi đang trong cuộc gọi -->
+              <div id="callControls" class="hidden flex justify-center gap-4 mt-4">
+                <button
+                  id="btnMute"
+                  onclick="toggleMute()"
+                  class="flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-gray-100 transition-all"
+                >
+                  <div id="muteIconWrapper" class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                    <span id="muteIcon" class="material-symbols-rounded text-xl text-gray-600">mic</span>
+                  </div>
+                  <span id="muteLabel" class="text-xs text-gray-500">Tắt mic</span>
+                </button>
+                <button
+                  id="btnSpeaker"
+                  onclick="toggleSpeaker()"
+                  class="flex flex-col items-center gap-1 p-3 rounded-xl hover:bg-gray-100 transition-all"
+                >
+                  <div id="speakerIconWrapper" class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                    <span id="speakerIcon" class="material-symbols-rounded text-xl text-gray-600">volume_up</span>
+                  </div>
+                  <span id="speakerLabel" class="text-xs text-gray-500">Tắt loa</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -568,6 +592,10 @@
       function addLog(message, type = "info") {
         const logBox = document.getElementById("logConsole");
         const timestamp = new Date().toLocaleTimeString();
+        // Trạng thái mic và loa
+        var isMuted = false;
+        var isSpeakerOn = true;
+        
         const colors = {
           info: "text-blue-400",
           success: "text-green-400",
@@ -617,8 +645,13 @@
           addLog("Cuộc gọi đến từ: " + incomingCall.fromNumber, "info");
           currentCall = incomingCall;
           settingCallEvents(currentCall);
+          // Hiển thị UI cho cuộc gọi đến
           document.getElementById("btnAnswer").classList.remove("hidden");
+          document.getElementById("btnAnswer").classList.add("animate-pulse");
           document.getElementById("btnCall").classList.add("hidden");
+          showCallStatus("Cuộc gọi đến...", "calling");
+          // Hiển thị thông báo
+          showNotification("Cuộc gọi đến", "Có cuộc gọi từ " + incomingCall.fromNumber, "info");
         });
         stringeeClient.connect(myToken);
       }
@@ -715,20 +748,33 @@
               break;
             case 3: // Answered - đã bắt máy
               showCallStatus("Đang trong cuộc gọi", "connected");
+              showInCallUI();
               startCallDurationTimer();
               break;
             case 4: // Busy
               addLog("Máy bận", "warning");
               showCallStatus("Máy bận", "ended");
+              showNotification("Máy bận", "Bệnh nhân đang bận, vui lòng thử lại sau", "warning");
               setTimeout(() => resetUI(), 2000);
               break;
-            case 5: // Ended
-            case 6: // Ended
+            case 5: // Ended - cuộc gọi kết thúc bình thường
               addLog("Cuộc gọi đã kết thúc", "success");
               showCallStatus("Đã kết thúc", "ended");
+              showNotification("Cuộc gọi kết thúc", "Cuộc gọi đã được kết thúc", "info");
+              setTimeout(() => resetUI(), 2000);
+              break;
+            case 6: // Rejected - bệnh nhân từ chối
+              addLog("Bệnh nhân đã từ chối cuộc gọi", "warning");
+              showCallStatus("Bị từ chối", "ended");
+              showNotification("Cuộc gọi bị từ chối", "Bệnh nhân đã từ chối cuộc gọi", "error");
               setTimeout(() => resetUI(), 2000);
               break;
           }
+        });
+
+        // Event: Cuộc gọi kết thúc từ phía remote
+        call.on("remotestream", (stream) => {
+          // Stream ended từ phía remote
         });
 
         // Event: Thông tin cuộc gọi
@@ -794,7 +840,149 @@
       function showInCallUI() {
         document.getElementById("btnCall").classList.add("hidden");
         document.getElementById("btnAnswer").classList.add("hidden");
+        document.getElementById("btnAnswer").classList.remove("animate-pulse");
         document.getElementById("btnHangup").classList.remove("hidden");
+        document.getElementById("btnHangup").style.display = "flex";
+        // Hiển thị nút điều khiển Mute/Speaker
+        document.getElementById("callControls").classList.remove("hidden");
+      }
+
+      // Ẩn UI điều khiển cuộc gọi
+      function hideCallControls() {
+        document.getElementById("callControls").classList.add("hidden");
+        // Reset trạng thái
+        resetMuteState();
+        resetSpeakerState();
+      }
+
+      // Bật/tắt mic
+      function toggleMute() {
+        if (!currentCall) return;
+        
+        isMuted = !isMuted;
+        currentCall.mute(isMuted);
+        
+        const iconWrapper = document.getElementById("muteIconWrapper");
+        const icon = document.getElementById("muteIcon");
+        const label = document.getElementById("muteLabel");
+        
+        if (isMuted) {
+          icon.textContent = "mic_off";
+          label.textContent = "Bật mic";
+          iconWrapper.classList.remove("bg-gray-100");
+          iconWrapper.classList.add("bg-red-500");
+          icon.classList.remove("text-gray-600");
+          icon.classList.add("text-white");
+          addLog("Đã tắt mic", "warning");
+        } else {
+          icon.textContent = "mic";
+          label.textContent = "Tắt mic";
+          iconWrapper.classList.remove("bg-red-500");
+          iconWrapper.classList.add("bg-gray-100");
+          icon.classList.remove("text-white");
+          icon.classList.add("text-gray-600");
+          addLog("Đã bật mic", "info");
+        }
+      }
+
+      // Bật/tắt loa
+      function toggleSpeaker() {
+        const remoteAudio = document.getElementById("remoteAudio");
+        if (!remoteAudio) return;
+        
+        isSpeakerOn = !isSpeakerOn;
+        remoteAudio.muted = !isSpeakerOn;
+        
+        const iconWrapper = document.getElementById("speakerIconWrapper");
+        const icon = document.getElementById("speakerIcon");
+        const label = document.getElementById("speakerLabel");
+        
+        if (isSpeakerOn) {
+          icon.textContent = "volume_up";
+          label.textContent = "Tắt loa";
+          iconWrapper.classList.remove("bg-amber-500");
+          iconWrapper.classList.add("bg-gray-100");
+          icon.classList.remove("text-white");
+          icon.classList.add("text-gray-600");
+          addLog("Đã bật loa", "info");
+        } else {
+          icon.textContent = "volume_off";
+          label.textContent = "Bật loa";
+          iconWrapper.classList.remove("bg-gray-100");
+          iconWrapper.classList.add("bg-amber-500");
+          icon.classList.remove("text-gray-600");
+          icon.classList.add("text-white");
+          addLog("Đã tắt loa", "warning");
+        }
+      }
+
+      // Reset trạng thái mute
+      function resetMuteState() {
+        isMuted = false;
+        const iconWrapper = document.getElementById("muteIconWrapper");
+        const icon = document.getElementById("muteIcon");
+        const label = document.getElementById("muteLabel");
+        if (iconWrapper) {
+          iconWrapper.classList.remove("bg-red-500");
+          iconWrapper.classList.add("bg-gray-100");
+        }
+        if (icon) {
+          icon.textContent = "mic";
+          icon.classList.remove("text-white");
+          icon.classList.add("text-gray-600");
+        }
+        if (label) label.textContent = "Tắt mic";
+      }
+
+      // Reset trạng thái speaker
+      function resetSpeakerState() {
+        isSpeakerOn = true;
+        const iconWrapper = document.getElementById("speakerIconWrapper");
+        const icon = document.getElementById("speakerIcon");
+        const label = document.getElementById("speakerLabel");
+        if (iconWrapper) {
+          iconWrapper.classList.remove("bg-amber-500");
+          iconWrapper.classList.add("bg-gray-100");
+        }
+        if (icon) {
+          icon.textContent = "volume_up";
+          icon.classList.remove("text-white");
+          icon.classList.add("text-gray-600");
+        }
+        if (label) label.textContent = "Tắt loa";
+      }
+
+      // Hiển thị notification toast
+      function showNotification(title, message, type = "info") {
+        // Tạo notification element
+        const notification = document.createElement("div");
+        const bgColor = type === "error" ? "bg-red-500" : type === "warning" ? "bg-yellow-500" : type === "success" ? "bg-green-500" : "bg-blue-500";
+        const icon = type === "error" ? "error" : type === "warning" ? "warning" : type === "success" ? "check_circle" : "info";
+        
+        notification.className = `fixed top-20 right-4 ${bgColor} text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 transform translate-x-full transition-transform duration-300`;
+        notification.innerHTML = `
+          <span class="material-symbols-rounded text-2xl">${icon}</span>
+          <div>
+            <p class="font-semibold">${title}</p>
+            <p class="text-sm text-white/90">${message}</p>
+          </div>
+          <button onclick="this.parentElement.remove()" class="ml-4 text-white/70 hover:text-white">
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+          notification.classList.remove("translate-x-full");
+        }, 100);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+          notification.classList.add("translate-x-full");
+          setTimeout(() => notification.remove(), 300);
+        }, 5000);
       }
 
       function hangupCall() {
@@ -804,14 +992,22 @@
 
       function answerCall() {
         if (currentCall) {
+          // Cập nhật UI ngay lập tức khi nhấn nút trả lời
+          showInCallUI();
+          showCallStatus("Đang kết nối...", "calling");
+          
           currentCall.answer(function (res) {
             if (res.r === 0) {
-              showInCallUI();
               showCallStatus("Đang trong cuộc gọi", "connected");
               startCallDurationTimer();
               if (document.getElementById("autoRecordCheckbox").checked) {
                 setTimeout(() => startRecording(), 1000);
               }
+            } else {
+              // Lỗi khi trả lời
+              addLog("Lỗi trả lời cuộc gọi: " + res.message, "error");
+              showNotification("Lỗi", "Không thể trả lời cuộc gọi: " + res.message, "error");
+              resetUI();
             }
           });
         }
@@ -837,8 +1033,11 @@
         document.getElementById("btnCall").classList.remove("hidden");
         document.getElementById("btnAnswer").classList.add("hidden");
         document.getElementById("btnHangup").classList.add("hidden");
+        document.getElementById("btnHangup").style.display = "";
         document.getElementById("recordingInfo").classList.add("hidden");
         document.getElementById("remote_videos").innerHTML = "";
+        // Ẩn call controls và reset trạng thái
+        hideCallControls();
         currentCall = null;
       }
 

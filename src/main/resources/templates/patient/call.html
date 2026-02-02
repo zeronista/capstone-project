@@ -580,15 +580,30 @@
 
         call.on("signalingstate", (state) => {
           addLog("Call state: " + state.reason, "info");
+          console.log("Signaling state code:", state.code);
 
           switch (state.code) {
-            case 3: // Answered
+            case 2: // Ringing - cuộc gọi đang đổ chuông
+              addLog("Cuộc gọi đang đổ chuông...", "info");
+              break;
+            case 3: // Answered - đã trả lời thành công
+              addLog("✅ Đã kết nối cuộc gọi", "success");
+              stopRingtone();
               showInCallState();
               startCallTimer();
               break;
-            case 4: // Busy
-            case 5: // Ended
-            case 6: // Rejected
+            case 4: // Busy - đầu kia bận
+              addLog("Đầu kia đang bận", "warning");
+              endCallUI();
+              break;
+            case 5: // Ended - cuộc gọi kết thúc bình thường (bên kia gác máy)
+              addLog("Cuộc gọi đã kết thúc", "info");
+              stopRingtone();
+              showCallEndedNotification("Cuộc gọi đã kết thúc", "Nhân viên tư vấn đã kết thúc cuộc gọi");
+              endCallUI();
+              break;
+            case 6: // Rejected/Cancelled
+              addLog("Cuộc gọi đã bị hủy", "warning");
               endCallUI();
               break;
           }
@@ -611,11 +626,21 @@
         addLog("Đang trả lời cuộc gọi...", "info");
         stopRingtone();
 
+        // Ẩn incoming state ngay lập tức để tránh treo UI
+        document.getElementById("incomingState").classList.add("hidden");
+        
+        // Hiển thị trạng thái đang kết nối
+        document.getElementById("inCallState").classList.remove("hidden");
+        document.getElementById("callDuration").textContent = "Đang kết nối...";
+
         currentCall.answer((res) => {
           if (res.r === 0) {
             addLog("✅ Đã trả lời cuộc gọi", "success");
+            // UI sẽ được cập nhật bởi signalingstate event khi có code 3 (Answered)
           } else {
             addLog("Lỗi trả lời: " + res.message, "error");
+            // Quay lại idle state nếu lỗi
+            endCallUI();
           }
         });
       }
@@ -875,7 +900,41 @@
         document.getElementById("logList").innerHTML =
           '<div class="text-slate-400">Đã xóa nhật ký</div>';
       }
+
+      // Hiển thị notification khi cuộc gọi kết thúc
+      function showCallEndedNotification(title, message) {
+        const notification = document.createElement("div");
+        notification.className = "fixed top-20 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-bounce-in";
+        notification.innerHTML = `
+          <span class="material-symbols-outlined text-2xl text-amber-400">call_end</span>
+          <div>
+            <p class="font-semibold">${title}</p>
+            <p class="text-sm text-slate-300">${message}</p>
+          </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 4 seconds
+        setTimeout(() => {
+          notification.style.opacity = '0';
+          notification.style.transform = 'translate(-50%, -20px)';
+          notification.style.transition = 'all 0.3s ease';
+          setTimeout(() => notification.remove(), 300);
+        }, 4000);
+      }
     </script>
+
+    <style>
+      @keyframes bounce-in {
+        0% { opacity: 0; transform: translate(-50%, -30px); }
+        50% { opacity: 1; transform: translate(-50%, 5px); }
+        100% { opacity: 1; transform: translate(-50%, 0); }
+      }
+      .animate-bounce-in {
+        animation: bounce-in 0.4s ease-out;
+      }
+    </style>
 
     <style>
       .status-dot {
