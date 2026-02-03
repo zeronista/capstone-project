@@ -28,10 +28,7 @@ public interface CallLogRepository extends JpaRepository<CallLog, Long> {
      */
     List<CallLog> findByPatientId(Long patientId);
     
-    /**
-     * Tìm cuộc gọi theo chiến dịch
-     */
-    List<CallLog> findByCampaignId(Long campaignId);
+    // Removed: findByCampaignId() - CallCampaign entity removed in schema v4.0
     
     /**
      * Tìm cuộc gọi theo số điện thoại
