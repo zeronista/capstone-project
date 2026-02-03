@@ -88,6 +88,8 @@ public class SecurityConfig {
                                                                 "/api/stringee/event",
                                                                 "/api/stringee/answer",
                                                                 "/api/stringee/upload-recording",
+                                                                // Allow Web Call APIs
+                                                                "/api/web-call/**",
                                                                 // Allow patient document upload (multipart form)
                                                                 "/api/patient/documents/**",
                                                                 // Allow profile update and avatar (for patient portal)
