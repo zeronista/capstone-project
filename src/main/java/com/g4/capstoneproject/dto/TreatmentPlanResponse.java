@@ -51,7 +51,7 @@ public class TreatmentPlanResponse {
                 .status(plan.getStatus())
                 .aiSuggested(plan.getAiSuggested())
                 .itemCount(plan.getItems() != null ? plan.getItems().size() : 0)
-                .checkupCount(0) // Will be updated from CheckupSchedule service
+                .checkupCount(0) // CheckupSchedule entity removed in schema v4.0
                 .build();
     }
 }

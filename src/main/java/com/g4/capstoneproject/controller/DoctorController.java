@@ -11,7 +11,6 @@ import com.g4.capstoneproject.dto.TreatmentPlanResponse;
 import com.g4.capstoneproject.dto.TreatmentPlanDetailResponse;
 import com.g4.capstoneproject.dto.HealthForecastResponse;
 import com.g4.capstoneproject.dto.HealthForecastDetailResponse;
-import com.g4.capstoneproject.entity.CheckupSchedule;
 import com.g4.capstoneproject.entity.HealthForecast;
 import com.g4.capstoneproject.entity.Prescription;
 import com.g4.capstoneproject.entity.Ticket;
@@ -365,26 +364,9 @@ public class DoctorController {
         }).collect(Collectors.toList());
         result.put("prescriptions", prescriptionList);
 
-        // Vital signs (latest records)
-        List<com.g4.capstoneproject.entity.VitalSigns> vitalSigns = patientService.getRecentVitalSigns(id, 10);
-        List<Map<String, Object>> vitalsList = vitalSigns.stream().map(vs -> {
-            Map<String, Object> vsData = new HashMap<>();
-            vsData.put("id", vs.getId());
-            vsData.put("systolicPressure", vs.getSystolicPressure());
-            vsData.put("diastolicPressure", vs.getDiastolicPressure());
-            vsData.put("heartRate", vs.getHeartRate());
-            vsData.put("weight", vs.getWeight());
-            vsData.put("height", vs.getHeight());
-            vsData.put("bmi", vs.getBmi());
-            vsData.put("temperature", vs.getTemperature());
-            vsData.put("respiratoryRate", vs.getRespiratoryRate());
-            vsData.put("oxygenSaturation", vs.getOxygenSaturation());
-            vsData.put("bloodSugar", vs.getBloodSugar());
-            vsData.put("recordDate", vs.getRecordDate());
-            vsData.put("notes", vs.getNotes());
-            return vsData;
-        }).collect(Collectors.toList());
-        result.put("vitalSigns", vitalsList);
+        // NOTE: VitalSigns entity removed in schema v4.0
+        // Vital signs data now stored as JSONB in health_forecasts.vital_signs_snapshot
+        result.put("vitalSigns", List.of()); // Empty list for backward compatibility
 
         // Tickets for this patient (using createdBy = patientId)
         List<Ticket> tickets = ticketService.getTicketsByCreatedByUserId(id);
@@ -406,7 +388,7 @@ public class DoctorController {
         stats.put("activeTreatmentPlans",
                 plans.stream().filter(p -> p.getStatus() == TreatmentPlan.PlanStatus.ACTIVE).count());
         stats.put("totalPrescriptions", prescriptions.size());
-        stats.put("totalVitalRecords", vitalSigns.size());
+        stats.put("totalVitalRecords", 0); // VitalSigns entity removed in schema v4.0
         stats.put("openTickets", tickets.stream().filter(t -> t.getStatus() == Ticket.Status.OPEN).count());
         result.put("stats", stats);
 
@@ -1031,12 +1013,12 @@ public class DoctorController {
                     .collect(Collectors.toList());
         }
 
-        // Convert to DTOs and add checkup count
+        // Convert to DTOs
+        // NOTE: CheckupSchedule entity removed in schema v4.0
         List<TreatmentPlanResponse> planResponses = plans.stream()
                 .map(plan -> {
                     TreatmentPlanResponse response = TreatmentPlanResponse.fromEntity(plan);
-                    int checkupCount = treatmentPlanService.getCheckupSchedulesByPlanId(plan.getId()).size();
-                    response.setCheckupCount(checkupCount);
+                    response.setCheckupCount(0); // CheckupSchedule removed
                     return response;
                 })
                 .collect(Collectors.toList());
@@ -1076,10 +1058,8 @@ public class DoctorController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        // Get checkup schedules
-        List<CheckupSchedule> checkups = treatmentPlanService.getCheckupSchedulesByPlanId(id);
-
-        TreatmentPlanDetailResponse response = TreatmentPlanDetailResponse.fromEntity(plan, checkups);
+        // NOTE: CheckupSchedule entity removed in schema v4.0
+        TreatmentPlanDetailResponse response = TreatmentPlanDetailResponse.fromEntity(plan);
 
         return ResponseEntity.ok(response);
     }
@@ -1272,322 +1252,6 @@ public class DoctorController {
             return ResponseEntity.badRequest().body(response);
         }
     }
-
-    /**
-     * API: Create checkup schedule for treatment plan
-     * POST /api/doctor/treatments/{id}/checkups
-     */
-    @PostMapping("/api/doctor/treatments/{id}/checkups")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> createCheckupSchedule(
-            @PathVariable Long id,
-            @RequestBody Map<String, Object> checkupData,
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        String username = userDetails.getUsername();
-        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
-
-        if (doctor == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        TreatmentPlan plan = treatmentPlanService.getTreatmentPlanById(id).orElse(null);
-
-        if (plan == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        // Check authorization
-        if (plan.getDoctor() == null || !plan.getDoctor().getId().equals(doctor.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        // Create checkup schedule
-        CheckupSchedule checkup = CheckupSchedule.builder()
-                .scheduledDate(LocalDate.parse((String) checkupData.get("scheduledDate")))
-                .checkupType((String) checkupData.get("checkupType"))
-                .notes((String) checkupData.get("notes"))
-                .status(CheckupSchedule.CheckupStatus.SCHEDULED)
-                .build();
-
-        CheckupSchedule savedCheckup = treatmentPlanService.createCheckupSchedule(id, checkup, doctor);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "Tạo lịch tái khám thành công");
-        response.put("checkup", TreatmentPlanDetailResponse.CheckupScheduleDTO.fromEntity(savedCheckup));
-
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * API: Update checkup schedule status
-     * PUT /api/doctor/checkups/{checkupId}/status
-     */
-    @PutMapping("/api/doctor/checkups/{checkupId}/status")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> updateCheckupStatus(
-            @PathVariable Long checkupId,
-            @RequestBody Map<String, Object> statusData,
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        String username = userDetails.getUsername();
-        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
-
-        if (doctor == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        CheckupSchedule checkup = treatmentPlanService.getCheckupScheduleById(checkupId);
-
-        if (checkup == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        // Check authorization
-        if (checkup.getDoctor() == null || !checkup.getDoctor().getId().equals(doctor.getId())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        // Update status
-        CheckupSchedule.CheckupStatus status = CheckupSchedule.CheckupStatus.valueOf((String) statusData.get("status"));
-        LocalDate completedDate = statusData.get("completedDate") != null
-                ? LocalDate.parse((String) statusData.get("completedDate"))
-                : null;
-        String resultSummary = (String) statusData.get("resultSummary");
-
-        CheckupSchedule updatedCheckup = treatmentPlanService.updateCheckupScheduleStatus(
-                checkupId, status, completedDate, resultSummary);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "Cập nhật trạng thái tái khám thành công");
-        response.put("checkup", TreatmentPlanDetailResponse.CheckupScheduleDTO.fromEntity(updatedCheckup));
-
-        return ResponseEntity.ok(response);
-    }
-
-    // ========================================
-    // Health Forecast Management
-    // ========================================
-
-    /**
-     * Page: Health Forecast Management
-     * GET /doctor/health-forecast
-     */
-    @GetMapping("/health-forecast")
-    public String healthForecastPage(Model model, @AuthenticationPrincipal UserDetails userDetails) {
-        // Add any model attributes needed for the page
-        return "doctor/health-forecast";
-    }
-
-    /**
-     * API: Get all health forecasts (with optional filters)
-     * GET /api/doctor/forecasts
-     */
-    @GetMapping("/api/doctor/forecasts")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> getForecasts(
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) Long patientId,
-            @RequestParam(required = false) String riskLevel,
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        List<HealthForecast> forecasts;
-
-        // Apply filters
-        if (patientId != null) {
-            forecasts = healthForecastService.getForecastsByPatientId(patientId);
-        } else if ("HIGH_RISK".equals(riskLevel)) {
-            forecasts = healthForecastService.getHighRiskForecasts();
-        } else {
-            // Get all forecasts created by this doctor
-            String username = userDetails.getUsername();
-            User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
-            if (doctor != null) {
-                forecasts = healthForecastService.getForecastsByPatientId(doctor.getId());
-            } else {
-                forecasts = List.of();
-            }
-        }
-
-        // Filter by status if provided
-        if (status != null && !status.isEmpty()) {
-            HealthForecast.ForecastStatus forecastStatus = HealthForecast.ForecastStatus.valueOf(status);
-            forecasts = forecasts.stream()
-                    .filter(f -> f.getStatus() == forecastStatus)
-                    .collect(Collectors.toList());
-        }
-
-        List<HealthForecastResponse> forecastResponses = forecasts.stream()
-                .map(HealthForecastResponse::fromEntity)
-                .collect(Collectors.toList());
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("forecasts", forecastResponses);
-        response.put("total", forecastResponses.size());
-
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * API: Get health forecast by ID
-     * GET /api/doctor/forecasts/{id}
-     */
-    @GetMapping("/api/doctor/forecasts/{id}")
-    @ResponseBody
-    public ResponseEntity<HealthForecastDetailResponse> getForecastById(@PathVariable Long id) {
-        HealthForecast forecast = healthForecastService.getForecastById(id);
-        return ResponseEntity.ok(HealthForecastDetailResponse.fromEntity(forecast));
-    }
-
-    /**
-     * API: Generate new health forecast for a patient
-     * POST /api/doctor/forecasts/generate
-     */
-    @PostMapping("/api/doctor/forecasts/generate")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> generateForecast(
-            @RequestBody Map<String, Object> request,
-            @AuthenticationPrincipal UserDetails userDetails) {
-
-        String username = userDetails.getUsername();
-        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
-
-        if (doctor == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        Long patientId = Long.valueOf(request.get("patientId").toString());
-
-        try {
-            HealthForecast forecast = healthForecastService.generateForecast(patientId, doctor);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Tạo dự báo sức khỏe thành công");
-            response.put("forecast", HealthForecastDetailResponse.fromEntity(forecast));
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", "Lỗi khi tạo dự báo: " + e.getMessage());
-
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-        }
-    }
-
-    /**
-     * API: Get trend analysis for a patient
-     * GET /api/doctor/forecasts/trends/{patientId}
-     */
-    @GetMapping("/api/doctor/forecasts/trends/{patientId}")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> getTrends(
-            @PathVariable Long patientId,
-            @RequestParam(defaultValue = "90") int days) {
-
-        try {
-            Map<String, Object> trends = healthForecastService.analyzeTrends(patientId, days);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("patientId", patientId);
-            response.put("days", days);
-            response.put("trends", trends);
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", "Lỗi khi phân tích xu hướng: " + e.getMessage());
-
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-        }
-    }
-
-    /**
-     * API: Get high-risk alerts
-     * GET /api/doctor/forecasts/alerts
-     */
-    @GetMapping("/api/doctor/forecasts/alerts")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> getHighRiskAlerts() {
-        List<HealthForecast> highRiskForecasts = healthForecastService.getHighRiskForecasts();
-
-        List<HealthForecastResponse> alerts = highRiskForecasts.stream()
-                .map(HealthForecastResponse::fromEntity)
-                .collect(Collectors.toList());
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("alerts", alerts);
-        response.put("count", alerts.size());
-
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * API: Update forecast status
-     * PUT /api/doctor/forecasts/{id}/status
-     */
-    @PutMapping("/api/doctor/forecasts/{id}/status")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> updateForecastStatus(
-            @PathVariable Long id,
-            @RequestBody Map<String, String> statusData) {
-
-        HealthForecast.ForecastStatus status = HealthForecast.ForecastStatus.valueOf(statusData.get("status"));
-        HealthForecast forecast = healthForecastService.updateForecastStatus(id, status);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "Cập nhật trạng thái dự báo thành công");
-        response.put("forecast", HealthForecastResponse.fromEntity(forecast));
-
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * API: Calculate Framingham score for a patient
-     * GET /api/doctor/forecasts/framingham/{patientId}
-     */
-    @GetMapping("/api/doctor/forecasts/framingham/{patientId}")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> calculateFraminghamScore(@PathVariable Long patientId) {
-        try {
-            double score = healthForecastService.calculateFraminghamScore(patientId);
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("patientId", patientId);
-            response.put("framinghamScore", score);
-
-            String riskLevel;
-            if (score < 5)
-                riskLevel = "LOW";
-            else if (score < 10)
-                riskLevel = "MODERATE";
-            else if (score < 20)
-                riskLevel = "HIGH";
-            else
-                riskLevel = "VERY_HIGH";
-
-            response.put("riskLevel", riskLevel);
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            Map<String, Object> errorResponse = new HashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", e.getMessage());
-
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-        }
-    }
-
     // ================== HEALTH FORECAST APIs ==================
 
     /**

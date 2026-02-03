@@ -32,7 +32,7 @@ public class Ticket {
     private CallLog callLog; // Cuộc gọi liên quan
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_id", nullable = false)
+    @JoinColumn(name = "patient_id")
     private User patient;
 
     @Column(nullable = false, length = 200)

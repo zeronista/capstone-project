@@ -26,10 +26,6 @@ public class CallLog {
     private Long id;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "campaign_id")
-    private CallCampaign campaign;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "patient_id")
     private User patient;
     
