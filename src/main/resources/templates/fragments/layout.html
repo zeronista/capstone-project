@@ -646,11 +646,14 @@
           <div class="overflow-hidden sidebar-text">
             <p
               class="text-sm font-bold text-slate-900 dark:text-white truncate"
-              th:text="${patient != null && patient.userInfo != null} ? ${patient.userInfo.fullName} : 'Bệnh nhân'"
+              th:text="${patient != null && patient.userInfo != null && patient.userInfo.fullName != null} ? ${patient.userInfo.fullName} : (${session.userFullName} != null ? ${session.userFullName} : 'Bệnh nhân')"
             >
               Bệnh nhân
             </p>
-            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">
+            <p
+              class="text-xs text-slate-500 dark:text-slate-400 truncate"
+              th:text="${patient != null && patient.role != null} ? ${patient.role.name()} : 'Bệnh nhân'"
+            >
               Bệnh nhân
             </p>
           </div>

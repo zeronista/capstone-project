@@ -591,7 +591,10 @@
               addLog("✅ Đã kết nối cuộc gọi", "success");
               stopRingtone();
               showInCallState();
-              startCallTimer();
+              // Chỉ start timer nếu chưa được start (tránh duplicate cho incoming call)
+              if (!callDurationInterval) {
+                startCallTimer();
+              }
               break;
             case 4: // Busy - đầu kia bận
               addLog("Đầu kia đang bận", "warning");
@@ -633,14 +636,15 @@
         // Ẩn incoming state ngay lập tức để tránh treo UI
         document.getElementById("incomingState").classList.add("hidden");
 
-        // Hiển thị trạng thái đang kết nối - sẽ được cập nhật khi signalingstate = 3
+        // Hiển thị trạng thái đang kết nối
         document.getElementById("inCallState").classList.remove("hidden");
-        // Để trống thay vì hiện "Đang kết nối..." vì signalingstate sẽ cập nhật
 
         currentCall.answer((res) => {
           if (res.r === 0) {
             addLog("✅ Đã trả lời cuộc gọi", "success");
-            // UI sẽ được cập nhật bởi signalingstate event khi có code 3 (Answered)
+            // Bắt đầu timer ngay khi answer thành công (không đợi signalingstate)
+            showInCallState();
+            startCallTimer();
           } else {
             addLog("Lỗi trả lời: " + res.message, "error");
             // Quay lại idle state nếu lỗi

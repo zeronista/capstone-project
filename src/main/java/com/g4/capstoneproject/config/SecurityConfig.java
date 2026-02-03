@@ -13,7 +13,7 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 /**
  * Cấu hình Security với Role-based Authorization
- * OAuth2 disabled for Phase 1 demo
+ * OAuth2 enabled for Google login
  */
 @Configuration
 @EnableWebSecurity
@@ -72,6 +72,11 @@ public class SecurityConfig {
                                                 .logoutSuccessUrl("/auth/login?logout")
                                                 .invalidateHttpSession(true)
                                                 .deleteCookies("JSESSIONID")
+                                                .permitAll())
+                                .oauth2Login(oauth2 -> oauth2
+                                                .loginPage("/auth/login")
+                                                .defaultSuccessUrl("/auth/oauth2/success", true)
+                                                .failureUrl("/auth/login?error=oauth2")
                                                 .permitAll())
                                 .csrf(csrf -> csrf
                                                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
