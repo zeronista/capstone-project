@@ -53,7 +53,7 @@ public class SecurityConfig {
                                                 .permitAll()
                                                 // Role-based access control
                                                 .requestMatchers("/doctor/**").hasRole("DOCTOR")
-                                                .requestMatchers("/receptionist/**").hasRole("RECEPTIONIST")
+                                                .requestMatchers("/receptionist/**", "/api/receptionist/**").hasRole("RECEPTIONIST")
                                                 .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
                                                 .requestMatchers("/patient/**")
                                                 .hasAnyRole("PATIENT", "DOCTOR", "RECEPTIONIST", "ADMIN")
@@ -100,7 +100,13 @@ public class SecurityConfig {
                                                                 // Allow profile update and avatar (for patient portal)
                                                                 "/api/profile/**",
                                                                 // Allow Admin API endpoints (protected by role-based auth)
-                                                                "/api/admin/**"));
+                                                                "/api/admin/**",
+                                                                // Allow Receptionist API endpoints (protected by role-based auth)
+                                                                "/api/receptionist/**",
+                                                                // Allow User Management API endpoints (protected by role-based auth)
+                                                                "/api/users/**",
+                                                                // Allow Patient Management API endpoints (protected by role-based auth)
+                                                                "/api/patients/**"));
 
                 return http.build();
         }
