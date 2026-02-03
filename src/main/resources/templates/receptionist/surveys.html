@@ -827,8 +827,12 @@
         document.getElementById("iconType").value = survey.iconType || "survey";
         document.getElementById("iconColor").value =
           survey.iconColor || "#3B82F6";
-        document.getElementById("isActive").checked = survey.isActive;
-        document.getElementById("showOnLanding").checked = survey.showOnLanding;
+        document.getElementById("isActive").value = survey.isActive
+          ? "true"
+          : "false";
+        document.getElementById("showOnLanding").value = survey.showOnLanding
+          ? "true"
+          : "false";
       }
 
       // Save survey
@@ -844,8 +848,9 @@
           iconType: document.getElementById("iconType").value,
           iconColor: document.getElementById("iconColor").value,
           tagColor: document.getElementById("iconColor").value,
-          isActive: document.getElementById("isActive").checked,
-          showOnLanding: document.getElementById("showOnLanding").checked,
+          isActive: document.getElementById("isActive").value === "true",
+          showOnLanding:
+            document.getElementById("showOnLanding").value === "true",
         };
 
         if (!data.title || !data.formUrl) {

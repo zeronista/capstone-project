@@ -55,11 +55,11 @@ public class Survey {
     @Builder.Default
     private Integer responseCount = 0;
 
+    @Column(name = "is_active", nullable = false)
     @Builder.Default
-    @Column(name = "is_active")
     private Boolean isActive = true;
 
-    @Column(name = "show_on_landing")
+    @Column(name = "show_on_landing", nullable = false)
     @Builder.Default
     private Boolean showOnLanding = true;
 

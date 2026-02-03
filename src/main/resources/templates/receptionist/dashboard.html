@@ -100,6 +100,26 @@
       .animate-fade-out {
         animation: fadeOut 0.3s ease-out;
       }
+      
+      /* Accordion styles */
+      .accordion-header {
+        transition: all 0.2s ease;
+      }
+      .accordion-header .expand-icon {
+        transition: transform 0.3s ease;
+      }
+      .accordion-header.expanded .expand-icon {
+        transform: rotate(180deg);
+      }
+      .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+      }
+      .accordion-content.expanded {
+        max-height: 5000px;
+        transition: max-height 0.5s ease-in;
+      }
     </style>
   </head>
   <body
@@ -804,10 +824,10 @@
             allPatients.length;
 
           filterPatients();
-          showToast("Đã tải " + allPatients.length + " bệnh nhân", "success");
+          showNotification("Đã tải danh sách", `Tìm thấy ${allPatients.length} bệnh nhân`, "success", 2000);
         } catch (error) {
           console.error("Error loading patients:", error);
-          showToast("Không thể tải danh sách bệnh nhân", "error");
+          showNotification("Lỗi tải dữ liệu", `Không thể tải danh sách bệnh nhân`, "error", 5000);
           document.getElementById("loadingRow").innerHTML = `
             <td colspan="5" class="px-6 py-12 text-center">
               <span class="material-symbols-outlined text-[48px] text-red-300 dark:text-red-600 mb-2">error</span>
@@ -840,7 +860,7 @@
           callbackPatients.push(patientId);
           saveCallbackList();
           filterPatients();
-          showToast("Đã thêm vào danh sách cần gọi lại", "info");
+          showNotification("Đã thêm", "Đã thêm vào danh sách cần gọi lại", "success", 2000);
         }
       }
 
@@ -849,7 +869,7 @@
         callbackPatients = callbackPatients.filter((id) => id !== patientId);
         saveCallbackList();
         filterPatients();
-        showToast("Đã xóa khỏi danh sách cần gọi lại", "info");
+        showNotification("Đã xóa", "Đã xóa khỏi danh sách cần gọi lại", "success", 2000);
       }
 
       // Set filter
@@ -866,7 +886,7 @@
             (filter === "all" && f === "filterAll")
           ) {
             btn.className =
-              "px-4 py-2 rounded-xl text-sm font-semibold bg-violet-600 text-white shadow-lg shadow-violet-500/30 transition-all hover:bg-violet-700";
+              "px-4 py-2 rounded-xl text-sm font-semibold bg-primary text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90";
           } else {
             btn.className =
               "px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all";
@@ -915,25 +935,54 @@
         renderPatients();
       }
 
-      // Render patients table
+      // Group patients by date (Year > Month > Day)
+      function groupPatientsByDate(patients) {
+        const groups = {};
+        
+        patients.forEach((p) => {
+          // TEMPORARY: Mock date based on patient ID
+          // TODO: Replace with actual lastCallDate from backend
+          const mockDate = new Date();
+          mockDate.setDate(mockDate.getDate() - (p.id % 30));
+          
+          const year = mockDate.getFullYear();
+          const month = mockDate.getMonth();
+          const day = mockDate.getDate();
+          
+          if (!groups[year]) groups[year] = {};
+          if (!groups[year][month]) groups[year][month] = {};
+          if (!groups[year][month][day]) groups[year][month][day] = [];
+          
+          groups[year][month][day].push(p);
+        });
+        
+        return groups;
+      }
+
+      function toggleAccordion(element) {
+        const content = element.nextElementSibling;
+        if (content.classList.contains('expanded')) {
+          content.classList.remove('expanded');
+          element.classList.remove('expanded');
+        } else {
+          content.classList.add('expanded');
+          element.classList.add('expanded');
+        }
+      }
+
+      // Render patients table with hierarchical grouping
       function renderPatients() {
         const tbody = document.getElementById("patientTableBody");
-        const start = currentPage * pageSize;
-        const end = start + pageSize;
-        const pagePatients = filteredPatients.slice(start, end);
-
-        // Update counts
-        document.getElementById("patientCount").textContent =
-          filteredPatients.length + " bệnh nhân";
-        document.getElementById("displayCount").textContent =
-          pagePatients.length;
-
-        // Update pagination buttons
-        document.getElementById("prevBtn").disabled = currentPage === 0;
-        document.getElementById("nextBtn").disabled =
-          end >= filteredPatients.length;
-
-        if (pagePatients.length === 0) {
+        
+        // Update count
+        document.getElementById("patientCount").textContent = filteredPatients.length + " bệnh nhân";
+        document.getElementById("displayCount").textContent = filteredPatients.length;
+        
+        // Hide pagination since we show all in accordion
+        document.getElementById("prevBtn").style.display = "none";
+        document.getElementById("nextBtn").style.display = "none";
+        
+        if (filteredPatients.length === 0) {
           tbody.innerHTML = `
             <tr>
               <td colspan="5" class="px-6 py-12 text-center">
@@ -944,63 +993,141 @@
           `;
           return;
         }
-
-        tbody.innerHTML = pagePatients
-          .map((patient) => {
-            const isCallback = callbackPatients.includes(patient.id);
-            const statusBadge = isCallback
-              ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800">
-                <span class="size-1.5 rounded-full bg-amber-500 mr-1.5"></span>
-                Cần gọi lại
-               </span>`
-              : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-600 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-700">
-                Chờ gọi
-               </span>`;
-
-            const callbackBtn = isCallback
-              ? `<button onclick="removeFromCallback(${patient.id})" class="p-2 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors" title="Xóa khỏi danh sách gọi lại">
-                <span class="material-symbols-outlined text-[18px]">bookmark_remove</span>
-               </button>`
-              : `<button onclick="addToCallback(${patient.id})" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors" title="Thêm vào danh sách gọi lại">
-                <span class="material-symbols-outlined text-[18px]">bookmark_add</span>
-               </button>`;
-
-            return `
-            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group" data-patient-id="${patient.id}">
-              <td class="px-6 py-4">
-                <div class="flex items-center gap-3">
-                  <div class="size-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span class="material-symbols-outlined text-primary text-[20px]">person</span>
-                  </div>
-                  <div>
-                    <div class="font-bold text-slate-900 dark:text-white">${patient.name}</div>
-                    <div class="text-xs text-slate-500 dark:text-slate-400">ID: #${patient.id}</div>
-                  </div>
+        
+        const grouped = groupPatientsByDate(filteredPatients);
+        const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                           "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
+        
+        let html = '<tr><td colspan="5" class="p-0"><div class="space-y-2">';
+        
+        // Sort years descending
+        const years = Object.keys(grouped).sort((a, b) => b - a);
+        
+        years.forEach(year => {
+          const yearData = grouped[year];
+          const yearCount = Object.values(yearData).reduce((sum, monthData) => 
+            sum + Object.values(monthData).reduce((s, dayData) => s + dayData.length, 0), 0);
+          
+          html += `
+            <div class="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+              <button onclick="toggleAccordion(this)" class="accordion-header w-full px-4 py-3 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary">calendar_today</span>
+                  <span class="font-semibold text-slate-800 dark:text-white">${year}</span>
+                  <span class="text-sm text-slate-500 dark:text-slate-400">(${yearCount} bệnh nhân)</span>
                 </div>
-              </td>
-              <td class="px-6 py-4">
-                <span class="text-slate-600 dark:text-slate-400 text-sm">${patient.phone}</span>
-              </td>
-              <td class="px-6 py-4">
-                <span class="text-slate-600 dark:text-slate-400 text-sm">${patient.email || "-"}</span>
-              </td>
-              <td class="px-6 py-4">
-                ${statusBadge}
-              </td>
-              <td class="px-6 py-4 text-right">
-                <div class="flex items-center justify-end gap-1">
-                  ${callbackBtn}
-                  <a href="/receptionist/callbot?patientId=${patient.id}&phone=${encodeURIComponent(patient.phone)}&name=${encodeURIComponent(patient.name)}" 
-                     class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-all text-sm font-semibold shadow-sm shadow-emerald-500/20">
-                    <span class="material-symbols-outlined text-[18px]">call</span>
-                    <span>Gọi</span>
-                  </a>
+                <span class="material-symbols-outlined expand-icon text-slate-600 dark:text-slate-400">expand_more</span>
+              </button>
+              <div class="accordion-content">`;
+          
+          // Sort months descending
+          const months = Object.keys(yearData).sort((a, b) => b - a);
+          
+          months.forEach(month => {
+            const monthData = yearData[month];
+            const monthCount = Object.values(monthData).reduce((sum, dayData) => sum + dayData.length, 0);
+            
+            html += `
+              <div class="border-t border-slate-200 dark:border-slate-700">
+                <button onclick="toggleAccordion(this)" class="accordion-header w-full px-6 py-2.5 bg-white dark:bg-slate-800 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">${monthNames[month]}</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400">(${monthCount} bệnh nhân)</span>
+                  </div>
+                  <span class="material-symbols-outlined expand-icon text-sm text-slate-600 dark:text-slate-400">expand_more</span>
+                </button>
+                <div class="accordion-content">`;
+            
+            // Sort days descending
+            const days = Object.keys(monthData).sort((a, b) => b - a);
+            
+            days.forEach(day => {
+              const dayPatients = monthData[day];
+              
+              html += `
+                <div class="border-t border-slate-100 dark:border-slate-700/50">
+                  <button onclick="toggleAccordion(this)" class="accordion-header w-full px-8 py-2 bg-slate-50 dark:bg-slate-700/30 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-700">
+                    <span class="text-sm text-slate-700 dark:text-slate-300">Ngày ${day}</span>
+                    <span class="text-xs text-slate-500 dark:text-slate-400">(${dayPatients.length} bệnh nhân)</span>
+                  </button>
+                  <div class="accordion-content">
+                    <table class="w-full">
+                      <tbody>`;
+              
+              // Render patient rows
+              dayPatients.forEach(patient => {
+                const isCallback = callbackPatients.includes(patient.id);
+                const statusBadge = isCallback
+                  ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800">
+                    <span class="size-1.5 rounded-full bg-amber-500 mr-1.5"></span>
+                    Cần gọi lại
+                   </span>`
+                  : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                    Chờ gọi
+                   </span>`;
+
+                const callbackBtn = isCallback
+                  ? `<button onclick="removeFromCallback(${patient.id})" class="p-2 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors" title="Xóa khỏi danh sách gọi lại">
+                    <span class="material-symbols-outlined text-[18px]">bookmark_remove</span>
+                   </button>`
+                  : `<button onclick="addToCallback(${patient.id})" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors" title="Thêm vào danh sách gọi lại">
+                    <span class="material-symbols-outlined text-[18px]">bookmark_add</span>
+                   </button>`;
+
+                html += `
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group border-b border-slate-100 dark:border-slate-700/50" data-patient-id="${patient.id}">
+                    <td class="px-6 py-4">
+                      <div class="flex items-center gap-3">
+                        <div class="size-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <span class="material-symbols-outlined text-primary text-[20px]">person</span>
+                        </div>
+                        <div>
+                          <div class="font-bold text-slate-900 dark:text-white">${patient.name}</div>
+                          <div class="text-xs text-slate-500 dark:text-slate-400">ID: #${patient.id}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <span class="text-slate-600 dark:text-slate-400 text-sm">${patient.phone}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                      <span class="text-slate-600 dark:text-slate-400 text-sm">${patient.email || "-"}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                      ${statusBadge}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                      <div class="flex items-center justify-end gap-1">
+                        ${callbackBtn}
+                        <a href="/receptionist/callbot?patientId=${patient.id}&phone=${encodeURIComponent(patient.phone)}&name=${encodeURIComponent(patient.name)}" 
+                           class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-all text-sm font-semibold shadow-sm shadow-primary/20">
+                          <span class="material-symbols-outlined text-[18px]">call</span>
+                          <span>Gọi</span>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>`;
+              });
+              
+              html += `
+                      </tbody>
+                    </table>
+                  </div>
+                </div>`;
+            });
+            
+            html += `
                 </div>
-              </td>
-            </tr>
-          `;
-          })
-          .join("");
+              </div>`;
+          });
+          
+          html += `
+              </div>
+            </div>`;
+        });
+        
+        html += '</div></td></tr>';
+        tbody.innerHTML = html;
       }
 
       // Pagination
@@ -1161,6 +1288,57 @@
 
         currentPage = 0;
         renderPatients();
+      }
+
+      // Create notification container if not exists
+      function initNotificationContainer() {
+        if (!document.getElementById('notificationContainer')) {
+          const container = document.createElement('div');
+          container.id = 'notificationContainer';
+          container.className = 'fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none';
+          container.style.maxWidth = '400px';
+          document.body.appendChild(container);
+        }
+      }
+
+      // Universal notification function with stacking support
+      function showNotification(title, message, type = "info", duration = 3000) {
+        initNotificationContainer();
+        const container = document.getElementById('notificationContainer');
+        
+        const configs = {
+          success: { icon: "check_circle", bgColor: "bg-green-500", defaultTitle: "Thành công" },
+          error: { icon: "error", bgColor: "bg-red-500", defaultTitle: "Lỗi" },
+          info: { icon: "info", bgColor: "bg-blue-500", defaultTitle: "Thông báo" },
+          warning: { icon: "warning", bgColor: "bg-yellow-500", defaultTitle: "Cảnh báo" }
+        };
+        
+        const config = configs[type] || configs.info;
+        const finalTitle = title || config.defaultTitle;
+        
+        const notification = document.createElement("div");
+        notification.className = `${config.bgColor} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 pointer-events-auto opacity-0 translate-x-full`;
+        notification.innerHTML = `
+          <span class="material-symbols-outlined text-2xl">${config.icon}</span>
+          <div class="flex-1">
+            <p class="font-semibold">${finalTitle}</p>
+            <p class="text-sm text-white/90">${message}</p>
+          </div>
+          <button onclick="this.parentElement.remove()" class="ml-4 text-white/70 hover:text-white">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        `;
+
+        container.appendChild(notification);
+
+        setTimeout(() => {
+          notification.classList.remove("opacity-0", "translate-x-full");
+        }, 100);
+
+        setTimeout(() => {
+          notification.classList.add("opacity-0", "translate-x-full");
+          setTimeout(() => notification.remove(), 300);
+        }, duration);
       }
     </script>
   </body>

@@ -83,10 +83,10 @@
       @keyframes call-pulse {
         0%,
         100% {
-          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+          box-shadow: 0 0 0 0 rgba(13, 124, 242, 0.4);
         }
         50% {
-          box-shadow: 0 0 0 15px rgba(16, 185, 129, 0);
+          box-shadow: 0 0 0 15px rgba(13, 124, 242, 0);
         }
       }
       .status-dot {
@@ -95,8 +95,8 @@
         border-radius: 50%;
       }
       .status-dot.connected {
-        background: #10b981;
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+        background: #0d7cf2;
+        box-shadow: 0 0 0 3px rgba(13, 124, 242, 0.2);
       }
       .status-dot.connecting {
         background: #f59e0b;
@@ -108,6 +108,46 @@
       .tab-active {
         border-bottom: 2px solid #0d7cf2;
         color: #0d7cf2;
+      }
+      
+      /* Hierarchical recordings styles */
+      .accordion-header {
+        transition: all 0.2s ease;
+      }
+      .accordion-header:hover {
+        background: #f8fafc;
+      }
+      .accordion-header .expand-icon {
+        transition: transform 0.3s ease;
+      }
+      .accordion-header.expanded .expand-icon {
+        transform: rotate(180deg);
+      }
+      .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+      }
+      .accordion-content.expanded {
+        max-height: 5000px;
+        transition: max-height 0.5s ease-in;
+      }
+      
+      /* Recording section border */
+      .recording-section {
+        border: 2px solid #e2e8f0;
+        transition: border-color 0.2s ease;
+      }
+      .recording-section.active {
+        border-color: #ef4444;
+      }
+      
+      /* Improved recording indicator */
+      .recording-timer {
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 0.05em;
       }
     </style>
   </head>
@@ -250,32 +290,40 @@
                 </p>
               </div>
 
-              <!-- Recording Indicator -->
-              <div
-                id="recordingInfo"
-                class="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 hidden"
-              >
-                <div class="flex items-center justify-center gap-3">
-                  <div
-                    class="w-3 h-3 rounded-full bg-red-500 recording-blink"
-                  ></div>
-                  <span class="font-medium text-red-700 text-sm"
-                    >Đang ghi âm</span
-                  >
-                  <span
-                    id="recordingDuration"
-                    class="font-mono text-red-600 text-sm"
-                    >00:00</span
-                  >
+              <!-- Recording Section with Border and Header -->
+              <div class="mb-4 recording-section rounded-xl p-4 hidden" id="recordingSection">
+                <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200">
+                  <span class="material-symbols-rounded text-primary">mic</span>
+                  <h4 class="font-semibold text-gray-800">Ghi âm cuộc gọi</h4>
+                </div>
+                
+                <!-- Recording Indicator with Larger Timer -->
+                <div
+                  id="recordingInfo"
+                  class="hidden"
+                >
+                  <div class="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-3">
+                        <div class="w-4 h-4 rounded-full bg-red-500 recording-blink"></div>
+                        <span class="font-semibold text-red-700">Đang ghi âm...</span>
+                      </div>
+                      <span
+                        id="recordingDuration"
+                        class="recording-timer text-red-600"
+                      >00:00</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
+              <!-- Call Buttons -->
               <!-- Call Buttons -->
               <div class="flex flex-col gap-3">
                 <button
                   id="btnCall"
                   onclick="makeCall()"
-                  class="flex items-center justify-center gap-2 w-full px-6 py-4 bg-success text-white rounded-xl font-semibold hover:bg-success/90 transition-all shadow-lg shadow-success/30 call-btn-active"
+                  class="flex items-center justify-center gap-2 w-full px-6 py-4 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 call-btn-active"
                 >
                   <span class="material-symbols-rounded text-2xl">call</span>
                   Gọi ngay
@@ -283,20 +331,20 @@
                 <button
                   id="btnHangup"
                   onclick="hangupCall()"
-                  class="hidden flex items-center justify-center gap-2 w-full px-6 py-4 bg-danger text-white rounded-xl font-semibold hover:bg-danger/90 transition-all"
+                  class="hidden flex items-center justify-center gap-2 w-full px-6 py-4 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-all"
                 >
                   <span class="material-symbols-rounded text-2xl"
                     >call_end</span
                   >
-                  Kết thúc
+                  Kết thúc cuộc gọi
                 </button>
                 <button
                   id="btnAnswer"
                   onclick="answerCall()"
-                  class="hidden flex items-center justify-center gap-2 w-full px-6 py-4 bg-success text-white rounded-xl font-semibold"
+                  class="hidden flex items-center justify-center gap-2 w-full px-6 py-4 bg-primary text-white rounded-xl font-semibold"
                 >
                   <span class="material-symbols-rounded text-2xl">call</span>
-                  Trả lời
+                  Trả lời cuộc gọi
                 </button>
               </div>
 
@@ -495,7 +543,7 @@
 
       async function loadPatientInfo() {
         if (!patientId) {
-          alert("Không tìm thấy ID bệnh nhân");
+          showNotification("Lỗi", "Không tìm thấy ID bệnh nhân", "error", 5000);
           return;
         }
         try {
@@ -540,9 +588,11 @@
             "user_" + patient.id;
 
           addLog("Đã tải thông tin bệnh nhân: " + fullName, "success");
+          showNotification("Đã tải thông tin", `Thông tin bệnh nhân ${fullName} đã sẵn sàng`, "success", 2000);
         } catch (err) {
           console.error("Lỗi:", err);
           addLog("Lỗi tải thông tin bệnh nhân: " + err.message, "error");
+          showNotification("Lỗi tải thông tin", `Không thể tải thông tin bệnh nhân: ${err.message}`, "error", 5000);
         }
       }
 
@@ -572,7 +622,7 @@
         switch (status) {
           case "connected":
             text.textContent = "Đã kết nối";
-            text.className = "text-sm font-medium text-green-600";
+            text.className = "text-sm font-medium text-primary";
             break;
           case "connecting":
             text.textContent = "Đang kết nối...";
@@ -617,6 +667,7 @@
           addLog("Đã nhận access token", "success");
         } catch (err) {
           addLog("Lỗi lấy token: " + err.message, "error");
+          showNotification("Lỗi kết nối", `Không thể lấy token: ${err.message}`, "error", 5000);
           return;
         }
 
@@ -624,6 +675,7 @@
         stringeeClient.on("connect", () => {
           updateConnectionStatus("connected");
           addLog("Đã kết nối Stringee", "success");
+          showNotification("Đã kết nối", "Hệ thống cuộc gọi đã sẵn sàng", "success", 2000);
         });
         stringeeClient.on("authen", (res) => {
           if (res.r === 0) {
@@ -631,11 +683,13 @@
             loadRecordings();
           } else {
             addLog("Xác thực thất bại: " + res.message, "error");
+            showNotification("Xác thực thất bại", `Lỗi: ${res.message}`, "error", 5000);
           }
         });
         stringeeClient.on("disconnect", () => {
           updateConnectionStatus("disconnected");
           addLog("Mất kết nối", "error");
+          showNotification("Mất kết nối", "Đã mất kết nối với hệ thống cuộc gọi", "error", 5000);
         });
         stringeeClient.on("incomingcall", (incomingCall) => {
           addLog("Cuộc gọi đến từ: " + incomingCall.fromNumber, "info");
@@ -658,12 +712,13 @@
 
       function makeCall() {
         if (!currentUser || !patient) {
-          alert("Vui lòng đợi tải xong thông tin");
+          showNotification("Chưa sẵn sàng", "Vui lòng đợi tải xong thông tin", "warning", 3000);
           return;
         }
         const calleeId = "user_" + patient.id;
         addLog("Đang gọi tới: " + calleeId, "info");
         showCallStatus("Đang gọi...", "calling");
+        showNotification("Đang gọi", `Đang kết nối đến ${patient.fullName || 'bệnh nhân'}`, "info", 2000);
 
         currentCall = new StringeeCall(
           stringeeClient,
@@ -675,6 +730,7 @@
         currentCall.makeCall(function (res) {
           if (res.r !== 0) {
             addLog("Gọi thất bại: " + res.message, "error");
+            showNotification("Cuộc gọi thất bại", `Không thể kết nối: ${res.message}`, "error", 5000);
             resetUI();
           }
         });
@@ -964,32 +1020,56 @@
         if (label) label.textContent = "Tắt loa";
       }
 
-      // Hiển thị notification toast
-      function showNotification(title, message, type = "info") {
+      // Create notification container if not exists
+      function initNotificationContainer() {
+        if (!document.getElementById('notificationContainer')) {
+          const container = document.createElement('div');
+          container.id = 'notificationContainer';
+          container.className = 'fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none';
+          container.style.maxWidth = '400px';
+          document.body.appendChild(container);
+        }
+      }
+
+      // Universal notification function with stacking support
+      function showNotification(title, message, type = "info", duration = 3000) {
+        initNotificationContainer();
+        const container = document.getElementById('notificationContainer');
+        
+        // Xác định config dựa vào type
+        const configs = {
+          success: {
+            icon: "check_circle",
+            bgColor: "bg-green-500",
+            defaultTitle: "Thành công"
+          },
+          error: {
+            icon: "error",
+            bgColor: "bg-red-500",
+            defaultTitle: "Lỗi"
+          },
+          info: {
+            icon: "info",
+            bgColor: "bg-blue-500",
+            defaultTitle: "Thông báo"
+          },
+          warning: {
+            icon: "warning",
+            bgColor: "bg-yellow-500",
+            defaultTitle: "Cảnh báo"
+          }
+        };
+        
+        const config = configs[type] || configs.info;
+        const finalTitle = title || config.defaultTitle;
+        
         // Tạo notification element
         const notification = document.createElement("div");
-        const bgColor =
-          type === "error"
-            ? "bg-red-500"
-            : type === "warning"
-              ? "bg-yellow-500"
-              : type === "success"
-                ? "bg-green-500"
-                : "bg-blue-500";
-        const icon =
-          type === "error"
-            ? "error"
-            : type === "warning"
-              ? "warning"
-              : type === "success"
-                ? "check_circle"
-                : "info";
-
-        notification.className = `fixed top-20 right-4 ${bgColor} text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 transform translate-x-full transition-transform duration-300`;
+        notification.className = `${config.bgColor} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 pointer-events-auto opacity-0 translate-x-full`;
         notification.innerHTML = `
-          <span class="material-symbols-rounded text-2xl">${icon}</span>
-          <div>
-            <p class="font-semibold">${title}</p>
+          <span class="material-symbols-rounded text-2xl">${config.icon}</span>
+          <div class="flex-1">
+            <p class="font-semibold">${finalTitle}</p>
             <p class="text-sm text-white/90">${message}</p>
           </div>
           <button onclick="this.parentElement.remove()" class="ml-4 text-white/70 hover:text-white">
@@ -997,22 +1077,23 @@
           </button>
         `;
 
-        document.body.appendChild(notification);
+        container.appendChild(notification);
 
         // Animate in
         setTimeout(() => {
-          notification.classList.remove("translate-x-full");
+          notification.classList.remove("opacity-0", "translate-x-full");
         }, 100);
 
-        // Auto remove after 5 seconds
+        // Auto remove
         setTimeout(() => {
-          notification.classList.add("translate-x-full");
+          notification.classList.add("opacity-0", "translate-x-full");
           setTimeout(() => notification.remove(), 300);
-        }, 5000);
+        }, duration);
       }
 
       function hangupCall() {
         if (currentCall) currentCall.hangup(function (res) {});
+        showNotification("Đã kết thúc", "Cuộc gọi đã được kết thúc", "info", 2000);
         resetUI();
       }
 
@@ -1065,6 +1146,7 @@
         document.getElementById("btnHangup").classList.add("hidden");
         document.getElementById("btnHangup").style.display = "";
         document.getElementById("recordingInfo").classList.add("hidden");
+        document.getElementById("recordingSection").classList.add("hidden");
         document.getElementById("remote_videos").innerHTML = "";
         // Ẩn call controls và reset trạng thái
         hideCallControls();
@@ -1104,15 +1186,18 @@
               "Trinh duyet khong ho tro ghi am. Vui long su dung Chrome hoac Firefox.",
               "error",
             );
+            showNotification("Không hỗ trợ ghi âm", "Trình duyệt không hỗ trợ. Vui lòng dùng Chrome hoặc Firefox", "error", 5000);
             return;
           }
 
           if (mediaRecorder && mediaRecorder.state === "recording") {
             addLog("Dang ghi am...", "warning");
+            showNotification("Đang ghi âm", "Cuộc gọi đang được ghi lại", "info", 2000);
             return;
           }
 
           addLog("Dang khoi tao ghi am...", "info");
+          showNotification("Bắt đầu ghi âm", "Đang khởi tạo ghi âm cuộc gọi...", "info", 2000);
 
           // Yeu cau quyen truy cap microphone
           try {
@@ -1126,10 +1211,13 @@
           } catch (err) {
             if (err.name === "NotAllowedError") {
               addLog("Nguoi dung tu choi quyen truy cap microphone", "error");
+              showNotification("Từ chối quyền", "Bạn đã từ chối quyền truy cập microphone", "error", 5000);
             } else if (err.name === "NotFoundError") {
               addLog("Khong tim thay microphone", "error");
+              showNotification("Không tìm thấy microphone", "Hệ thống không phát hiện microphone", "error", 5000);
             } else {
               addLog("Loi truy cap microphone: " + err.message, "error");
+              showNotification("Lỗi microphone", `Không thể truy cập: ${err.message}`, "error", 5000);
             }
             return;
           }
@@ -1162,6 +1250,7 @@
           const mimeType = getSupportedMimeType();
           if (!mimeType) {
             addLog("Trinh duyet khong ho tro dinh dang ghi am", "error");
+            showNotification("Lỗi định dạng", "Trình duyệt không hỗ trợ định dạng ghi âm", "error", 5000);
             return;
           }
 
@@ -1220,8 +1309,11 @@
           mediaRecorder.start(1000);
           recordingStartTime = Date.now();
           addLog("Da bat dau ghi am", "success");
+          showNotification("Đang ghi âm", "Cuộc gọi đang được ghi lại", "success", 3000);
 
           // Hien thi indicator
+          document.getElementById("recordingSection").classList.remove("hidden");
+          document.getElementById("recordingSection").classList.add("active");
           document.getElementById("recordingInfo").classList.remove("hidden");
 
           // Cap nhat thoi gian ghi am
@@ -1236,6 +1328,7 @@
           }, 1000);
         } catch (err) {
           addLog("Loi ghi am: " + err.message, "error");
+          showNotification("Lỗi ghi âm", `Không thể ghi âm: ${err.message}`, "error", 5000);
           console.error("Recording error:", err);
 
           // Cleanup khi loi
@@ -1254,7 +1347,12 @@
         if (mediaRecorder && mediaRecorder.state === "recording") {
           mediaRecorder.stop();
           document.getElementById("recordingInfo").classList.add("hidden");
+          document.getElementById("recordingSection").classList.remove("active");
+          setTimeout(() => {
+            document.getElementById("recordingSection").classList.add("hidden");
+          }, 1000);
           addLog("Đã dừng ghi âm", "info");
+          showNotification("Đã dừng ghi âm", "File ghi âm đang được lưu trữ", "success", 2000);
         }
       }
 
@@ -1262,6 +1360,7 @@
         // Kiem tra blob hop le
         if (!blob || blob.size === 0) {
           addLog("Khong co du lieu ghi am de upload", "warning");
+          showNotification("Không có dữ liệu", "Không có dữ liệu ghi âm để lưu", "warning", 3000);
           return;
         }
 
@@ -1271,6 +1370,7 @@
         // Kiem tra kich thuoc file (max 100MB)
         if (blob.size > 100 * 1024 * 1024) {
           addLog("File qua lon (>100MB), khong the upload", "error");
+          showNotification("File quá lớn", "File ghi âm vượt quá 100MB, không thể lưu", "error", 5000);
           return;
         }
 
@@ -1286,6 +1386,7 @@
           const filename = `call_${currentUser.stringeeUserId}_to_user_${patient.id}_${timestamp}${extension}`;
 
           addLog("Dang upload: " + filename, "info");
+          showNotification("Đang lưu file", `Đang lưu file ghi âm (${sizeMB} MB)...`, "info", 3000);
 
           const formData = new FormData();
           formData.append("file", blob, filename);
@@ -1312,6 +1413,7 @@
 
               if (result.success) {
                 addLog("Upload thanh cong! S3 Key: " + result.s3Key, "success");
+                showNotification("Lưu thành công", "File ghi âm đã được lưu vào hệ thống", "success", 3000);
                 // Reload danh sach recordings sau 1 giay
                 setTimeout(() => loadRecordings(), 1000);
                 return;
@@ -1335,8 +1437,10 @@
             "Upload that bai sau 3 lan thu: " + lastError.message,
             "error",
           );
+          showNotification("Lưu thất bại", `Không thể lưu file sau 3 lần thử: ${lastError.message}`, "error", 5000);
         } catch (err) {
           addLog("Loi upload: " + err.message, "error");
+          showNotification("Lỗi lưu file", `Không thể lưu file ghi âm: ${err.message}`, "error", 5000);
           console.error("Upload error:", err);
         }
       }
@@ -1346,6 +1450,7 @@
           // Đảm bảo patient đã được load
           if (!patient || !patient.id) {
             addLog("Chưa có thông tin bệnh nhân, chờ load...", "warning");
+            showNotification("Chờ tải dữ liệu", "Đang chờ thông tin bệnh nhân...", "info", 2000);
             return;
           }
 
@@ -1403,9 +1508,45 @@
                 patient.id,
               "success",
             );
+            showNotification("Đã tải danh sách", `Tìm thấy ${patientRecordings.length} file ghi âm`, "success", 2000);
           }
         } catch (err) {
           addLog("Lỗi tải danh sách: " + err.message, "error");
+          showNotification("Lỗi tải danh sách", `Không thể tải danh sách ghi âm: ${err.message}`, "error", 5000);
+        }
+      }
+
+      // Group recordings by date (Year > Month > Day)
+      function groupRecordingsByDate(recordings) {
+        const groups = {};
+        
+        recordings.forEach((rec) => {
+          const date = new Date(rec.lastModified);
+          const year = date.getFullYear();
+          const month = date.getMonth(); // 0-11
+          const day = date.getDate();
+          
+          if (!groups[year]) groups[year] = {};
+          if (!groups[year][month]) groups[year][month] = {};
+          if (!groups[year][month][day]) groups[year][month][day] = [];
+          
+          groups[year][month][day].push(rec);
+        });
+        
+        return groups;
+      }
+
+      // Toggle accordion
+      function toggleAccordion(element) {
+        const content = element.nextElementSibling;
+        const icon = element.querySelector('.expand-icon');
+        
+        if (content.classList.contains('expanded')) {
+          content.classList.remove('expanded');
+          element.classList.remove('expanded');
+        } else {
+          content.classList.add('expanded');
+          element.classList.add('expanded');
         }
       }
 
@@ -1415,35 +1556,117 @@
           container.innerHTML = `<div class="p-8 text-center text-gray-500"><span class="material-symbols-rounded text-4xl text-gray-300">audio_file</span><p class="mt-2">Chưa có file ghi âm nào</p></div>`;
           return;
         }
-        let html = "";
-        recordings.forEach((rec) => {
-          const size = (rec.size / 1024).toFixed(2);
-          const date = new Date(rec.lastModified).toLocaleString("vi-VN");
+        
+        // Group recordings by date
+        const grouped = groupRecordingsByDate(recordings);
+        const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", 
+                           "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
+        
+        let html = '<div class="space-y-4">';
+        
+        // Sort years descending
+        const years = Object.keys(grouped).sort((a, b) => b - a);
+        
+        years.forEach(year => {
+          const yearData = grouped[year];
+          const yearCount = Object.values(yearData).reduce((sum, monthData) => 
+            sum + Object.values(monthData).reduce((s, dayData) => s + dayData.length, 0), 0);
+          
           html += `
-                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
-                        <div class="flex items-center gap-3 flex-1 min-w-0">
-                            <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-                                <span class="material-symbols-rounded text-purple-600">audio_file</span>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="font-medium text-gray-800 truncate text-sm">${rec.filename}</p>
-                                <p class="text-xs text-gray-500">${date} • ${size} KB</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="viewTranscript('${rec.url}', '${rec.filename}')" class="flex items-center gap-1 px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200" title="Xem nội dung cuộc gọi">
-                                <span class="material-symbols-rounded text-lg">description</span>
-                                <span class="hidden sm:inline">Nội dung</span>
-                            </button>
-                            <button onclick="playRecording('${rec.url}', '${rec.filename}')" class="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium hover:bg-green-200">
-                                <span class="material-symbols-rounded text-lg">play_arrow</span>
-                            </button>
-                            <button onclick="downloadRecording('${rec.url}', '${rec.filename}')" class="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200">
-                                <span class="material-symbols-rounded text-lg">download</span>
-                            </button>
-                        </div>
-                    </div>`;
+            <div class="border border-gray-200 rounded-xl overflow-hidden">
+              <button onclick="toggleAccordion(this)" class="accordion-header w-full px-4 py-3 bg-gray-50 flex items-center justify-between hover:bg-gray-100">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-rounded text-primary">calendar_today</span>
+                  <span class="font-semibold text-gray-800">${year}</span>
+                  <span class="text-sm text-gray-500">(${yearCount} cuộc gọi)</span>
+                </div>
+                <span class="material-symbols-rounded expand-icon">expand_more</span>
+              </button>
+              
+              <div class="accordion-content">`;
+          
+          // Sort months descending
+          const months = Object.keys(yearData).sort((a, b) => b - a);
+          
+          months.forEach(month => {
+            const monthData = yearData[month];
+            const monthCount = Object.values(monthData).reduce((sum, dayData) => sum + dayData.length, 0);
+            
+            html += `
+              <div class="border-t border-gray-200">
+                <button onclick="toggleAccordion(this)" class="accordion-header w-full px-6 py-2.5 bg-white flex items-center justify-between hover:bg-gray-50">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-gray-700">${monthNames[month]}</span>
+                    <span class="text-xs text-gray-500">(${monthCount} cuộc gọi)</span>
+                  </div>
+                  <span class="material-symbols-rounded expand-icon text-sm">expand_more</span>
+                </button>
+                
+                <div class="accordion-content">`;
+            
+            // Sort days descending
+            const days = Object.keys(monthData).sort((a, b) => b - a);
+            
+            days.forEach(day => {
+              const dayRecordings = monthData[day];
+              
+              html += `
+                <div class="border-t border-gray-100">
+                  <button onclick="toggleAccordion(this)" class="accordion-header w-full px-8 py-2 bg-gray-50 flex items-center justify-between hover:bg-gray-100">
+                    <span class="text-sm text-gray-700">Ngày ${day}</span>
+                    <span class="text-xs text-gray-500">(${dayRecordings.length} cuộc gọi)</span>
+                  </button>
+                  
+                  <div class="accordion-content">
+                    <div class="space-y-2 p-3 bg-white">`;
+              
+              // Display recordings for this day
+              dayRecordings.forEach(rec => {
+                const size = (rec.size / 1024).toFixed(2);
+                const time = new Date(rec.lastModified).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' });
+                
+                html += `
+                  <div class="border border-gray-200 rounded-lg p-3 hover:border-primary transition-colors">
+                    <div class="flex items-start justify-between mb-2">
+                      <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800">${time} - ${rec.filename}</p>
+                        <p class="text-xs text-gray-500 mt-1">Kích thước: ${size} KB</p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex gap-2 mt-3">
+                      <button onclick="playRecording('${rec.url}', '${rec.filename}')" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 flex items-center justify-center gap-1">
+                        <span class="material-symbols-rounded text-sm">play_arrow</span>
+                        <span class="hidden sm:inline">Nghe lại</span>
+                      </button>
+                      <button onclick="viewTranscript('${rec.url}', '${rec.filename}')" class="flex-1 px-3 py-2 border border-primary text-primary rounded-lg text-sm hover:bg-primary/5 flex items-center justify-center gap-1">
+                        <span class="material-symbols-rounded text-sm">description</span>
+                        <span class="hidden sm:inline">Xem nội dung</span>
+                      </button>
+                      <button onclick="downloadRecording('${rec.url}', '${rec.filename}')" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center">
+                        <span class="material-symbols-rounded text-sm">download</span>
+                      </button>
+                    </div>
+                  </div>`;
+              });
+              
+              html += `
+                    </div>
+                  </div>
+                </div>`;
+            });
+            
+            html += `
+                </div>
+              </div>`;
+          });
+          
+          html += `
+              </div>
+            </div>`;
         });
+        
+        html += '</div>';
         container.innerHTML = html;
       }
 
@@ -1460,8 +1683,8 @@
             <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
               <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <span class="material-symbols-rounded text-purple-500">description</span>
-                  Nội dung cuộc gọi
+                  <span class="material-symbols-rounded text-primary">description</span>
+                  Nội dung cuộc thoại (văn bản)
                 </h3>
                 <button onclick="closeTranscriptModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                   <span class="material-symbols-rounded text-2xl">close</span>
@@ -1472,8 +1695,8 @@
               </div>
               <div id="transcriptContent" class="p-4 overflow-y-auto flex-1">
                 <div class="text-center py-8">
-                  <div class="w-8 h-8 border-3 border-gray-200 border-t-purple-500 rounded-full animate-spin mx-auto mb-3"></div>
-                  <p class="text-sm text-gray-500">Đang phân tích nội dung...</p>
+                  <div class="w-8 h-8 border-3 border-gray-200 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
+                  <p class="text-sm text-gray-500">Đang chuyển đổi giọng nói thành văn bản...</p>
                 </div>
               </div>
             </div>
@@ -1488,7 +1711,8 @@
 
         // Load transcript
         const content = document.getElementById("transcriptContent");
-        content.innerHTML = `<div class="text-center py-8"><div class="w-8 h-8 border-3 border-gray-200 border-t-purple-500 rounded-full animate-spin mx-auto mb-3"></div><p class="text-sm text-gray-500">Đang phân tích nội dung cuộc gọi...</p></div>`;
+        content.innerHTML = `<div class="text-center py-8"><div class="w-8 h-8 border-3 border-gray-200 border-t-primary rounded-full animate-spin mx-auto mb-3"></div><p class="text-sm text-gray-500">Đang phân tích nội dung cuộc gọi...</p></div>`;
+        showNotification("Đang phân tích", "Đang chuyển đổi giọng nói thành văn bản...", "info", 3000);
 
         // Lưu filename để dùng cho edit/delete
         window.currentTranscriptFilename = filename;
@@ -1512,6 +1736,7 @@
 
           const result = await response.json();
           if (result.success && result.transcript) {
+            showNotification("Phân tích thành công", "Nội dung cuộc thoại đã được chuyển đổi", "success", 3000);
             const cachedBadge = result.cached 
               ? '<span class="ml-2 px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded-full">Đã lưu</span>' 
               : '<span class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-600 text-xs rounded-full">Mới phân tích</span>';
@@ -1521,17 +1746,22 @@
             
             content.innerHTML = `
               <div class="space-y-4">
-                <div class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
-                  <div class="flex items-center justify-between mb-2">
-                    <p class="text-sm font-medium text-purple-700 dark:text-purple-300">
-                      Nội dung cuộc hội thoại: ${cachedBadge}
-                    </p>
+                <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-gray-200">
+                  <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
+                    <div class="flex items-center gap-2">
+                      <span class="material-symbols-rounded text-primary">description</span>
+                      <p class="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                        Nội dung cuộc thoại (văn bản) ${cachedBadge}
+                      </p>
+                    </div>
                     <div class="flex gap-2">
-                      <button onclick="editTranscript()" class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 flex items-center gap-1">
-                        <span class="material-symbols-rounded text-sm">edit</span> Sửa
+                      <button onclick="editTranscript()" class="px-3 py-1.5 text-xs bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-1" title="Chỉnh sửa nội dung văn bản">
+                        <span class="material-symbols-rounded text-sm">edit</span> 
+                        <span class="hidden sm:inline">Chỉnh sửa</span>
                       </button>
-                      <button onclick="deleteTranscript()" class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200 flex items-center gap-1">
-                        <span class="material-symbols-rounded text-sm">delete</span> Xóa
+                      <button onclick="deleteTranscript()" class="px-3 py-1.5 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200 flex items-center gap-1" title="Xóa nội dung văn bản">
+                        <span class="material-symbols-rounded text-sm">delete</span> 
+                        <span class="hidden sm:inline">Xóa</span>
                       </button>
                     </div>
                   </div>
@@ -1541,10 +1771,12 @@
             `;
           } else {
             content.innerHTML = `<div class="text-center py-8 text-gray-500"><span class="material-symbols-rounded text-4xl text-gray-300 mb-2">error</span><p>Chưa có nội dung cuộc gọi hoặc đang xử lý.</p></div>`;
+            showNotification("Chưa có nội dung", "Chưa có nội dung cuộc gọi hoặc đang xử lý", "warning", 3000);
           }
         } catch (err) {
           console.error("Transcribe error:", err);
           content.innerHTML = `<div class="text-center py-8 text-gray-500"><span class="material-symbols-rounded text-4xl text-gray-300 mb-2">error</span><p>Không thể tải nội dung cuộc gọi.</p><p class="text-sm mt-2">${err.message}</p></div>`;
+          showNotification("Phân tích thất bại", `Không thể chuyển đổi: ${err.message}`, "error", 5000);
         }
       }
 
@@ -1554,10 +1786,10 @@
         const currentText = window.currentTranscript || textDiv.innerText;
         
         textDiv.innerHTML = `
-          <textarea id="transcriptEditArea" class="w-full h-48 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y text-sm">${currentText}</textarea>
+          <textarea id="transcriptEditArea" class="w-full h-48 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-y text-sm">${currentText}</textarea>
           <div class="flex justify-end gap-2 mt-3">
             <button onclick="cancelEditTranscript()" class="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Hủy</button>
-            <button onclick="saveTranscript()" class="px-3 py-1.5 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700">Lưu</button>
+            <button onclick="saveTranscript()" class="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary/90">Lưu thay đổi</button>
           </div>
         `;
       }
@@ -1574,7 +1806,7 @@
         const newTranscript = textarea.value.trim();
         
         if (!newTranscript) {
-          alert("Nội dung không được để trống");
+          showNotification("Nội dung trống", "Nội dung không được để trống", "warning", 3000);
           return;
         }
         
@@ -1599,11 +1831,11 @@
           textDiv.innerHTML = newTranscript;
           
           // Show success notification
-          showToast("Đã lưu nội dung thành công", "success");
+          showNotification("Đã lưu", "Nội dung cuộc thoại đã được cập nhật", "success", 3000);
           
         } catch (err) {
           console.error("Save transcript error:", err);
-          alert("Lỗi: " + err.message);
+          showNotification("Lỗi lưu", `Không thể lưu nội dung: ${err.message}`, "error", 5000);
         }
       }
 
@@ -1625,11 +1857,11 @@
           
           // Close modal
           closeTranscriptModal();
-          showToast("Đã xóa nội dung thành công", "success");
+          showNotification("Đã xóa", "Nội dung cuộc thoại đã được xóa", "success", 3000);
           
         } catch (err) {
           console.error("Delete transcript error:", err);
-          alert("Lỗi: " + err.message);
+          showNotification("Lỗi xóa", `Không thể xóa nội dung: ${err.message}`, "error", 5000);
         }
       }
 
@@ -1655,6 +1887,7 @@
         document.getElementById("audioPlayerTitle").textContent = filename;
         document.getElementById("audioPlayer").src = url;
         document.getElementById("audioPlayerModal").classList.remove("hidden");
+        showNotification("Đang phát", "Đang mở file ghi âm...", "info", 2000);
       }
 
       function closeAudioPlayer() {
@@ -1663,12 +1896,16 @@
       }
 
       function downloadRecording(url, filename) {
+        showNotification("Đang tải xuống", `Đang tải file ${filename}`, "info", 2000);
         const a = document.createElement("a");
         a.href = url;
         a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
+        setTimeout(() => {
+          showNotification("Tải xuống thành công", "File đã được tải về máy của bạn", "success", 3000);
+        }, 500);
       }
 
       function getInitials(name) {
