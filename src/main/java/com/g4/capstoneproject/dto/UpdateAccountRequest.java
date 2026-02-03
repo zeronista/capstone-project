@@ -29,7 +29,7 @@ public class UpdateAccountRequest {
     @Size(max = 20, message = "Số điện thoại tối đa 20 ký tự")
     private String phone;
     
-    @NotNull(message = "Vai trò không được để trống")
+    // Role không bắt buộc khi update (không cho phép thay đổi role khi edit)
     private User.UserRole role;
     
     /**

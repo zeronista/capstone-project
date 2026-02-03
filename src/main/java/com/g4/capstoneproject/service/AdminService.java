@@ -118,20 +118,29 @@ public class AdminService {
         try {
             // Validate role không phải PATIENT
             if (request.getRole() == User.UserRole.PATIENT) {
-                throw new IllegalArgumentException("Không thể assign role PATIENT qua tính năng này");
+                throw new IllegalArgumentException("Không thể gán vai trò Bệnh nhân qua tính năng này. Vui lòng sử dụng tính năng quản lý bệnh nhân");
+            }
+            
+            // Không cho phép assign role ADMIN
+            if (request.getRole() == User.UserRole.ADMIN) {
+                throw new IllegalArgumentException("Không thể gán vai trò Quản trị viên. Vai trò này chỉ có thể được cấp bởi hệ thống");
             }
             
             // Tìm user
             User user = userRepository.findById(request.getUserId())
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy user với ID: " + request.getUserId()));
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Không tìm thấy tài khoản với ID: %d", request.getUserId())));
             
             // Cập nhật role
             User.UserRole oldRole = user.getRole();
             user.setRole(request.getRole());
             user = userRepository.save(user);
             
-            log.info("Role updated for user {}: {} -> {}", 
-                    user.getId(), oldRole, request.getRole());
+            log.info("Role updated for user {} (ID: {}, FullName: {}): {} -> {}", 
+                    user.getEmail() != null ? user.getEmail() : user.getPhoneNumber(),
+                    user.getId(),
+                    user.getFullName(),
+                    oldRole, 
+                    request.getRole());
             
             return AccountResponse.fromUser(user);
         } catch (IllegalArgumentException e) {
@@ -150,7 +159,7 @@ public class AdminService {
     public AccountResponse getAccountById(Long id) {
         try {
             User user = userRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy user với ID: " + id));
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Không tìm thấy tài khoản với ID: %d", id)));
             
             return AccountResponse.fromUser(user);
         } catch (IllegalArgumentException e) {
@@ -169,14 +178,18 @@ public class AdminService {
     public AccountResponse toggleAccountStatus(Long id) {
         try {
             User user = userRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy user với ID: " + id));
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Không tìm thấy tài khoản với ID: %d", id)));
             
             // Toggle isActive status
             user.setIsActive(!user.getIsActive());
             user = userRepository.save(user);
             
-            log.info("Account status toggled for user {}: isActive = {}", 
-                    user.getId(), user.getIsActive());
+            log.info("Account status toggled for user {} (ID: {}, FullName: {}): isActive = {} -> {}", 
+                    user.getEmail() != null ? user.getEmail() : user.getPhoneNumber(),
+                    user.getId(),
+                    user.getFullName(),
+                    !user.getIsActive(),
+                    user.getIsActive());
             
             return AccountResponse.fromUser(user);
         } catch (IllegalArgumentException e) {
@@ -220,25 +233,39 @@ public class AdminService {
         try {
             // Validate email hoặc phone phải có ít nhất 1
             if (!request.hasEmailOrPhone()) {
-                throw new IllegalArgumentException("Vui lòng cung cấp email hoặc số điện thoại");
+                throw new IllegalArgumentException("Vui lòng cung cấp email hoặc số điện thoại để tạo tài khoản");
             }
             
             // Validate mật khẩu khớp
             if (!request.isPasswordMatch()) {
-                throw new IllegalArgumentException("Mật khẩu xác nhận không khớp");
+                throw new IllegalArgumentException("Mật khẩu và mật khẩu xác nhận không khớp. Vui lòng kiểm tra lại");
+            }
+            
+            // Validate fullName
+            if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {
+                throw new IllegalArgumentException("Họ và tên không được để trống");
+            }
+            
+            if (request.getFullName().trim().length() < 2) {
+                throw new IllegalArgumentException("Họ và tên phải có ít nhất 2 ký tự");
+            }
+            
+            // Không cho phép tạo account với role ADMIN
+            if (request.getRole() == User.UserRole.ADMIN) {
+                throw new IllegalArgumentException("Không thể tạo tài khoản với vai trò Quản trị viên. Vai trò này chỉ có thể được cấp bởi hệ thống");
             }
             
             // Kiểm tra email đã tồn tại
             if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
                 if (userRepository.existsByEmail(request.getEmail())) {
-                    throw new IllegalArgumentException("Email đã được sử dụng");
+                    throw new IllegalArgumentException(String.format("Email '%s' đã được sử dụng bởi tài khoản khác", request.getEmail()));
                 }
             }
             
             // Kiểm tra số điện thoại đã tồn tại
             if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
                 if (userRepository.existsByPhoneNumber(request.getPhone())) {
-                    throw new IllegalArgumentException("Số điện thoại đã được sử dụng");
+                    throw new IllegalArgumentException(String.format("Số điện thoại '%s' đã được sử dụng bởi tài khoản khác", request.getPhone()));
                 }
             }
             
@@ -263,9 +290,11 @@ public class AdminService {
             user.setUserInfo(userInfo);
             user = userRepository.save(user);
             
-            log.info("Account created successfully by admin: {} with role {}", 
-                    user.getEmail() != null ? user.getEmail() : user.getPhoneNumber(), 
-                    user.getRole());
+            log.info("Account created successfully by admin: {} (ID: {}) with role {} - FullName: {}", 
+                    user.getEmail() != null ? user.getEmail() : user.getPhoneNumber(),
+                    user.getId(),
+                    user.getRole(),
+                    user.getFullName());
             
             return AccountResponse.fromUser(user);
                     
@@ -286,18 +315,27 @@ public class AdminService {
         try {
             // Validate email hoặc phone phải có ít nhất 1
             if (!request.hasEmailOrPhone()) {
-                throw new IllegalArgumentException("Vui lòng cung cấp email hoặc số điện thoại");
+                throw new IllegalArgumentException("Vui lòng cung cấp email hoặc số điện thoại để cập nhật tài khoản");
             }
             
             // Tìm user cần cập nhật
             User user = userRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy user với ID: " + id));
+                    .orElseThrow(() -> new IllegalArgumentException(String.format("Không tìm thấy tài khoản với ID: %d", id)));
+            
+            // Validate fullName
+            if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {
+                throw new IllegalArgumentException("Họ và tên không được để trống");
+            }
+            
+            if (request.getFullName().trim().length() < 2) {
+                throw new IllegalArgumentException("Họ và tên phải có ít nhất 2 ký tự");
+            }
             
             // Kiểm tra email đã tồn tại (nếu thay đổi)
             if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
                 if (!request.getEmail().equals(user.getEmail())) {
                     if (userRepository.existsByEmail(request.getEmail())) {
-                        throw new IllegalArgumentException("Email đã được sử dụng");
+                        throw new IllegalArgumentException(String.format("Email '%s' đã được sử dụng bởi tài khoản khác", request.getEmail()));
                     }
                 }
             }
@@ -306,17 +344,17 @@ public class AdminService {
             if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
                 if (!request.getPhone().equals(user.getPhoneNumber())) {
                     if (userRepository.existsByPhoneNumber(request.getPhone())) {
-                        throw new IllegalArgumentException("Số điện thoại đã được sử dụng");
+                        throw new IllegalArgumentException(String.format("Số điện thoại '%s' đã được sử dụng bởi tài khoản khác", request.getPhone()));
                     }
                 }
             }
             
-            // Cập nhật thông tin user
+            // Cập nhật thông tin user (không cập nhật role khi edit)
             user.setEmail(request.getEmail() != null && !request.getEmail().trim().isEmpty() 
                     ? request.getEmail() : null);
             user.setPhoneNumber(request.getPhone() != null && !request.getPhone().trim().isEmpty() 
                     ? request.getPhone() : null);
-            user.setRole(request.getRole());
+            // Note: Role không được cập nhật khi edit (theo yêu cầu)
             
             // Cập nhật UserInfo
             UserInfo userInfo = user.getUserInfo();
@@ -332,9 +370,11 @@ public class AdminService {
             
             user = userRepository.save(user);
             
-            log.info("Account updated successfully by admin: {} with role {}", 
-                    user.getEmail() != null ? user.getEmail() : user.getPhoneNumber(), 
-                    user.getRole());
+            log.info("Account updated successfully by admin: {} (ID: {}) - FullName: {} -> {}", 
+                    user.getEmail() != null ? user.getEmail() : user.getPhoneNumber(),
+                    user.getId(),
+                    user.getFullName(),
+                    request.getFullName());
             
             return AccountResponse.fromUser(user);
                     

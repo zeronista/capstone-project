@@ -54,7 +54,7 @@ public class SecurityConfig {
                                                 // Role-based access control
                                                 .requestMatchers("/doctor/**").hasRole("DOCTOR")
                                                 .requestMatchers("/receptionist/**").hasRole("RECEPTIONIST")
-                                                .requestMatchers("/admin/**").hasRole("ADMIN")
+                                                .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
                                                 .requestMatchers("/patient/**")
                                                 .hasAnyRole("PATIENT", "DOCTOR", "RECEPTIONIST", "ADMIN")
                                                 // Web Call - authenticated users only (all roles)
@@ -98,7 +98,9 @@ public class SecurityConfig {
                                                                 // Allow patient document upload (multipart form)
                                                                 "/api/patient/documents/**",
                                                                 // Allow profile update and avatar (for patient portal)
-                                                                "/api/profile/**"));
+                                                                "/api/profile/**",
+                                                                // Allow Admin API endpoints (protected by role-based auth)
+                                                                "/api/admin/**"));
 
                 return http.build();
         }

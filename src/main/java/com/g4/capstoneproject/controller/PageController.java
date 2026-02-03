@@ -51,7 +51,7 @@ public class PageController {
             case DOCTOR -> "redirect:/doctor/dashboard";
             case RECEPTIONIST -> "redirect:/receptionist/dashboard";
             case PATIENT -> "redirect:/patient";
-            case ADMIN -> "redirect:/admin/users";
+            case ADMIN -> "redirect:/admin/dashboard";
         };
     }
 
@@ -88,6 +88,11 @@ public class PageController {
     @GetMapping("/admin/users")
     public String adminUsers() {
         return "admin/users";
+    }
+
+    @GetMapping("/admin/dashboard")
+    public String adminDashboard() {
+        return "admin/dashboard";
     }
 
     // ==================== MEDICAL ====================

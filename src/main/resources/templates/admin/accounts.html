@@ -111,12 +111,12 @@
           </div>
 
           <!-- Stats Cards -->
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
             <!-- Total Accounts -->
             <div
               class="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:-translate-y-1"
             >
-              <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3 mb-4">
                 <div
                   class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform"
                 >
@@ -124,27 +124,25 @@
                     >groups</span
                   >
                 </div>
-                <span
-                  class="text-xs font-medium text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full"
-                  >Tổng</span
-                >
+                <div>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Tổng tài khoản
+                  </p>
+                  <h3
+                    id="statTotal"
+                    class="text-3xl font-bold text-slate-900 dark:text-white"
+                  >
+                    0
+                  </h3>
+                </div>
               </div>
-              <h3
-                id="statTotal"
-                class="text-3xl font-bold text-slate-900 dark:text-white"
-              >
-                0
-              </h3>
-              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Tổng tài khoản
-              </p>
             </div>
 
             <!-- Active -->
             <div
               class="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:-translate-y-1"
             >
-              <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3 mb-4">
                 <div
                   class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform"
                 >
@@ -152,27 +150,25 @@
                     >check_circle</span
                   >
                 </div>
-                <span
-                  class="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-full"
-                  >Hoạt động</span
-                >
+                <div>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Đang hoạt động
+                  </p>
+                  <h3
+                    id="statActive"
+                    class="text-3xl font-bold text-slate-900 dark:text-white"
+                  >
+                    0
+                  </h3>
+                </div>
               </div>
-              <h3
-                id="statActive"
-                class="text-3xl font-bold text-slate-900 dark:text-white"
-              >
-                0
-              </h3>
-              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Đang hoạt động
-              </p>
             </div>
 
             <!-- Inactive -->
             <div
               class="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:-translate-y-1"
             >
-              <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3 mb-4">
                 <div
                   class="w-12 h-12 bg-gradient-to-br from-slate-400 to-slate-600 rounded-xl flex items-center justify-center shadow-lg shadow-slate-500/30 group-hover:scale-110 transition-transform"
                 >
@@ -180,49 +176,20 @@
                     >block</span
                   >
                 </div>
-                <span
-                  class="text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full"
-                  >Vô hiệu</span
-                >
+                <div>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">
+                    Vô hiệu hóa
+                  </p>
+                  <h3
+                    id="statInactive"
+                    class="text-3xl font-bold text-slate-900 dark:text-white"
+                  >
+                    0
+                  </h3>
+                </div>
               </div>
-              <h3
-                id="statInactive"
-                class="text-3xl font-bold text-slate-900 dark:text-white"
-              >
-                0
-              </h3>
-              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Vô hiệu hóa
-              </p>
             </div>
 
-            <!-- Pending -->
-            <div
-              class="group bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700 hover:-translate-y-1"
-            >
-              <div class="flex items-center justify-between mb-3">
-                <div
-                  class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30 group-hover:scale-110 transition-transform"
-                >
-                  <span class="material-symbols-outlined text-white text-[24px]"
-                    >hourglass_empty</span
-                  >
-                </div>
-                <span
-                  class="text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded-full"
-                  >Chờ</span
-                >
-              </div>
-              <h3
-                id="statPending"
-                class="text-3xl font-bold text-slate-900 dark:text-white"
-              >
-                0
-              </h3>
-              <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Chờ xác thực
-              </p>
-            </div>
           </div>
 
           <!-- Accounts Table Card -->
@@ -260,7 +227,6 @@
                       class="appearance-none h-10 pl-4 pr-10 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
                     >
                       <option value="">Tất cả vai trò</option>
-                      <option value="ADMIN">Admin</option>
                       <option value="DOCTOR">Bác sĩ</option>
                       <option value="RECEPTIONIST">Lễ tân</option>
                       <option value="PATIENT">Bệnh nhân</option>
@@ -283,7 +249,6 @@
                       <option value="">Tất cả trạng thái</option>
                       <option value="active">Đang hoạt động</option>
                       <option value="inactive">Vô hiệu hóa</option>
-                      <option value="pending">Chờ xác thực</option>
                     </select>
                     <div
                       class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3"
@@ -332,7 +297,7 @@
                       Trạng thái
                     </th>
                     <th
-                      class="px-5 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-right"
+                      class="px-5 py-4 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider text-center"
                     >
                       Thao tác
                     </th>
@@ -486,10 +451,9 @@
             <select
               id="createRole"
               required
-              class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">-- Chọn vai trò --</option>
-              <option value="ADMIN">Admin</option>
               <option value="DOCTOR">Bác sĩ</option>
               <option value="RECEPTIONIST">Lễ tân</option>
               <option value="PATIENT">Bệnh nhân</option>
@@ -601,7 +565,6 @@
               class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="">-- Chọn vai trò --</option>
-              <option value="ADMIN">Admin</option>
               <option value="DOCTOR">Bác sĩ</option>
               <option value="RECEPTIONIST">Lễ tân</option>
             </select>
@@ -625,16 +588,22 @@
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-4 right-4 z-50 hidden">
+    <div id="toast" class="fixed top-20 right-4 z-50 hidden transform transition-all duration-300 ease-in-out translate-x-full opacity-0">
       <div
-        class="flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border"
+        class="flex items-center gap-4 px-6 py-4 rounded-xl shadow-2xl border-2 min-w-[320px] max-w-md"
         id="toastContent"
       >
         <span
           id="toastIcon"
-          class="material-symbols-outlined text-[20px]"
+          class="material-symbols-outlined text-[28px] flex-shrink-0"
         ></span>
-        <span id="toastMessage" class="text-sm font-medium"></span>
+        <span id="toastMessage" class="text-base font-semibold flex-1"></span>
+        <button
+          onclick="closeToast()"
+          class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex-shrink-0"
+        >
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
       </div>
     </div>
 
@@ -670,12 +639,14 @@
         const roleFilter = document.getElementById("roleFilterSelect");
         if (roleFilter) {
           roleFilter.addEventListener("change", function (e) {
-            const role = e.target.value;
-            if (role) {
-              filterByRole(role);
-            } else {
-              loadAccounts();
-            }
+            applyFilters();
+          });
+        }
+
+        const statusFilter = document.getElementById("statusFilterSelect");
+        if (statusFilter) {
+          statusFilter.addEventListener("change", function (e) {
+            applyFilters();
           });
         }
 
@@ -691,6 +662,9 @@
           const data = await response.json();
           if (data.success) {
             allAccounts = data.accounts;
+            // Reset filters
+            document.getElementById("roleFilterSelect").value = "";
+            document.getElementById("statusFilterSelect").value = "";
             renderAccounts(allAccounts);
             updateStats(allAccounts);
           } else {
@@ -709,24 +683,42 @@
           );
           const data = await response.json();
           if (data.success) {
+            // When searching, show all results without filters
+            allAccounts = data.accounts;
+            document.getElementById("roleFilterSelect").value = "";
+            document.getElementById("statusFilterSelect").value = "";
             renderAccounts(data.accounts);
+            updateStats(data.accounts);
           }
         } catch (error) {
           console.error("Error searching accounts:", error);
         }
       }
 
-      async function filterByRole(role) {
+      function applyFilters() {
         try {
-          const response = await fetch(
-            `/api/admin/accounts/filter?role=${role}`,
-          );
-          const data = await response.json();
-          if (data.success) {
-            renderAccounts(data.accounts);
+          const roleFilter = document.getElementById("roleFilterSelect")?.value || "";
+          const statusFilter = document.getElementById("statusFilterSelect")?.value || "";
+          
+          let filteredAccounts = [...allAccounts];
+          
+          // Filter by role
+          if (roleFilter) {
+            filteredAccounts = filteredAccounts.filter((a) => a.role === roleFilter);
           }
+          
+          // Filter by status
+          if (statusFilter === "active") {
+            filteredAccounts = filteredAccounts.filter((a) => a.isActive === true);
+          } else if (statusFilter === "inactive") {
+            filteredAccounts = filteredAccounts.filter((a) => a.isActive === false);
+          }
+          
+          renderAccounts(filteredAccounts);
+          updateStats(filteredAccounts);
         } catch (error) {
-          console.error("Error filtering accounts:", error);
+          console.error("Error applying filters:", error);
+          showToast("Lỗi khi áp dụng bộ lọc", "error");
         }
       }
 
@@ -737,9 +729,6 @@
         ).length;
         document.getElementById("statInactive").textContent = accounts.filter(
           (a) => !a.isActive,
-        ).length;
-        document.getElementById("statPending").textContent = accounts.filter(
-          (a) => !a.emailVerified,
         ).length;
       }
 
@@ -803,7 +792,7 @@
                 </span>
               </td>
               <td class="px-5 py-4">
-                <div class="flex items-center justify-end gap-2">
+                <div class="flex items-center justify-center gap-2">
                   <button onclick="viewAccountDetail(${account.id})" 
                     class="px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors flex items-center gap-1.5" title="Xem chi tiết">
                     <span class="material-symbols-outlined text-[18px]">visibility</span>
@@ -1004,6 +993,8 @@
             document.getElementById("createEmail").value = account.email || "";
             document.getElementById("createPhone").value = account.phoneNumber || "";
             document.getElementById("createRole").value = account.role || "";
+            // Disable role field when editing
+            document.getElementById("createRole").disabled = true;
             document.getElementById("passwordFields").classList.add("hidden");
             document.getElementById("createPassword").removeAttribute("required");
             document.getElementById("createConfirmPassword").removeAttribute("required");
@@ -1025,6 +1016,8 @@
         document.getElementById("createAccountForm").reset();
         document.getElementById("createPassword").value = "123456a@A";
         document.getElementById("createConfirmPassword").value = "123456a@A";
+        // Enable role field when creating new account
+        document.getElementById("createRole").disabled = false;
         document.getElementById("passwordFields").classList.remove("hidden");
         document.getElementById("createPassword").setAttribute("required", "");
         document.getElementById("createConfirmPassword").setAttribute("required", "");
@@ -1114,7 +1107,7 @@
                 fullName,
                 email: email || null,
                 phone: phone || null,
-                role,
+                // Don't send role when editing
               }
             : {
                 fullName,
@@ -1206,26 +1199,48 @@
 
         const types = {
           success: {
-            bg: "bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400",
+            bg: "bg-emerald-50 dark:bg-emerald-900/40 border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200",
             icon: "check_circle",
+            iconColor: "text-emerald-600 dark:text-emerald-400",
           },
           error: {
-            bg: "bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400",
+            bg: "bg-red-50 dark:bg-red-900/40 border-red-300 dark:border-red-700 text-red-800 dark:text-red-200",
             icon: "error",
+            iconColor: "text-red-600 dark:text-red-400",
           },
           info: {
-            bg: "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400",
+            bg: "bg-blue-50 dark:bg-blue-900/40 border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-200",
             icon: "info",
+            iconColor: "text-blue-600 dark:text-blue-400",
           },
         };
 
         const config = types[type] || types.info;
-        content.className = `flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border ${config.bg}`;
+        content.className = `flex items-center gap-4 px-6 py-4 rounded-xl shadow-2xl border-2 min-w-[320px] max-w-md ${config.bg}`;
+        icon.className = `material-symbols-outlined text-[28px] flex-shrink-0 ${config.iconColor}`;
         icon.textContent = config.icon;
         msgEl.textContent = message;
 
+        // Show toast with animation
         toast.classList.remove("hidden");
-        setTimeout(() => toast.classList.add("hidden"), 4000);
+        setTimeout(() => {
+          toast.classList.remove("opacity-0", "translate-x-full");
+          toast.classList.add("opacity-100", "translate-x-0");
+        }, 10);
+
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+          closeToast();
+        }, 5000);
+      }
+
+      function closeToast() {
+        const toast = document.getElementById("toast");
+        toast.classList.remove("opacity-100", "translate-x-0");
+        toast.classList.add("opacity-0", "translate-x-full");
+        setTimeout(() => {
+          toast.classList.add("hidden");
+        }, 300);
       }
     </script>
   </body>

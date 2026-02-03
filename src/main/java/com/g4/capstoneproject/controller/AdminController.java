@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import java.util.Map;
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 @Slf4j
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
     
     private final AdminService adminService;
@@ -179,7 +181,9 @@ public class AdminController {
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("message", "Cập nhật vai trò thành công");
+            response.put("message", String.format("Đã cập nhật vai trò của %s thành %s thành công", 
+                    account.getFullName() != null ? account.getFullName() : "người dùng",
+                    getRoleName(account.getRole())));
             response.put("account", account);
             
             return ResponseEntity.ok(response);
@@ -206,10 +210,11 @@ public class AdminController {
             AccountResponse account = adminService.toggleAccountStatus(id);
             
             Map<String, Object> response = new HashMap<>();
+            String userName = account.getFullName() != null ? account.getFullName() : "người dùng";
             response.put("success", true);
             response.put("message", account.getIsActive() 
-                    ? "Kích hoạt tài khoản thành công" 
-                    : "Vô hiệu hóa tài khoản thành công");
+                    ? String.format("Đã kích hoạt tài khoản %s thành công", userName)
+                    : String.format("Đã vô hiệu hóa tài khoản %s thành công", userName));
             response.put("account", account);
             
             return ResponseEntity.ok(response);
@@ -261,7 +266,9 @@ public class AdminController {
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("message", "Tạo tài khoản thành công");
+            response.put("message", String.format("Đã tạo tài khoản thành công cho %s với vai trò %s", 
+                    account.getFullName() != null ? account.getFullName() : "người dùng",
+                    getRoleName(account.getRole())));
             response.put("account", account);
             
             return ResponseEntity.ok(response);
@@ -292,7 +299,8 @@ public class AdminController {
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("message", "Cập nhật tài khoản thành công");
+            response.put("message", String.format("Đã cập nhật thông tin tài khoản %s thành công", 
+                    account.getFullName() != null ? account.getFullName() : "người dùng"));
             response.put("account", account);
             
             return ResponseEntity.ok(response);
@@ -308,5 +316,17 @@ public class AdminController {
             errorResponse.put("message", "Không thể cập nhật tài khoản");
             return ResponseEntity.internalServerError().body(errorResponse);
         }
+    }
+    
+    /**
+     * Helper method để lấy tên vai trò bằng tiếng Việt
+     */
+    private String getRoleName(User.UserRole role) {
+        return switch (role) {
+            case ADMIN -> "Quản trị viên";
+            case DOCTOR -> "Bác sĩ";
+            case RECEPTIONIST -> "Lễ tân";
+            case PATIENT -> "Bệnh nhân";
+        };
     }
 }
