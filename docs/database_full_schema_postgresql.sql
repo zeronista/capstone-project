@@ -407,7 +407,7 @@ COMMENT ON TABLE web_call_logs IS 'Bang luu lich su cuoc goi Web-to-Web giua 2 u
 CREATE TABLE IF NOT EXISTS tickets (
     id                  BIGSERIAL       PRIMARY KEY,
     call_id             BIGINT          UNIQUE,
-    patient_id          BIGINT          NOT NULL,
+    patient_id          BIGINT,
     title               VARCHAR(200)    NOT NULL,
     description         TEXT,
     priority            priority_type   DEFAULT 'MEDIUM',
