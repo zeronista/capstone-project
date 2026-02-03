@@ -27,7 +27,7 @@ public interface WebCallLogRepository extends JpaRepository<WebCallLog, Long> {
     /**
      * Tìm tất cả cuộc gọi của một user (cả gọi đi và gọi đến)
      */
-    @Query("SELECT w FROM WebCallLog w WHERE w.caller.id = :userId OR w.receiver.id = :userId ORDER BY w.createdAt DESC")
+    @Query("SELECT w FROM WebCallLog w LEFT JOIN FETCH w.caller LEFT JOIN FETCH w.receiver WHERE w.caller.id = :userId OR w.receiver.id = :userId ORDER BY w.createdAt DESC")
     List<WebCallLog> findAllByUserId(@Param("userId") Long userId);
     
     /**

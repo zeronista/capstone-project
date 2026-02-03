@@ -184,6 +184,62 @@
       </div>
     </main>
 
+    <!-- Recording Options Modal -->
+    <div
+      id="recordingOptionsModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden"
+    >
+      <div
+        class="bg-white dark:bg-card-dark rounded-2xl shadow-xl p-6 w-full max-w-md mx-4"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-surface-900">
+            Chọn file ghi âm
+          </h3>
+          <button
+            onclick="closeRecordingOptions()"
+            class="p-2 hover:bg-surface-100 rounded-lg transition-colors"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="mb-4">
+          <p class="text-sm text-surface-500">
+            Cuộc gọi với
+            <span id="recordingOptionsName" class="font-medium text-surface-900">-</span>
+          </p>
+          <p class="text-xs text-surface-400" id="recordingOptionsTime">-</p>
+        </div>
+
+        <div class="space-y-3">
+          <button id="btnPlayCombined" class="w-full flex items-center gap-3 p-3 bg-primary-50 hover:bg-primary-100 rounded-xl transition-colors">
+            <span class="material-symbols-outlined text-primary-600">group</span>
+            <div class="text-left">
+              <p class="font-medium text-surface-900">Ghi âm chung</p>
+              <p class="text-xs text-surface-500">Cả 2 người nói chuyện</p>
+            </div>
+          </button>
+          
+          <button id="btnPlayCaller" class="w-full flex items-center gap-3 p-3 bg-success-50 hover:bg-success-100 rounded-xl transition-colors">
+            <span class="material-symbols-outlined text-success-600">call_made</span>
+            <div class="text-left">
+              <p class="font-medium text-surface-900">Người gọi</p>
+              <p class="text-xs text-surface-500">Chỉ giọng người khởi tạo cuộc gọi</p>
+            </div>
+          </button>
+          
+          <button id="btnPlayReceiver" class="w-full flex items-center gap-3 p-3 bg-info-50 hover:bg-info-100 rounded-xl transition-colors">
+            <span class="material-symbols-outlined text-info-600">call_received</span>
+            <div class="text-left">
+              <p class="font-medium text-surface-900">Người nhận</p>
+              <p class="text-xs text-surface-500">Chỉ giọng người trả lời</p>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Audio Player Modal -->
     <div
       id="audioPlayerModal"
@@ -390,7 +446,7 @@
                                 ${
                                   call.hasRecording
                                     ? `
-                                    <button onclick="playRecording(${call.id}, '${escapeHtml(call.otherUserName)}', '${call.startTime}', '${call.recordingUrl}')"
+                                    <button onclick="showRecordingOptions(${call.id}, '${escapeHtml(call.otherUserName)}', '${call.startTime}', '${call.recordingUrl || ''}', '${call.recordingCallerUrl || ''}', '${call.recordingReceiverUrl || ''}')"
                                             class="p-2 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors" title="Nghe ghi âm">
                                         <span class="material-symbols-outlined text-primary-600">play_circle</span>
                                     </button>
@@ -408,6 +464,55 @@
             `,
           )
           .join("");
+      }
+
+      // Show recording options modal
+      function showRecordingOptions(callId, userName, time, combinedUrl, callerUrl, receiverUrl) {
+        const hasMultiple = (combinedUrl && callerUrl) || (combinedUrl && receiverUrl) || (callerUrl && receiverUrl);
+        
+        if (!hasMultiple) {
+          // Chỉ có 1 file, phát trực tiếp
+          const url = combinedUrl || callerUrl || receiverUrl;
+          playRecording(callId, userName, time, url);
+          return;
+        }
+        
+        // Có nhiều file, hiện modal chọn
+        const modal = document.getElementById("recordingOptionsModal");
+        document.getElementById("recordingOptionsName").textContent = userName;
+        document.getElementById("recordingOptionsTime").textContent = formatDateTime(time);
+        
+        // Setup buttons
+        const combinedBtn = document.getElementById("btnPlayCombined");
+        const callerBtn = document.getElementById("btnPlayCaller");
+        const receiverBtn = document.getElementById("btnPlayReceiver");
+        
+        if (combinedUrl) {
+          combinedBtn.classList.remove("hidden");
+          combinedBtn.onclick = () => { closeRecordingOptions(); playRecording(callId, userName + " (Chung)", time, combinedUrl); };
+        } else {
+          combinedBtn.classList.add("hidden");
+        }
+        
+        if (callerUrl) {
+          callerBtn.classList.remove("hidden");
+          callerBtn.onclick = () => { closeRecordingOptions(); playRecording(callId, userName + " (Người gọi)", time, callerUrl); };
+        } else {
+          callerBtn.classList.add("hidden");
+        }
+        
+        if (receiverUrl) {
+          receiverBtn.classList.remove("hidden");
+          receiverBtn.onclick = () => { closeRecordingOptions(); playRecording(callId, userName + " (Người nhận)", time, receiverUrl); };
+        } else {
+          receiverBtn.classList.add("hidden");
+        }
+        
+        modal.classList.remove("hidden");
+      }
+      
+      function closeRecordingOptions() {
+        document.getElementById("recordingOptionsModal").classList.add("hidden");
       }
 
       // Play recording

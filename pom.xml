@@ -31,6 +31,10 @@
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!-- Docker build settings -->
+        <docker.ai.voice.dir>${project.basedir}/src/main/docker_ai_voice</docker.ai.voice.dir>
+        <docker.build.skip>false</docker.build.skip>
+        <docker.build.type>gpu</docker.build.type>
     </properties>
 
     <dependencyManagement>
@@ -230,6 +234,31 @@
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+            
+            <!-- Docker AI Voice Microservices Build Plugin -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>docker-ai-voice-build</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${docker.build.skip}</skip>
+                            <executable>bash</executable>
+                            <workingDirectory>${docker.ai.voice.dir}</workingDirectory>
+                            <arguments>
+                                <argument>${docker.ai.voice.dir}/build-all.sh</argument>
+                                <argument>${docker.build.type}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

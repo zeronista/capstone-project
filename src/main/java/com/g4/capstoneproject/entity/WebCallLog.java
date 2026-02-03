@@ -74,16 +74,47 @@ public class WebCallLog {
     private Integer duration;
     
     /**
-     * S3 Key của file ghi âm
+     * S3 Folder chứa tất cả recordings của cuộc gọi này
+     * Format: voice/calls/{callId}/
+     */
+    @Column(name = "recording_folder", length = 500)
+    private String recordingFolder;
+    
+    /**
+     * S3 Key của file ghi âm chung (combined)
      */
     @Column(name = "recording_s3_key", length = 500)
     private String recordingS3Key;
     
     /**
-     * URL pre-signed để nghe lại (tạm thời, hết hạn 7 ngày)
+     * S3 Key của file ghi âm người gọi (caller)
+     */
+    @Column(name = "recording_caller_s3_key", length = 500)
+    private String recordingCallerS3Key;
+    
+    /**
+     * S3 Key của file ghi âm người nhận (receiver)
+     */
+    @Column(name = "recording_receiver_s3_key", length = 500)
+    private String recordingReceiverS3Key;
+    
+    /**
+     * URL pre-signed để nghe lại file combined (tạm thời, hết hạn 7 ngày)
      */
     @Column(name = "recording_url", length = 1000)
     private String recordingUrl;
+    
+    /**
+     * URL pre-signed để nghe lại file caller
+     */
+    @Column(name = "recording_caller_url", length = 1000)
+    private String recordingCallerUrl;
+    
+    /**
+     * URL pre-signed để nghe lại file receiver
+     */
+    @Column(name = "recording_receiver_url", length = 1000)
+    private String recordingReceiverUrl;
     
     /**
      * Thời gian hết hạn của recording URL

@@ -1,0 +1,46 @@
+# ============================================
+# ASR Service - Whisper Large V3 (CPU only)
+# FastAPI server for Speech-to-Text
+# ============================================
+FROM python:3.11-bookworm
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install ffmpeg (từ apt, có pre-built binary)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    libsndfile1 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy và install dependencies (dùng binary wheels thay vì build từ source)
+COPY requirements-cpu.txt requirements.txt
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir av && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY . .
+
+# Tạo thư mục cho model cache
+RUN mkdir -p /app/models /app/temp
+
+# Environment variables cho CPU mode
+ENV MODEL_SIZE=large-v3
+ENV DEVICE=cpu
+ENV COMPUTE_TYPE=int8
+ENV HF_HOME=/app/models
+
+# Expose port (8001 để match với application.properties)
+EXPOSE 8001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+    CMD curl -f http://localhost:8001/health || exit 1
+
+# Run server
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
