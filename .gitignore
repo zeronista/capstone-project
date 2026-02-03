@@ -46,3 +46,7 @@ secrets.properties
 !application.properties.example
 
 google-credentials.json
+
+app.log
+mvnw
+mvnw.cmd

@@ -5,6 +5,7 @@ import com.g4.capstoneproject.entity.User;
 import com.g4.capstoneproject.entity.WebCallLog;
 import com.g4.capstoneproject.entity.WebCallLog.WebCallStatus;
 import com.g4.capstoneproject.repository.UserRepository;
+import com.g4.capstoneproject.service.GeminiASRService;
 import com.g4.capstoneproject.service.S3Service;
 import com.g4.capstoneproject.service.StringeeService;
 import com.g4.capstoneproject.service.WebCallService;
@@ -41,6 +42,9 @@ public class WebCallApiController {
     
     @Autowired
     private S3Service s3Service;
+    
+    @Autowired
+    private GeminiASRService geminiASRService;
     
     /**
      * Lấy thông tin user hiện đang đăng nhập
@@ -356,6 +360,204 @@ public class WebCallApiController {
             logger.error("Error rating call", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    /**
+     * Transcribe cuộc gọi - chuyển đổi audio thành text
+     * 
+     * Luồng xử lý:
+     * 1. Tìm file recording trên S3 theo filename
+     * 2. Kiểm tra transcript đã tồn tại chưa
+     * 3. Nếu có -> trả về nội dung transcript
+     * 4. Nếu chưa -> download audio từ S3, gọi OpenAI API, lưu transcript lên S3
+     * 
+     * @param filename Tên file recording (vd: call_user_3_to_user_1_xxx.webm)
+     */
+    @PostMapping("/transcribe")
+    public ResponseEntity<?> transcribeRecording(
+            @RequestBody Map<String, String> request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            // Lấy filename từ request (có thể gửi recordingKey hoặc filename)
+            String recordingKey = request.get("recordingKey");
+            String filename = request.get("filename");
+            
+            // Extract filename từ recordingKey nếu cần
+            if (filename == null && recordingKey != null) {
+                // recordingKey có thể là "recordings/filename" hoặc full path
+                filename = recordingKey;
+                if (filename.contains("/")) {
+                    filename = filename.substring(filename.lastIndexOf("/") + 1);
+                }
+            }
+            
+            if (filename == null || filename.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "filename hoặc recordingKey là bắt buộc"));
+            }
+            
+            logger.info("Transcribe request for filename: {}", filename);
+            
+            // Tạo transcript key từ filename
+            String transcriptKey = "transcripts/" + filename.replaceAll("\\.(webm|mp3|wav|ogg|m4a)$", ".txt");
+            
+            // Kiểm tra transcript đã tồn tại chưa
+            if (s3Service.doesFileExist(transcriptKey)) {
+                logger.info("Transcript đã tồn tại: {}", transcriptKey);
+                String transcript = s3Service.downloadTextContent(transcriptKey);
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "transcript", transcript,
+                    "transcriptKey", transcriptKey,
+                    "cached", true
+                ));
+            }
+            
+            // Tìm file recording trên S3
+            String actualRecordingKey = s3Service.findRecordingKeyByFilename(filename);
+            if (actualRecordingKey == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Không tìm thấy file recording: " + filename));
+            }
+            
+            // Kiểm tra Gemini API đã được cấu hình chưa
+            if (!geminiASRService.isConfigured()) {
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(Map.of("error", "Gemini API chưa được cấu hình. Vui lòng liên hệ admin."));
+            }
+            
+            // Download audio từ S3
+            logger.info("Downloading audio from S3: {}", actualRecordingKey);
+            byte[] audioBytes = s3Service.downloadFileBytes(actualRecordingKey);
+            
+            // Xác định MIME type
+            String mimeType = "audio/webm";
+            if (filename.endsWith(".mp3")) mimeType = "audio/mpeg";
+            else if (filename.endsWith(".wav")) mimeType = "audio/wav";
+            else if (filename.endsWith(".ogg")) mimeType = "audio/ogg";
+            
+            // Gọi Gemini API để transcribe
+            logger.info("Calling Gemini API to transcribe {} bytes...", audioBytes.length);
+            String transcript = geminiASRService.transcribe(audioBytes, mimeType);
+            
+            // Lưu transcript lên S3
+            logger.info("Saving transcript to S3: {}", transcriptKey);
+            s3Service.uploadTextContent(transcript, transcriptKey);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "transcript", transcript,
+                "transcriptKey", transcriptKey,
+                "cached", false
+            ));
+            
+        } catch (Exception e) {
+            logger.error("Error transcribing recording", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Lỗi khi transcribe: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * Lấy transcript của một recording (nếu đã có)
+     */
+    @GetMapping("/transcript")
+    public ResponseEntity<?> getTranscript(@RequestParam String recordingKey) {
+        try {
+            String transcriptKey = s3Service.getTranscriptKeyFromRecordingKey(recordingKey);
+            
+            if (!s3Service.doesFileExist(transcriptKey)) {
+                return ResponseEntity.ok(Map.of(
+                    "exists", false,
+                    "transcriptKey", transcriptKey
+                ));
+            }
+            
+            String transcript = s3Service.downloadTextContent(transcriptKey);
+            return ResponseEntity.ok(Map.of(
+                "exists", true,
+                "transcript", transcript,
+                "transcriptKey", transcriptKey
+            ));
+            
+        } catch (Exception e) {
+            logger.error("Error getting transcript", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    /**
+     * Cập nhật transcript đã có
+     */
+    @PutMapping("/transcript")
+    public ResponseEntity<?> updateTranscript(
+            @RequestBody Map<String, String> request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            String filename = request.get("filename");
+            String transcript = request.get("transcript");
+            
+            if (filename == null || filename.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "filename là bắt buộc"));
+            }
+            if (transcript == null) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "transcript là bắt buộc"));
+            }
+            
+            String transcriptKey = "transcripts/" + filename.replaceAll("\\.(webm|mp3|wav|ogg|m4a)$", ".txt");
+            
+            logger.info("Updating transcript: {}", transcriptKey);
+            s3Service.uploadTextContent(transcript, transcriptKey);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "transcriptKey", transcriptKey,
+                "message", "Cập nhật transcript thành công"
+            ));
+            
+        } catch (Exception e) {
+            logger.error("Error updating transcript", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Lỗi khi cập nhật transcript: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * Xóa transcript
+     */
+    @DeleteMapping("/transcript")
+    public ResponseEntity<?> deleteTranscript(
+            @RequestParam String filename,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            if (filename == null || filename.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "filename là bắt buộc"));
+            }
+            
+            String transcriptKey = "transcripts/" + filename.replaceAll("\\.(webm|mp3|wav|ogg|m4a)$", ".txt");
+            
+            if (!s3Service.doesFileExist(transcriptKey)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Transcript không tồn tại"));
+            }
+            
+            logger.info("Deleting transcript: {}", transcriptKey);
+            s3Service.deleteFile(transcriptKey);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Xóa transcript thành công"
+            ));
+            
+        } catch (Exception e) {
+            logger.error("Error deleting transcript", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Lỗi khi xóa transcript: " + e.getMessage()));
         }
     }
     

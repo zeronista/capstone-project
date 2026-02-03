@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
@@ -677,6 +678,179 @@ public class S3Service {
             return false;
         } catch (Exception e) {
             throw new RuntimeException("Loi khi kiem tra file ton tai: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Download file bytes từ S3
+     * @param fileKey Key của file trong S3
+     * @return byte array chứa nội dung file
+     * @throws IOException Nếu có lỗi khi download
+     */
+    public byte[] downloadFileBytes(String fileKey) throws IOException {
+        try {
+            logger.info("Downloading file from S3: {}", fileKey);
+            
+            GetObjectRequest getRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileKey)
+                    .build();
+            
+            try (InputStream inputStream = s3Client.getObject(getRequest)) {
+                byte[] bytes = inputStream.readAllBytes();
+                logger.info("Downloaded {} bytes from S3", bytes.length);
+                return bytes;
+            }
+        } catch (S3Exception e) {
+            logger.error("S3 error downloading file {}: {}", fileKey, e.getMessage());
+            throw new IOException("Lỗi download file từ S3: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Upload text content lên S3 dưới dạng file .txt
+     * @param content Nội dung text cần upload
+     * @param fileKey Key của file (đường dẫn trong S3)
+     * @return Key của file đã upload
+     * @throws IOException Nếu có lỗi khi upload
+     */
+    public String uploadTextContent(String content, String fileKey) throws IOException {
+        try {
+            logger.info("Uploading text content to S3: {} ({} chars)", fileKey, content.length());
+            
+            byte[] contentBytes = content.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+            
+            PutObjectRequest putRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileKey)
+                    .contentType("text/plain; charset=utf-8")
+                    .build();
+            
+            s3Client.putObject(putRequest, RequestBody.fromBytes(contentBytes));
+            
+            logger.info("Text content uploaded successfully to: {}", fileKey);
+            return fileKey;
+            
+        } catch (S3Exception e) {
+            logger.error("S3 error uploading text content: {}", e.getMessage());
+            throw new IOException("Lỗi upload text lên S3: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Download text content từ S3
+     * @param fileKey Key của file .txt trong S3
+     * @return Nội dung text
+     * @throws IOException Nếu có lỗi khi download
+     */
+    public String downloadTextContent(String fileKey) throws IOException {
+        byte[] bytes = downloadFileBytes(fileKey);
+        return new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    /**
+     * Lấy transcript key từ recording key
+     * Ví dụ: recordings/call_user_3_to_user_1_xxx.webm -> transcripts/call_user_3_to_user_1_xxx.txt
+     * @param recordingKey Key của file recording
+     * @return Key của file transcript tương ứng
+     */
+    public String getTranscriptKeyFromRecordingKey(String recordingKey) {
+        // Thay đổi folder từ recordings -> transcripts và extension từ .webm -> .txt
+        String transcriptKey = recordingKey
+                .replace("recordings/", "transcripts/")
+                .replace("voice/", "transcripts/")
+                .replaceAll("\\.(webm|mp3|wav|ogg|m4a)$", ".txt");
+        
+        // Nếu không có folder prefix, thêm transcripts/
+        if (!transcriptKey.startsWith("transcripts/")) {
+            // Extract filename
+            String filename = transcriptKey;
+            if (transcriptKey.contains("/")) {
+                filename = transcriptKey.substring(transcriptKey.lastIndexOf("/") + 1);
+            }
+            transcriptKey = "transcripts/" + filename;
+        }
+        
+        return transcriptKey;
+    }
+
+    /**
+     * Tìm file recording trên S3 theo filename pattern
+     * Do file được lưu với format: voice/{userId}/{date}/{filename}
+     * Cần tìm đúng key từ filename
+     * 
+     * @param filename Tên file cần tìm (vd: call_user_3_to_user_1_xxx.webm)
+     * @return Full S3 key nếu tìm thấy, null nếu không
+     */
+    public String findRecordingKeyByFilename(String filename) {
+        try {
+            logger.info("Searching for recording file: {}", filename);
+            
+            // List all objects trong folder voice/
+            ListObjectsV2Request listRequest = ListObjectsV2Request.builder()
+                    .bucket(bucketName)
+                    .prefix("voice/")
+                    .build();
+            
+            ListObjectsV2Response response = s3Client.listObjectsV2(listRequest);
+            
+            for (S3Object object : response.contents()) {
+                String key = object.key();
+                // Check nếu key kết thúc bằng filename
+                if (key.endsWith(filename) || key.endsWith("/" + filename)) {
+                    logger.info("Found recording key: {}", key);
+                    return key;
+                }
+            }
+            
+            // Nếu có nhiều trang, tiếp tục tìm
+            while (response.isTruncated()) {
+                listRequest = ListObjectsV2Request.builder()
+                        .bucket(bucketName)
+                        .prefix("voice/")
+                        .continuationToken(response.nextContinuationToken())
+                        .build();
+                response = s3Client.listObjectsV2(listRequest);
+                
+                for (S3Object object : response.contents()) {
+                    String key = object.key();
+                    if (key.endsWith(filename) || key.endsWith("/" + filename)) {
+                        logger.info("Found recording key: {}", key);
+                        return key;
+                    }
+                }
+            }
+            
+            logger.warn("Recording file not found: {}", filename);
+            return null;
+            
+        } catch (S3Exception e) {
+            logger.error("S3 error searching for file {}: {}", filename, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Xóa file trên S3
+     * @param fileKey Key của file cần xóa
+     * @throws IOException Nếu có lỗi khi xóa
+     */
+    public void deleteFile(String fileKey) throws IOException {
+        try {
+            logger.info("Deleting file from S3: {}", fileKey);
+            
+            DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileKey)
+                    .build();
+            
+            s3Client.deleteObject(deleteRequest);
+            
+            logger.info("File deleted successfully: {}", fileKey);
+            
+        } catch (S3Exception e) {
+            logger.error("S3 error deleting file {}: {}", fileKey, e.getMessage());
+            throw new IOException("Lỗi xóa file từ S3: " + e.getMessage(), e);
         }
     }
 }

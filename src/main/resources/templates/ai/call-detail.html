@@ -1490,32 +1490,157 @@
         const content = document.getElementById("transcriptContent");
         content.innerHTML = `<div class="text-center py-8"><div class="w-8 h-8 border-3 border-gray-200 border-t-purple-500 rounded-full animate-spin mx-auto mb-3"></div><p class="text-sm text-gray-500">Đang phân tích nội dung cuộc gọi...</p></div>`;
 
+        // Lưu filename để dùng cho edit/delete
+        window.currentTranscriptFilename = filename;
+
         try {
-          // Call STT API to get transcript
-          const response = await fetch("/api/stringee/transcribe", {
+          // Extract recordingKey từ filename
+          // filename format: call_user_X_to_user_Y_timestamp.webm
+          const recordingKey = "recordings/" + filename;
+          
+          // Call ASR API to get transcript
+          const response = await fetch("/api/web-call/transcribe", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ audioUrl: url, filename: filename }),
+            body: JSON.stringify({ recordingKey: recordingKey }),
           });
 
-          if (!response.ok) throw new Error("Không thể phân tích nội dung");
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Không thể phân tích nội dung");
+          }
 
           const result = await response.json();
           if (result.success && result.transcript) {
+            const cachedBadge = result.cached 
+              ? '<span class="ml-2 px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded-full">Đã lưu</span>' 
+              : '<span class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-600 text-xs rounded-full">Mới phân tích</span>';
+            
+            // Lưu transcript hiện tại
+            window.currentTranscript = result.transcript;
+            
             content.innerHTML = `
               <div class="space-y-4">
                 <div class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
-                  <p class="text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">Nội dung cuộc hội thoại:</p>
-                  <p class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">${result.transcript}</p>
+                  <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm font-medium text-purple-700 dark:text-purple-300">
+                      Nội dung cuộc hội thoại: ${cachedBadge}
+                    </p>
+                    <div class="flex gap-2">
+                      <button onclick="editTranscript()" class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 flex items-center gap-1">
+                        <span class="material-symbols-rounded text-sm">edit</span> Sửa
+                      </button>
+                      <button onclick="deleteTranscript()" class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200 flex items-center gap-1">
+                        <span class="material-symbols-rounded text-sm">delete</span> Xóa
+                      </button>
+                    </div>
+                  </div>
+                  <div id="transcriptText" class="text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">${result.transcript}</div>
                 </div>
               </div>
             `;
           } else {
-            content.innerHTML = `<div class="text-center py-8 text-gray-500"><span class="material-symbols-rounded text-4xl text-gray-300 mb-2">error</span><p>Chưa có nội dung cuộc gọi hoặc đang xử lý.</p><p class="text-sm mt-2">Tính năng này đang được phát triển.</p></div>`;
+            content.innerHTML = `<div class="text-center py-8 text-gray-500"><span class="material-symbols-rounded text-4xl text-gray-300 mb-2">error</span><p>Chưa có nội dung cuộc gọi hoặc đang xử lý.</p></div>`;
           }
         } catch (err) {
+          console.error("Transcribe error:", err);
           content.innerHTML = `<div class="text-center py-8 text-gray-500"><span class="material-symbols-rounded text-4xl text-gray-300 mb-2">error</span><p>Không thể tải nội dung cuộc gọi.</p><p class="text-sm mt-2">${err.message}</p></div>`;
         }
+      }
+
+      // Edit transcript
+      function editTranscript() {
+        const textDiv = document.getElementById("transcriptText");
+        const currentText = window.currentTranscript || textDiv.innerText;
+        
+        textDiv.innerHTML = `
+          <textarea id="transcriptEditArea" class="w-full h-48 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y text-sm">${currentText}</textarea>
+          <div class="flex justify-end gap-2 mt-3">
+            <button onclick="cancelEditTranscript()" class="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Hủy</button>
+            <button onclick="saveTranscript()" class="px-3 py-1.5 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700">Lưu</button>
+          </div>
+        `;
+      }
+
+      // Cancel edit
+      function cancelEditTranscript() {
+        const textDiv = document.getElementById("transcriptText");
+        textDiv.innerHTML = window.currentTranscript;
+      }
+
+      // Save transcript
+      async function saveTranscript() {
+        const textarea = document.getElementById("transcriptEditArea");
+        const newTranscript = textarea.value.trim();
+        
+        if (!newTranscript) {
+          alert("Nội dung không được để trống");
+          return;
+        }
+        
+        try {
+          const response = await fetch("/api/web-call/transcript", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              filename: window.currentTranscriptFilename,
+              transcript: newTranscript 
+            }),
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Không thể lưu");
+          }
+          
+          // Update display
+          window.currentTranscript = newTranscript;
+          const textDiv = document.getElementById("transcriptText");
+          textDiv.innerHTML = newTranscript;
+          
+          // Show success notification
+          showToast("Đã lưu nội dung thành công", "success");
+          
+        } catch (err) {
+          console.error("Save transcript error:", err);
+          alert("Lỗi: " + err.message);
+        }
+      }
+
+      // Delete transcript
+      async function deleteTranscript() {
+        if (!confirm("Bạn có chắc muốn xóa nội dung này? Hành động này không thể hoàn tác.")) {
+          return;
+        }
+        
+        try {
+          const response = await fetch(`/api/web-call/transcript?filename=${encodeURIComponent(window.currentTranscriptFilename)}`, {
+            method: "DELETE",
+          });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Không thể xóa");
+          }
+          
+          // Close modal
+          closeTranscriptModal();
+          showToast("Đã xóa nội dung thành công", "success");
+          
+        } catch (err) {
+          console.error("Delete transcript error:", err);
+          alert("Lỗi: " + err.message);
+        }
+      }
+
+      // Toast notification helper
+      function showToast(message, type = "info") {
+        const toast = document.createElement("div");
+        const bgColor = type === "success" ? "bg-green-500" : type === "error" ? "bg-red-500" : "bg-blue-500";
+        toast.className = `fixed bottom-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
       }
 
       function closeTranscriptModal() {
