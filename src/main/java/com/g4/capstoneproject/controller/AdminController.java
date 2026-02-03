@@ -3,6 +3,7 @@ package com.g4.capstoneproject.controller;
 import com.g4.capstoneproject.dto.AccountResponse;
 import com.g4.capstoneproject.dto.AssignRoleRequest;
 import com.g4.capstoneproject.dto.CreateAccountRequest;
+import com.g4.capstoneproject.dto.UpdateAccountRequest;
 import com.g4.capstoneproject.entity.User;
 import com.g4.capstoneproject.service.AdminService;
 import jakarta.validation.Valid;
@@ -274,6 +275,37 @@ public class AdminController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "Không thể tạo tài khoản");
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+    
+    /**
+     * PUT /api/admin/accounts/{id} - Cập nhật tài khoản
+     */
+    @PutMapping("/accounts/{id}")
+    public ResponseEntity<Map<String, Object>> updateAccount(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateAccountRequest request) {
+        
+        try {
+            AccountResponse account = adminService.updateAccount(id, request);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Cập nhật tài khoản thành công");
+            response.put("account", account);
+            
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            log.error("Error updating account", e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Không thể cập nhật tài khoản");
             return ResponseEntity.internalServerError().body(errorResponse);
         }
     }

@@ -3,6 +3,7 @@ package com.g4.capstoneproject.service;
 import com.g4.capstoneproject.dto.AccountResponse;
 import com.g4.capstoneproject.dto.AssignRoleRequest;
 import com.g4.capstoneproject.dto.CreateAccountRequest;
+import com.g4.capstoneproject.dto.UpdateAccountRequest;
 import com.g4.capstoneproject.entity.User;
 import com.g4.capstoneproject.entity.UserInfo;
 import com.g4.capstoneproject.repository.UserRepository;
@@ -274,6 +275,75 @@ public class AdminService {
         } catch (Exception e) {
             log.error("Error creating account", e);
             throw new RuntimeException("Không thể tạo tài khoản mới");
+        }
+    }
+    
+    /**
+     * Cập nhật tài khoản với thông tin mới (dành cho admin)
+     */
+    @Transactional
+    public AccountResponse updateAccount(Long id, UpdateAccountRequest request) {
+        try {
+            // Validate email hoặc phone phải có ít nhất 1
+            if (!request.hasEmailOrPhone()) {
+                throw new IllegalArgumentException("Vui lòng cung cấp email hoặc số điện thoại");
+            }
+            
+            // Tìm user cần cập nhật
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy user với ID: " + id));
+            
+            // Kiểm tra email đã tồn tại (nếu thay đổi)
+            if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+                if (!request.getEmail().equals(user.getEmail())) {
+                    if (userRepository.existsByEmail(request.getEmail())) {
+                        throw new IllegalArgumentException("Email đã được sử dụng");
+                    }
+                }
+            }
+            
+            // Kiểm tra số điện thoại đã tồn tại (nếu thay đổi)
+            if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
+                if (!request.getPhone().equals(user.getPhoneNumber())) {
+                    if (userRepository.existsByPhoneNumber(request.getPhone())) {
+                        throw new IllegalArgumentException("Số điện thoại đã được sử dụng");
+                    }
+                }
+            }
+            
+            // Cập nhật thông tin user
+            user.setEmail(request.getEmail() != null && !request.getEmail().trim().isEmpty() 
+                    ? request.getEmail() : null);
+            user.setPhoneNumber(request.getPhone() != null && !request.getPhone().trim().isEmpty() 
+                    ? request.getPhone() : null);
+            user.setRole(request.getRole());
+            
+            // Cập nhật UserInfo
+            UserInfo userInfo = user.getUserInfo();
+            if (userInfo == null) {
+                userInfo = UserInfo.builder()
+                        .user(user)
+                        .fullName(request.getFullName())
+                        .build();
+                user.setUserInfo(userInfo);
+            } else {
+                userInfo.setFullName(request.getFullName());
+            }
+            
+            user = userRepository.save(user);
+            
+            log.info("Account updated successfully by admin: {} with role {}", 
+                    user.getEmail() != null ? user.getEmail() : user.getPhoneNumber(), 
+                    user.getRole());
+            
+            return AccountResponse.fromUser(user);
+                    
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid update account request: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Error updating account", e);
+            throw new RuntimeException("Không thể cập nhật tài khoản");
         }
     }
 }
