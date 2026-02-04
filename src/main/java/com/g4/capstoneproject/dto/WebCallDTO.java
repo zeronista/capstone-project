@@ -77,9 +77,39 @@ public class WebCallDTO {
     private Boolean hasRecording;
     
     /**
-     * URL để nghe ghi âm
+     * Folder chứa recordings trên S3
+     */
+    private String recordingFolder;
+    
+    /**
+     * S3 Key của file ghi âm chung (combined)
+     */
+    private String recordingS3Key;
+    
+    /**
+     * S3 Key của file ghi âm người gọi (caller)
+     */
+    private String recordingCallerS3Key;
+    
+    /**
+     * S3 Key của file ghi âm người nhận (receiver)
+     */
+    private String recordingReceiverS3Key;
+    
+    /**
+     * URL để nghe ghi âm chung (combined)
      */
     private String recordingUrl;
+    
+    /**
+     * URL để nghe ghi âm người gọi (caller)
+     */
+    private String recordingCallerUrl;
+    
+    /**
+     * URL để nghe ghi âm người nhận (receiver)
+     */
+    private String recordingReceiverUrl;
     
     /**
      * Đánh giá (1-5)

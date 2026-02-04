@@ -6,6 +6,7 @@ import com.g4.capstoneproject.entity.WebCallLog;
 import com.g4.capstoneproject.entity.WebCallLog.WebCallStatus;
 import com.g4.capstoneproject.repository.UserRepository;
 import com.g4.capstoneproject.service.GeminiASRService;
+import com.g4.capstoneproject.service.WhisperASRService;
 import com.g4.capstoneproject.service.S3Service;
 import com.g4.capstoneproject.service.StringeeService;
 import com.g4.capstoneproject.service.WebCallService;
@@ -45,6 +46,9 @@ public class WebCallApiController {
     
     @Autowired
     private GeminiASRService geminiASRService;
+    
+    @Autowired
+    private WhisperASRService whisperASRService;
     
     /**
      * Lấy thông tin user hiện đang đăng nhập
@@ -214,35 +218,79 @@ public class WebCallApiController {
     
     /**
      * Upload file ghi âm và liên kết với cuộc gọi
+     * Hỗ trợ 3 loại recording: caller, receiver, combined
+     * 
+     * @param callId ID cuộc gọi
+     * @param file File ghi âm
+     * @param recordingType Loại recording: "caller", "receiver", "combined" (mặc định: combined)
      */
     @PostMapping("/{callId}/recording")
     public ResponseEntity<?> uploadRecording(
             @PathVariable Long callId,
             @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "type", defaultValue = "combined") String recordingType,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
             User user = getUserFromPrincipal(userDetails);
             
-            logger.info("Uploading recording for call {}, file: {} ({}KB)", 
-                callId, file.getOriginalFilename(), file.getSize() / 1024);
+            logger.info("Uploading {} recording for call {}, file: {} ({}KB)", 
+                recordingType, callId, file.getOriginalFilename(), file.getSize() / 1024);
             
-            // Upload file lên S3
-            String s3Key = s3Service.uploadRecordingFile(file, "call_" + callId, "user_" + user.getId());
+            // Upload file lên S3 với folder structure mới: voice/calls/{callId}/{type}_{timestamp}.webm
+            String s3Key = s3Service.uploadRecordingFile(file, String.valueOf(callId), "user_" + user.getId(), recordingType);
             String presignedUrl = s3Service.generatePresignedUrl(s3Key, 7 * 24 * 3600);
             
             // Lưu thông tin vào database
-            WebCallLog call = webCallService.saveRecording(callId, s3Key, presignedUrl);
+            WebCallLog call = webCallService.saveRecording(callId, recordingType, s3Key, presignedUrl);
             
             return ResponseEntity.ok(Map.of(
                 "success", true,
                 "callId", call.getId(),
+                "recordingType", recordingType,
                 "s3Key", s3Key,
-                "recordingUrl", presignedUrl
+                "recordingUrl", presignedUrl,
+                "recordingFolder", call.getRecordingFolder()
             ));
         } catch (Exception e) {
             logger.error("Error uploading recording", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    /**
+     * Lưu thông tin recording vào database (sau khi đã upload lên S3)
+     * API endpoint dạng form params cho frontend dễ gọi
+     */
+    @PostMapping("/recording")
+    public ResponseEntity<?> saveRecordingInfo(
+            @RequestParam("callId") Long callId,
+            @RequestParam("s3Key") String s3Key,
+            @RequestParam(value = "presignedUrl", required = false) String presignedUrl,
+            @RequestParam(value = "recordingType", defaultValue = "combined") String recordingType) {
+        try {
+            logger.info("Saving recording info for call {}: type={}, s3Key={}", callId, recordingType, s3Key);
+            
+            // Generate presigned URL nếu không được cung cấp
+            if (presignedUrl == null || presignedUrl.isEmpty()) {
+                presignedUrl = s3Service.generatePresignedUrl(s3Key, 7 * 24 * 3600);
+            }
+            
+            // Lưu thông tin vào database
+            WebCallLog call = webCallService.saveRecording(callId, recordingType, s3Key, presignedUrl);
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "callId", call.getId(),
+                "recordingType", recordingType,
+                "s3Key", s3Key,
+                "recordingUrl", presignedUrl,
+                "recordingFolder", call.getRecordingFolder()
+            ));
+        } catch (Exception e) {
+            logger.error("Error saving recording info", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("success", false, "error", e.getMessage()));
         }
     }
     
@@ -379,28 +427,48 @@ public class WebCallApiController {
             @RequestBody Map<String, String> request,
             @AuthenticationPrincipal UserDetails userDetails) {
         try {
-            // Lấy filename từ request (có thể gửi recordingKey hoặc filename)
+            // Lấy s3Key hoặc recordingKey/filename từ request
+            String s3Key = request.get("s3Key");
             String recordingKey = request.get("recordingKey");
             String filename = request.get("filename");
             
-            // Extract filename từ recordingKey nếu cần
-            if (filename == null && recordingKey != null) {
-                // recordingKey có thể là "recordings/filename" hoặc full path
-                filename = recordingKey;
-                if (filename.contains("/")) {
-                    filename = filename.substring(filename.lastIndexOf("/") + 1);
+            // Xác định actualRecordingKey
+            String actualRecordingKey;
+            
+            if (s3Key != null && !s3Key.isEmpty()) {
+                // Web call - dùng s3Key trực tiếp
+                actualRecordingKey = s3Key;
+            } else {
+                // AI call - extract filename và tìm trên S3
+                if (filename == null && recordingKey != null) {
+                    // recordingKey có thể là "recordings/filename" hoặc full path
+                    filename = recordingKey;
+                    if (filename.contains("/")) {
+                        filename = filename.substring(filename.lastIndexOf("/") + 1);
+                    }
+                }
+                
+                if (filename == null || filename.isEmpty()) {
+                    return ResponseEntity.badRequest()
+                        .body(Map.of("error", "s3Key, filename hoặc recordingKey là bắt buộc"));
+                }
+                
+                logger.info("Transcribe request for filename: {}", filename);
+                
+                // Tìm file recording trên S3
+                actualRecordingKey = s3Service.findRecordingKeyByFilename(filename);
+                if (actualRecordingKey == null) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Không tìm thấy file recording: " + filename));
                 }
             }
             
-            if (filename == null || filename.isEmpty()) {
-                return ResponseEntity.badRequest()
-                    .body(Map.of("error", "filename hoặc recordingKey là bắt buộc"));
-            }
+            logger.info("Using S3 key for transcription: {}", actualRecordingKey);
             
-            logger.info("Transcribe request for filename: {}", filename);
-            
-            // Tạo transcript key từ filename
-            String transcriptKey = "transcripts/" + filename.replaceAll("\\.(webm|mp3|wav|ogg|m4a)$", ".txt");
+            // Tạo transcript key từ recording key
+            String transcriptKey = "transcripts/" + 
+                actualRecordingKey.substring(actualRecordingKey.lastIndexOf("/") + 1)
+                    .replaceAll("\\.(webm|mp3|wav|ogg|m4a)$", ".txt");
             
             // Kiểm tra transcript đã tồn tại chưa
             if (s3Service.doesFileExist(transcriptKey)) {
@@ -414,32 +482,16 @@ public class WebCallApiController {
                 ));
             }
             
-            // Tìm file recording trên S3
-            String actualRecordingKey = s3Service.findRecordingKeyByFilename(filename);
-            if (actualRecordingKey == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Không tìm thấy file recording: " + filename));
-            }
-            
-            // Kiểm tra Gemini API đã được cấu hình chưa
-            if (!geminiASRService.isConfigured()) {
-                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body(Map.of("error", "Gemini API chưa được cấu hình. Vui lòng liên hệ admin."));
-            }
-            
             // Download audio từ S3
             logger.info("Downloading audio from S3: {}", actualRecordingKey);
             byte[] audioBytes = s3Service.downloadFileBytes(actualRecordingKey);
             
-            // Xác định MIME type
-            String mimeType = "audio/webm";
-            if (filename.endsWith(".mp3")) mimeType = "audio/mpeg";
-            else if (filename.endsWith(".wav")) mimeType = "audio/wav";
-            else if (filename.endsWith(".ogg")) mimeType = "audio/ogg";
+            // Xác định filename để gửi đến ASR service
+            String audioFilename = actualRecordingKey.substring(actualRecordingKey.lastIndexOf("/") + 1);
             
-            // Gọi Gemini API để transcribe
-            logger.info("Calling Gemini API to transcribe {} bytes...", audioBytes.length);
-            String transcript = geminiASRService.transcribe(audioBytes, mimeType);
+            // Gọi self-hosted Whisper ASR Service để transcribe
+            logger.info("Calling self-hosted Whisper ASR to transcribe {} bytes ({})", audioBytes.length, audioFilename);
+            String transcript = whisperASRService.transcribeBytes(audioBytes, audioFilename, "vi");
             
             // Lưu transcript lên S3
             logger.info("Saving transcript to S3: {}", transcriptKey);
@@ -558,6 +610,30 @@ public class WebCallApiController {
             logger.error("Error deleting transcript", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Lỗi khi xóa transcript: " + e.getMessage()));
+        }
+    }
+    
+    /**
+     * Lấy danh sách web call recordings của một bệnh nhân
+     * Dành cho Receptionist xem lịch sử cuộc gọi
+     */
+    @GetMapping("/patient/{patientId}/recordings")
+    public ResponseEntity<?> getPatientWebCallRecordings(@PathVariable Long patientId) {
+        try {
+            List<WebCallDTO> calls = webCallService.getCallsByPatientId(patientId);
+            logger.info("Found {} web calls for patient {}", calls.size(), patientId);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "calls", calls,
+                "total", calls.size()
+            ));
+        } catch (Exception e) {
+            logger.error("Error getting web calls for patient {}: {}", patientId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of(
+                    "success", false,
+                    "error", e.getMessage()
+                ));
         }
     }
     
