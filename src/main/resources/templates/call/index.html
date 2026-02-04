@@ -467,8 +467,18 @@
       let targetUser = null;
       let callStartTime = null;
       let callDurationInterval = null;
-      let mediaRecorder = null;
-      let recordedChunks = [];
+      
+      // Recording - hỗ trợ ghi âm riêng từng người
+      let localMediaRecorder = null;     // Ghi âm microphone của mình (caller/receiver tùy vai trò)
+      let remoteMediaRecorder = null;    // Ghi âm âm thanh từ người kia
+      let combinedMediaRecorder = null;  // Ghi âm cả 2 nguồn (combined)
+      let localRecordedChunks = [];
+      let remoteRecordedChunks = [];
+      let combinedRecordedChunks = [];
+      let localStream = null;
+      let remoteStream = null;
+      let isOutgoingCall = false;        // true = caller, false = receiver
+      
       let isMuted = false;
       let onlineUsersCache = [];
 
@@ -633,6 +643,7 @@
         }
 
         targetUser = { id: receiverId, stringeeUserId, fullName };
+        isOutgoingCall = true; // Đang là người gọi (caller)
 
         // Show calling UI
         showCallingState(fullName);
@@ -745,6 +756,8 @@
       // Answer incoming call
       async function answerCall() {
         if (!currentCall) return;
+        
+        isOutgoingCall = false; // Đang là người nhận (receiver)
 
         currentCall.answer(function (res) {
           if (res.r === 0) {
@@ -809,8 +822,9 @@
 
       // Hangup active call
       async function hangupCall() {
-        if (mediaRecorder && mediaRecorder.state === "recording") {
-          stopRecording();
+        // Stop all recordings
+        if (localMediaRecorder || remoteMediaRecorder || combinedMediaRecorder) {
+          await stopRecording();
         }
 
         if (currentCall) {
@@ -845,56 +859,144 @@
         btn.classList.toggle("bg-primary-50");
       }
 
-      // Recording functions
+      // Recording functions - Ghi âm riêng từng người
       async function startRecording() {
         try {
-          const audioStream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-          });
-          recordedChunks = [];
-          mediaRecorder = new MediaRecorder(audioStream, {
-            mimeType: "audio/webm",
-          });
-
-          mediaRecorder.ondataavailable = (e) => {
-            if (e.data.size > 0) recordedChunks.push(e.data);
+          // 1. Lấy local stream (microphone của mình)
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          
+          // Reset chunks
+          localRecordedChunks = [];
+          remoteRecordedChunks = [];
+          combinedRecordedChunks = [];
+          
+          // 2. Ghi âm local stream (của mình)
+          localMediaRecorder = new MediaRecorder(localStream, { mimeType: "audio/webm" });
+          localMediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) localRecordedChunks.push(e.data);
           };
-
-          mediaRecorder.onstop = async () => {
-            audioStream.getTracks().forEach((track) => track.stop());
-            const blob = new Blob(recordedChunks, { type: "audio/webm" });
-            await uploadRecording(blob);
-          };
-
-          mediaRecorder.start();
-          document
-            .getElementById("recordingIndicator")
-            .classList.remove("hidden");
-          console.log("Recording started");
+          localMediaRecorder.start();
+          console.log("Local recording started");
+          
+          // 3. Lấy remote stream từ Stringee call
+          const remoteVideoEl = document.getElementById("remoteAudio");
+          if (remoteVideoEl && remoteVideoEl.srcObject) {
+            remoteStream = remoteVideoEl.srcObject;
+            
+            // Ghi âm remote stream (của người kia)
+            remoteMediaRecorder = new MediaRecorder(remoteStream, { mimeType: "audio/webm" });
+            remoteMediaRecorder.ondataavailable = (e) => {
+              if (e.data.size > 0) remoteRecordedChunks.push(e.data);
+            };
+            remoteMediaRecorder.start();
+            console.log("Remote recording started");
+          }
+          
+          // 4. Tạo combined stream (gộp cả 2)
+          try {
+            const audioContext = new AudioContext();
+            const destination = audioContext.createMediaStreamDestination();
+            
+            // Thêm local audio
+            const localSource = audioContext.createMediaStreamSource(localStream);
+            localSource.connect(destination);
+            
+            // Thêm remote audio nếu có
+            if (remoteStream) {
+              const remoteSource = audioContext.createMediaStreamSource(remoteStream);
+              remoteSource.connect(destination);
+            }
+            
+            // Ghi âm combined stream
+            combinedMediaRecorder = new MediaRecorder(destination.stream, { mimeType: "audio/webm" });
+            combinedMediaRecorder.ondataavailable = (e) => {
+              if (e.data.size > 0) combinedRecordedChunks.push(e.data);
+            };
+            combinedMediaRecorder.start();
+            console.log("Combined recording started");
+          } catch (mixErr) {
+            console.warn("Cannot create combined stream, will use local only:", mixErr);
+          }
+          
+          document.getElementById("recordingIndicator").classList.remove("hidden");
+          console.log("All recordings started");
+          
         } catch (err) {
           console.error("Recording error:", err);
+          alert("Không thể bắt đầu ghi âm: " + err.message);
         }
       }
 
-      function stopRecording() {
-        if (mediaRecorder && mediaRecorder.state === "recording") {
-          mediaRecorder.stop();
-          console.log("Recording stopped");
+      async function stopRecording() {
+        console.log("Stopping all recordings...");
+        
+        const uploadPromises = [];
+        
+        // Stop local recording
+        if (localMediaRecorder && localMediaRecorder.state === "recording") {
+          localMediaRecorder.onstop = async () => {
+            const blob = new Blob(localRecordedChunks, { type: "audio/webm" });
+            // Người gọi = caller, người nhận = receiver
+            const type = isOutgoingCall ? "caller" : "receiver";
+            uploadPromises.push(uploadRecording(blob, type));
+          };
+          localMediaRecorder.stop();
         }
+        
+        // Stop remote recording  
+        if (remoteMediaRecorder && remoteMediaRecorder.state === "recording") {
+          remoteMediaRecorder.onstop = async () => {
+            const blob = new Blob(remoteRecordedChunks, { type: "audio/webm" });
+            // Ngược lại với local
+            const type = isOutgoingCall ? "receiver" : "caller";
+            uploadPromises.push(uploadRecording(blob, type));
+          };
+          remoteMediaRecorder.stop();
+        }
+        
+        // Stop combined recording
+        if (combinedMediaRecorder && combinedMediaRecorder.state === "recording") {
+          combinedMediaRecorder.onstop = async () => {
+            const blob = new Blob(combinedRecordedChunks, { type: "audio/webm" });
+            uploadPromises.push(uploadRecording(blob, "combined"));
+          };
+          combinedMediaRecorder.stop();
+        }
+        
+        // Stop local stream tracks
+        if (localStream) {
+          localStream.getTracks().forEach((track) => track.stop());
+        }
+        
+        // Wait a bit for all onstop handlers to fire, then await uploads
+        setTimeout(async () => {
+          try {
+            await Promise.all(uploadPromises);
+            console.log("All recordings uploaded successfully");
+          } catch (err) {
+            console.error("Error uploading recordings:", err);
+          }
+        }, 500);
       }
 
-      async function uploadRecording(blob) {
+      async function uploadRecording(blob, recordingType) {
         if (!currentCallLogId) {
-          console.warn("No call log ID, skipping upload");
+          console.warn("No call log ID, skipping upload for type:", recordingType);
+          return;
+        }
+        
+        if (blob.size < 1000) {
+          console.warn("Recording too small, skipping upload for type:", recordingType);
           return;
         }
 
         try {
           const formData = new FormData();
-          formData.append("file", blob, `recording_${currentCallLogId}.webm`);
+          formData.append("file", blob, `recording_${recordingType}_${currentCallLogId}.webm`);
+          formData.append("type", recordingType);
 
           const res = await fetch(
-            `/api/web-call/${currentCallLogId}/recording`,
+            `/api/web-call/${currentCallLogId}/recording?type=${recordingType}`,
             {
               method: "POST",
               body: formData,
@@ -904,16 +1006,21 @@
           const result = await res.json();
 
           if (result.success) {
-            console.log("Recording uploaded:", result.recordingUrl);
-
-            // Show playback
-            document
-              .getElementById("recordingPlayback")
-              .classList.remove("hidden");
-            document.getElementById("recordingAudio").src = result.recordingUrl;
+            console.log(`✅ ${recordingType} recording uploaded:`, result.s3Key);
+            
+            // Show playback for combined recording
+            if (recordingType === "combined" && result.recordingUrl) {
+              document.getElementById("recordingPlayback").classList.remove("hidden");
+              document.getElementById("recordingAudio").src = result.recordingUrl;
+            }
+            
+            return result;
+          } else {
+            throw new Error(result.error || "Upload failed");
           }
         } catch (err) {
-          console.error("Upload error:", err);
+          console.error(`❌ Error uploading ${recordingType} recording:`, err);
+          throw err;
         }
       }
 

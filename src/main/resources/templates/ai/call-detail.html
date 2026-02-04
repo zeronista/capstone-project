@@ -83,10 +83,10 @@
       @keyframes call-pulse {
         0%,
         100% {
-          box-shadow: 0 0 0 0 rgba(13, 124, 242, 0.4);
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
         }
         50% {
-          box-shadow: 0 0 0 15px rgba(13, 124, 242, 0);
+          box-shadow: 0 0 0 15px rgba(16, 185, 129, 0);
         }
       }
       .status-dot {
@@ -95,8 +95,8 @@
         border-radius: 50%;
       }
       .status-dot.connected {
-        background: #0d7cf2;
-        box-shadow: 0 0 0 3px rgba(13, 124, 242, 0.2);
+        background: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
       }
       .status-dot.connecting {
         background: #f59e0b;
@@ -108,46 +108,6 @@
       .tab-active {
         border-bottom: 2px solid #0d7cf2;
         color: #0d7cf2;
-      }
-      
-      /* Hierarchical recordings styles */
-      .accordion-header {
-        transition: all 0.2s ease;
-      }
-      .accordion-header:hover {
-        background: #f8fafc;
-      }
-      .accordion-header .expand-icon {
-        transition: transform 0.3s ease;
-      }
-      .accordion-header.expanded .expand-icon {
-        transform: rotate(180deg);
-      }
-      .accordion-content {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease-out;
-      }
-      .accordion-content.expanded {
-        max-height: 5000px;
-        transition: max-height 0.5s ease-in;
-      }
-      
-      /* Recording section border */
-      .recording-section {
-        border: 2px solid #e2e8f0;
-        transition: border-color 0.2s ease;
-      }
-      .recording-section.active {
-        border-color: #ef4444;
-      }
-      
-      /* Improved recording indicator */
-      .recording-timer {
-        font-size: 1.5rem;
-        font-weight: 700;
-        font-family: 'Courier New', monospace;
-        letter-spacing: 0.05em;
       }
     </style>
   </head>
@@ -290,40 +250,32 @@
                 </p>
               </div>
 
-              <!-- Recording Section with Border and Header -->
-              <div class="mb-4 recording-section rounded-xl p-4 hidden" id="recordingSection">
-                <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200">
-                  <span class="material-symbols-rounded text-primary">mic</span>
-                  <h4 class="font-semibold text-gray-800">Ghi âm cuộc gọi</h4>
-                </div>
-                
-                <!-- Recording Indicator with Larger Timer -->
-                <div
-                  id="recordingInfo"
-                  class="hidden"
-                >
-                  <div class="bg-red-50 border-2 border-red-300 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center gap-3">
-                        <div class="w-4 h-4 rounded-full bg-red-500 recording-blink"></div>
-                        <span class="font-semibold text-red-700">Đang ghi âm...</span>
-                      </div>
-                      <span
-                        id="recordingDuration"
-                        class="recording-timer text-red-600"
-                      >00:00</span>
-                    </div>
-                  </div>
+              <!-- Recording Indicator -->
+              <div
+                id="recordingInfo"
+                class="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 hidden"
+              >
+                <div class="flex items-center justify-center gap-3">
+                  <div
+                    class="w-3 h-3 rounded-full bg-red-500 recording-blink"
+                  ></div>
+                  <span class="font-medium text-red-700 text-sm"
+                    >Đang ghi âm</span
+                  >
+                  <span
+                    id="recordingDuration"
+                    class="font-mono text-red-600 text-sm"
+                    >00:00</span
+                  >
                 </div>
               </div>
 
-              <!-- Call Buttons -->
               <!-- Call Buttons -->
               <div class="flex flex-col gap-3">
                 <button
                   id="btnCall"
                   onclick="makeCall()"
-                  class="flex items-center justify-center gap-2 w-full px-6 py-4 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 call-btn-active"
+                  class="flex items-center justify-center gap-2 w-full px-6 py-4 bg-success text-white rounded-xl font-semibold hover:bg-success/90 transition-all shadow-lg shadow-success/30 call-btn-active"
                 >
                   <span class="material-symbols-rounded text-2xl">call</span>
                   Gọi ngay
@@ -331,20 +283,20 @@
                 <button
                   id="btnHangup"
                   onclick="hangupCall()"
-                  class="hidden flex items-center justify-center gap-2 w-full px-6 py-4 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-all"
+                  class="flex items-center justify-center gap-2 w-full px-6 py-4 bg-danger text-white rounded-xl font-semibold hover:bg-danger/90 transition-all hidden"
                 >
                   <span class="material-symbols-rounded text-2xl"
                     >call_end</span
                   >
-                  Kết thúc cuộc gọi
+                  Kết thúc
                 </button>
                 <button
                   id="btnAnswer"
                   onclick="answerCall()"
-                  class="hidden flex items-center justify-center gap-2 w-full px-6 py-4 bg-primary text-white rounded-xl font-semibold"
+                  class="flex items-center justify-center gap-2 w-full px-6 py-4 bg-success text-white rounded-xl font-semibold hidden"
                 >
                   <span class="material-symbols-rounded text-2xl">call</span>
-                  Trả lời cuộc gọi
+                  Trả lời
                 </button>
               </div>
 
@@ -509,15 +461,30 @@
         myToken,
         currentUser = null,
         patient = null;
-      var mediaRecorder,
-        recordedChunks = [],
-        recordingStartTime,
+      
+      // 3 MediaRecorders for caller, receiver, combined
+      var mediaRecorderCaller,
+        mediaRecorderReceiver,
+        mediaRecorderCombined;
+      var recordedChunksCaller = [],
+        recordedChunksReceiver = [],
+        recordedChunksCombined = [];
+      var recordingStartTime,
         recordingInterval,
         callDurationInterval,
         callStartTime;
       var localStream = null,
+        remoteStream = null,
         audioContext = null,
         mixedStream = null;
+      var isRecording = false; // Trạng thái ghi âm
+      
+      // Database call ID - để liên kết recording với WebCallLog
+      var currentDbCallId = null;
+      
+      // Trạng thái mic và loa
+      var isMuted = false;
+      var isSpeakerOn = true;
 
       document.addEventListener("DOMContentLoaded", function () {
         loadPatientInfo();
@@ -543,7 +510,7 @@
 
       async function loadPatientInfo() {
         if (!patientId) {
-          showNotification("Lỗi", "Không tìm thấy ID bệnh nhân", "error", 5000);
+          alert("Không tìm thấy ID bệnh nhân");
           return;
         }
         try {
@@ -588,11 +555,9 @@
             "user_" + patient.id;
 
           addLog("Đã tải thông tin bệnh nhân: " + fullName, "success");
-          showNotification("Đã tải thông tin", `Thông tin bệnh nhân ${fullName} đã sẵn sàng`, "success", 2000);
         } catch (err) {
           console.error("Lỗi:", err);
           addLog("Lỗi tải thông tin bệnh nhân: " + err.message, "error");
-          showNotification("Lỗi tải thông tin", `Không thể tải thông tin bệnh nhân: ${err.message}`, "error", 5000);
         }
       }
 
@@ -622,7 +587,7 @@
         switch (status) {
           case "connected":
             text.textContent = "Đã kết nối";
-            text.className = "text-sm font-medium text-primary";
+            text.className = "text-sm font-medium text-green-600";
             break;
           case "connecting":
             text.textContent = "Đang kết nối...";
@@ -638,9 +603,6 @@
       function addLog(message, type = "info") {
         const logBox = document.getElementById("logConsole");
         const timestamp = new Date().toLocaleTimeString();
-        // Trạng thái mic và loa
-        var isMuted = false;
-        var isSpeakerOn = true;
 
         const colors = {
           info: "text-blue-400",
@@ -667,7 +629,6 @@
           addLog("Đã nhận access token", "success");
         } catch (err) {
           addLog("Lỗi lấy token: " + err.message, "error");
-          showNotification("Lỗi kết nối", `Không thể lấy token: ${err.message}`, "error", 5000);
           return;
         }
 
@@ -675,7 +636,6 @@
         stringeeClient.on("connect", () => {
           updateConnectionStatus("connected");
           addLog("Đã kết nối Stringee", "success");
-          showNotification("Đã kết nối", "Hệ thống cuộc gọi đã sẵn sàng", "success", 2000);
         });
         stringeeClient.on("authen", (res) => {
           if (res.r === 0) {
@@ -683,13 +643,11 @@
             loadRecordings();
           } else {
             addLog("Xác thực thất bại: " + res.message, "error");
-            showNotification("Xác thực thất bại", `Lỗi: ${res.message}`, "error", 5000);
           }
         });
         stringeeClient.on("disconnect", () => {
           updateConnectionStatus("disconnected");
           addLog("Mất kết nối", "error");
-          showNotification("Mất kết nối", "Đã mất kết nối với hệ thống cuộc gọi", "error", 5000);
         });
         stringeeClient.on("incomingcall", (incomingCall) => {
           addLog("Cuộc gọi đến từ: " + incomingCall.fromNumber, "info");
@@ -712,13 +670,12 @@
 
       function makeCall() {
         if (!currentUser || !patient) {
-          showNotification("Chưa sẵn sàng", "Vui lòng đợi tải xong thông tin", "warning", 3000);
+          alert("Vui lòng đợi tải xong thông tin");
           return;
         }
         const calleeId = "user_" + patient.id;
         addLog("Đang gọi tới: " + calleeId, "info");
         showCallStatus("Đang gọi...", "calling");
-        showNotification("Đang gọi", `Đang kết nối đến ${patient.fullName || 'bệnh nhân'}`, "info", 2000);
 
         currentCall = new StringeeCall(
           stringeeClient,
@@ -726,15 +683,72 @@
           calleeId,
           false,
         );
+        
+        // Tạo WebCallLog trong database trước khi gọi
+        createWebCallLog(patient.id, currentCall.callId || 'temp_' + Date.now());
+        
         settingCallEvents(currentCall);
         currentCall.makeCall(function (res) {
           if (res.r !== 0) {
             addLog("Gọi thất bại: " + res.message, "error");
-            showNotification("Cuộc gọi thất bại", `Không thể kết nối: ${res.message}`, "error", 5000);
+            // Cập nhật trạng thái cuộc gọi thất bại
+            if (currentDbCallId) {
+              updateCallStatus(currentDbCallId, 'FAILED');
+            }
             resetUI();
           }
         });
         showInCallUI();
+      }
+      
+      // Tạo WebCallLog trong database
+      async function createWebCallLog(receiverId, stringeeCallId) {
+        try {
+          const response = await fetch('/api/web-call/initiate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              receiverId: receiverId,
+              stringeeCallId: stringeeCallId
+            })
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.callLogId) {
+              currentDbCallId = result.callLogId;
+              addLog(`Đã tạo call log #${currentDbCallId}`, "info");
+            } else {
+              addLog("API trả về không hợp lệ: " + JSON.stringify(result), "warning");
+            }
+          } else {
+            const errorText = await response.text();
+            addLog("API lỗi: " + response.status + " - " + errorText, "error");
+          }
+        } catch (err) {
+          console.error("Error creating call log:", err);
+          addLog("Không thể tạo call log: " + err.message, "warning");
+        }
+      }
+      
+      // Cập nhật trạng thái cuộc gọi
+      async function updateCallStatus(callId, status) {
+        try {
+          const response = await fetch(`/api/web-call/${callId}/status`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: status })
+          });
+          if (response.ok) {
+            addLog(`Cập nhật trạng thái: ${status}`, "info");
+          }
+        } catch (err) {
+          console.error("Error updating call status:", err);
+        }
       }
 
       function settingCallEvents(call) {
@@ -743,6 +757,13 @@
         call.on("addremotestream", (stream) => {
           addLog("Da nhan luong am thanh tu remote", "success");
           console.log("Remote stream received:", stream);
+
+          // Lưu remoteStream để dùng cho recording
+          if (stream instanceof MediaStream) {
+            remoteStream = stream;
+          } else if (stream && stream.stream instanceof MediaStream) {
+            remoteStream = stream.stream;
+          }
 
           // Xoa video element cu neu co
           const oldElement = document.getElementById("remoteAudio");
@@ -801,15 +822,18 @@
               break;
             case 2: // Ringing
               showCallStatus("Đang đổ chuông...", "calling");
+              if (currentDbCallId) updateCallStatus(currentDbCallId, 'RINGING');
               break;
             case 3: // Answered - đã bắt máy
               showCallStatus("Đang trong cuộc gọi", "connected");
               showInCallUI();
               startCallDurationTimer();
+              if (currentDbCallId) updateCallStatus(currentDbCallId, 'ANSWERED');
               break;
             case 4: // Busy
               addLog("Máy bận", "warning");
               showCallStatus("Máy bận", "ended");
+              if (currentDbCallId) updateCallStatus(currentDbCallId, 'MISSED');
               showNotification(
                 "Máy bận",
                 "Bệnh nhân đang bận, vui lòng thử lại sau",
@@ -818,24 +842,50 @@
               setTimeout(() => resetUI(), 2000);
               break;
             case 5: // Ended - cuộc gọi kết thúc bình thường
+              console.log('Call ended normally (state 5)');
               addLog("Cuộc gọi đã kết thúc", "success");
               showCallStatus("Đã kết thúc", "ended");
+              if (currentDbCallId) updateCallStatus(currentDbCallId, 'COMPLETED');
               showNotification(
                 "Cuộc gọi kết thúc",
                 "Cuộc gọi đã được kết thúc",
                 "info",
               );
-              setTimeout(() => resetUI(), 2000);
+              // Dừng và upload recordings trước khi reset UI
+              if (isRecording) {
+                console.log('Stopping recording on call end (state 5)');
+                stopRecording();
+              }
+              setTimeout(() => resetUI(), 3000);
               break;
-            case 6: // Rejected - bệnh nhân từ chối
-              addLog("Bệnh nhân đã từ chối cuộc gọi", "warning");
-              showCallStatus("Bị từ chối", "ended");
-              showNotification(
-                "Cuộc gọi bị từ chối",
-                "Bệnh nhân đã từ chối cuộc gọi",
-                "error",
-              );
-              setTimeout(() => resetUI(), 2000);
+            case 6: // Rejected hoặc Remote Hangup
+              console.log('Call state 6 - checking if was answered:', callStartTime);
+              // Nếu đã có callStartTime = cuộc gọi đã được trả lời => đây là remote hangup, không phải reject
+              if (callStartTime) {
+                addLog("Bệnh nhân đã kết thúc cuộc gọi", "info");
+                showCallStatus("Đã kết thúc", "ended");
+                if (currentDbCallId) updateCallStatus(currentDbCallId, 'COMPLETED');
+                showNotification(
+                  "Cuộc gọi kết thúc",
+                  "Bệnh nhân đã kết thúc cuộc gọi",
+                  "info",
+                );
+              } else {
+                addLog("Bệnh nhân đã từ chối cuộc gọi", "warning");
+                showCallStatus("Bị từ chối", "ended");
+                if (currentDbCallId) updateCallStatus(currentDbCallId, 'REJECTED');
+                showNotification(
+                  "Cuộc gọi bị từ chối",
+                  "Bệnh nhân đã từ chối cuộc gọi",
+                  "error",
+                );
+              }
+              // Dừng và upload recordings trước khi reset UI
+              if (isRecording) {
+                console.log('Stopping recording on state 6');
+                stopRecording();
+              }
+              setTimeout(() => resetUI(), 3000);
               break;
           }
         });
@@ -1020,56 +1070,32 @@
         if (label) label.textContent = "Tắt loa";
       }
 
-      // Create notification container if not exists
-      function initNotificationContainer() {
-        if (!document.getElementById('notificationContainer')) {
-          const container = document.createElement('div');
-          container.id = 'notificationContainer';
-          container.className = 'fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none';
-          container.style.maxWidth = '400px';
-          document.body.appendChild(container);
-        }
-      }
-
-      // Universal notification function with stacking support
-      function showNotification(title, message, type = "info", duration = 3000) {
-        initNotificationContainer();
-        const container = document.getElementById('notificationContainer');
-        
-        // Xác định config dựa vào type
-        const configs = {
-          success: {
-            icon: "check_circle",
-            bgColor: "bg-green-500",
-            defaultTitle: "Thành công"
-          },
-          error: {
-            icon: "error",
-            bgColor: "bg-red-500",
-            defaultTitle: "Lỗi"
-          },
-          info: {
-            icon: "info",
-            bgColor: "bg-blue-500",
-            defaultTitle: "Thông báo"
-          },
-          warning: {
-            icon: "warning",
-            bgColor: "bg-yellow-500",
-            defaultTitle: "Cảnh báo"
-          }
-        };
-        
-        const config = configs[type] || configs.info;
-        const finalTitle = title || config.defaultTitle;
-        
+      // Hiển thị notification toast
+      function showNotification(title, message, type = "info") {
         // Tạo notification element
         const notification = document.createElement("div");
-        notification.className = `${config.bgColor} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 pointer-events-auto opacity-0 translate-x-full`;
+        const bgColor =
+          type === "error"
+            ? "bg-red-500"
+            : type === "warning"
+              ? "bg-yellow-500"
+              : type === "success"
+                ? "bg-green-500"
+                : "bg-blue-500";
+        const icon =
+          type === "error"
+            ? "error"
+            : type === "warning"
+              ? "warning"
+              : type === "success"
+                ? "check_circle"
+                : "info";
+
+        notification.className = `fixed top-20 right-4 ${bgColor} text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 transform translate-x-full transition-transform duration-300`;
         notification.innerHTML = `
-          <span class="material-symbols-rounded text-2xl">${config.icon}</span>
-          <div class="flex-1">
-            <p class="font-semibold">${finalTitle}</p>
+          <span class="material-symbols-rounded text-2xl">${icon}</span>
+          <div>
+            <p class="font-semibold">${title}</p>
             <p class="text-sm text-white/90">${message}</p>
           </div>
           <button onclick="this.parentElement.remove()" class="ml-4 text-white/70 hover:text-white">
@@ -1077,24 +1103,39 @@
           </button>
         `;
 
-        container.appendChild(notification);
+        document.body.appendChild(notification);
 
         // Animate in
         setTimeout(() => {
-          notification.classList.remove("opacity-0", "translate-x-full");
+          notification.classList.remove("translate-x-full");
         }, 100);
 
-        // Auto remove
+        // Auto remove after 5 seconds
         setTimeout(() => {
-          notification.classList.add("opacity-0", "translate-x-full");
+          notification.classList.add("translate-x-full");
           setTimeout(() => notification.remove(), 300);
-        }, duration);
+        }, 5000);
       }
 
       function hangupCall() {
-        if (currentCall) currentCall.hangup(function (res) {});
-        showNotification("Đã kết thúc", "Cuộc gọi đã được kết thúc", "info", 2000);
-        resetUI();
+        console.log('hangupCall() called, isRecording:', isRecording);
+        addLog('Đang kết thúc cuộc gọi...', 'info');
+        
+        // Dừng và upload recordings trước khi reset UI
+        if (isRecording) {
+          console.log('Stopping recording before hangup');
+          stopRecording();
+        }
+        
+        if (currentCall) {
+          console.log('Hanging up currentCall');
+          currentCall.hangup(function (res) {
+            console.log('Hangup result:', res);
+          });
+        }
+        
+        // Delay resetUI để đợi upload hoàn tất
+        setTimeout(() => resetUI(), 500);
       }
 
       function answerCall() {
@@ -1125,8 +1166,14 @@
       }
 
       function resetUI() {
-        if (mediaRecorder && mediaRecorder.state === "recording")
-          stopRecording();
+        // Stop all 3 recorders if recording
+        if (mediaRecorderCaller && mediaRecorderCaller.state === "recording")
+          mediaRecorderCaller.stop();
+        if (mediaRecorderReceiver && mediaRecorderReceiver.state === "recording")
+          mediaRecorderReceiver.stop();
+        if (mediaRecorderCombined && mediaRecorderCombined.state === "recording")
+          mediaRecorderCombined.stop();
+        
         if (callDurationInterval) {
           clearInterval(callDurationInterval);
           callDurationInterval = null;
@@ -1134,6 +1181,9 @@
         if (localStream) {
           localStream.getTracks().forEach((t) => t.stop());
           localStream = null;
+        }
+        if (remoteStream) {
+          remoteStream = null;
         }
         if (audioContext) {
           audioContext.close();
@@ -1146,11 +1196,12 @@
         document.getElementById("btnHangup").classList.add("hidden");
         document.getElementById("btnHangup").style.display = "";
         document.getElementById("recordingInfo").classList.add("hidden");
-        document.getElementById("recordingSection").classList.add("hidden");
         document.getElementById("remote_videos").innerHTML = "";
         // Ẩn call controls và reset trạng thái
         hideCallControls();
         currentCall = null;
+        // KHÔNG reset currentDbCallId ở đây - sẽ reset sau khi upload xong
+        // currentDbCallId sẽ được reset trong onstop callback sau khi upload
       }
 
       // Kiem tra trinh duyet co ho tro MediaRecorder khong
@@ -1186,20 +1237,17 @@
               "Trinh duyet khong ho tro ghi am. Vui long su dung Chrome hoac Firefox.",
               "error",
             );
-            showNotification("Không hỗ trợ ghi âm", "Trình duyệt không hỗ trợ. Vui lòng dùng Chrome hoặc Firefox", "error", 5000);
             return;
           }
 
-          if (mediaRecorder && mediaRecorder.state === "recording") {
+          if (mediaRecorderCombined && mediaRecorderCombined.state === "recording") {
             addLog("Dang ghi am...", "warning");
-            showNotification("Đang ghi âm", "Cuộc gọi đang được ghi lại", "info", 2000);
             return;
           }
 
-          addLog("Dang khoi tao ghi am...", "info");
-          showNotification("Bắt đầu ghi âm", "Đang khởi tạo ghi âm cuộc gọi...", "info", 2000);
+          addLog("Dang khoi tao ghi am 3 streams (Caller, Receiver, Combined)...", "info");
 
-          // Yeu cau quyen truy cap microphone
+          // Yeu cau quyen truy cap microphone cho localStream
           try {
             localStream = await navigator.mediaDevices.getUserMedia({
               audio: {
@@ -1211,109 +1259,94 @@
           } catch (err) {
             if (err.name === "NotAllowedError") {
               addLog("Nguoi dung tu choi quyen truy cap microphone", "error");
-              showNotification("Từ chối quyền", "Bạn đã từ chối quyền truy cập microphone", "error", 5000);
             } else if (err.name === "NotFoundError") {
               addLog("Khong tim thay microphone", "error");
-              showNotification("Không tìm thấy microphone", "Hệ thống không phát hiện microphone", "error", 5000);
             } else {
               addLog("Loi truy cap microphone: " + err.message, "error");
-              showNotification("Lỗi microphone", `Không thể truy cập: ${err.message}`, "error", 5000);
             }
             return;
           }
 
-          // Tao audio context de mix local + remote audio
-          audioContext = new (window.AudioContext ||
-            window.webkitAudioContext)();
-          const destination = audioContext.createMediaStreamDestination();
-          const localSource = audioContext.createMediaStreamSource(localStream);
-          localSource.connect(destination);
-
-          // Thu ket noi remote audio neu co
+          // Lay remote stream
           const remoteAudio = document.getElementById("remoteAudio");
           if (remoteAudio && remoteAudio.srcObject) {
+            remoteStream = remoteAudio.srcObject;
+          }
+
+          // Kiem tra mimeType duoc ho tro
+          const mimeType = getSupportedMimeType();
+          if (!mimeType) {
+            addLog("Trinh duyet khong ho tro dinh dang ghi am", "error");
+            return;
+          }
+
+          addLog("Su dung dinh dang: " + mimeType, "info");
+
+          // Reset arrays
+          recordedChunksCaller = [];
+          recordedChunksReceiver = [];
+          recordedChunksCombined = [];
+
+          // 1. Setup Caller (local) recorder
+          if (localStream) {
+            mediaRecorderCaller = new MediaRecorder(localStream, {
+              mimeType: mimeType,
+              audioBitsPerSecond: 128000,
+            });
+            mediaRecorderCaller.ondataavailable = (e) => {
+              if (e.data.size > 0) recordedChunksCaller.push(e.data);
+            };
+            mediaRecorderCaller.start(1000);
+            addLog("✅ Ghi am Caller stream", "success");
+          }
+
+          // 2. Setup Receiver (remote) recorder
+          if (remoteStream) {
+            mediaRecorderReceiver = new MediaRecorder(remoteStream, {
+              mimeType: mimeType,
+              audioBitsPerSecond: 128000,
+            });
+            mediaRecorderReceiver.ondataavailable = (e) => {
+              if (e.data.size > 0) recordedChunksReceiver.push(e.data);
+            };
+            mediaRecorderReceiver.start(1000);
+            addLog("✅ Ghi am Receiver stream", "success");
+          }
+
+          // 3. Setup Combined (mixed) recorder
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          const destination = audioContext.createMediaStreamDestination();
+          
+          if (localStream) {
+            const localSource = audioContext.createMediaStreamSource(localStream);
+            localSource.connect(destination);
+          }
+          
+          if (remoteStream) {
             try {
-              const remoteSource = audioContext.createMediaStreamSource(
-                remoteAudio.srcObject,
-              );
+              const remoteSource = audioContext.createMediaStreamSource(remoteStream);
               remoteSource.connect(destination);
-              addLog("Da ket noi remote audio vao recording", "success");
+              addLog("Da ket noi remote audio vao combined stream", "success");
             } catch (e) {
               addLog("Khong the ket noi remote audio: " + e.message, "warning");
             }
           }
 
           mixedStream = destination.stream;
-          recordedChunks = [];
-
-          // Kiem tra mimeType duoc ho tro
-          const mimeType = getSupportedMimeType();
-          if (!mimeType) {
-            addLog("Trinh duyet khong ho tro dinh dang ghi am", "error");
-            showNotification("Lỗi định dạng", "Trình duyệt không hỗ trợ định dạng ghi âm", "error", 5000);
-            return;
-          }
-
-          addLog("Su dung dinh dang: " + mimeType, "info");
-
-          mediaRecorder = new MediaRecorder(mixedStream, {
+          mediaRecorderCombined = new MediaRecorder(mixedStream, {
             mimeType: mimeType,
-            audioBitsPerSecond: 128000, // 128kbps cho chat luong tot
+            audioBitsPerSecond: 128000,
           });
-
-          mediaRecorder.ondataavailable = (e) => {
-            if (e.data.size > 0) {
-              recordedChunks.push(e.data);
-            }
+          mediaRecorderCombined.ondataavailable = (e) => {
+            if (e.data.size > 0) recordedChunksCombined.push(e.data);
           };
+          mediaRecorderCombined.start(1000);
+          addLog("✅ Ghi am Combined stream", "success");
 
-          mediaRecorder.onerror = (e) => {
-            addLog("Loi MediaRecorder: " + e.error.message, "error");
-            stopRecording();
-          };
-
-          mediaRecorder.onstop = async () => {
-            // Giai phong tai nguyen
-            if (localStream) {
-              localStream.getTracks().forEach((t) => t.stop());
-              localStream = null;
-            }
-            if (audioContext) {
-              await audioContext.close();
-              audioContext = null;
-            }
-            if (recordingInterval) {
-              clearInterval(recordingInterval);
-              recordingInterval = null;
-            }
-
-            // Upload neu co du lieu
-            if (recordedChunks.length > 0) {
-              const blob = new Blob(recordedChunks, { type: mimeType });
-              const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
-              addLog("File ghi am: " + sizeMB + " MB", "info");
-
-              // Kiem tra kich thuoc file (max 100MB)
-              if (blob.size > 100 * 1024 * 1024) {
-                addLog("File qua lon (>100MB), khong the upload", "error");
-                return;
-              }
-
-              await uploadRecording(blob);
-            } else {
-              addLog("Khong co du lieu ghi am", "warning");
-            }
-          };
-
-          // Bat dau ghi am - lay du lieu moi 1 giay
-          mediaRecorder.start(1000);
+          isRecording = true; // Đánh dấu đang ghi âm
           recordingStartTime = Date.now();
-          addLog("Da bat dau ghi am", "success");
-          showNotification("Đang ghi âm", "Cuộc gọi đang được ghi lại", "success", 3000);
 
           // Hien thi indicator
-          document.getElementById("recordingSection").classList.remove("hidden");
-          document.getElementById("recordingSection").classList.add("active");
           document.getElementById("recordingInfo").classList.remove("hidden");
 
           // Cap nhat thoi gian ghi am
@@ -1328,7 +1361,6 @@
           }, 1000);
         } catch (err) {
           addLog("Loi ghi am: " + err.message, "error");
-          showNotification("Lỗi ghi âm", `Không thể ghi âm: ${err.message}`, "error", 5000);
           console.error("Recording error:", err);
 
           // Cleanup khi loi
@@ -1343,34 +1375,79 @@
         }
       }
 
-      function stopRecording() {
-        if (mediaRecorder && mediaRecorder.state === "recording") {
-          mediaRecorder.stop();
-          document.getElementById("recordingInfo").classList.add("hidden");
-          document.getElementById("recordingSection").classList.remove("active");
-          setTimeout(() => {
-            document.getElementById("recordingSection").classList.add("hidden");
-          }, 1000);
-          addLog("Đã dừng ghi âm", "info");
-          showNotification("Đã dừng ghi âm", "File ghi âm đang được lưu trữ", "success", 2000);
+      async function stopRecording() {
+        isRecording = false; // Đánh dấu đã dừng ghi âm
+        document.getElementById("recordingInfo").classList.add("hidden");
+        addLog("Đang dừng ghi âm 3 streams...", "info");
+
+        // Stop all 3 recorders
+        if (mediaRecorderCaller && mediaRecorderCaller.state === "recording") {
+          mediaRecorderCaller.stop();
         }
+        if (mediaRecorderReceiver && mediaRecorderReceiver.state === "recording") {
+          mediaRecorderReceiver.stop();
+        }
+        if (mediaRecorderCombined && mediaRecorderCombined.state === "recording") {
+          mediaRecorderCombined.stop();
+        }
+
+        // Cleanup
+        if (recordingInterval) {
+          clearInterval(recordingInterval);
+          recordingInterval = null;
+        }
+        if (localStream) {
+          localStream.getTracks().forEach((t) => t.stop());
+          localStream = null;
+        }
+        if (audioContext) {
+          await audioContext.close();
+          audioContext = null;
+        }
+
+        // Wait a bit then upload all 3 files
+        setTimeout(async () => {
+          const mimeType = getSupportedMimeType();
+          const dbCallIdSnapshot = currentDbCallId;
+
+          // Upload caller
+          if (recordedChunksCaller.length > 0) {
+            const blob = new Blob(recordedChunksCaller, { type: mimeType });
+            await uploadRecording(blob, dbCallIdSnapshot, "caller");
+          }
+
+          // Upload receiver
+          if (recordedChunksReceiver.length > 0) {
+            const blob = new Blob(recordedChunksReceiver, { type: mimeType });
+            await uploadRecording(blob, dbCallIdSnapshot, "receiver");
+          }
+
+          // Upload combined
+          if (recordedChunksCombined.length > 0) {
+            const blob = new Blob(recordedChunksCombined, { type: mimeType });
+            await uploadRecording(blob, dbCallIdSnapshot, "combined");
+          }
+
+          // Reset currentDbCallId after all uploads
+          currentDbCallId = null;
+        }, 500);
       }
 
-      async function uploadRecording(blob) {
+      async function uploadRecording(blob, dbCallIdParam, recordingType) {
+        console.log("DEBUG uploadRecording: dbCallIdParam =", dbCallIdParam, "recordingType =", recordingType);
+        
         // Kiem tra blob hop le
         if (!blob || blob.size === 0) {
           addLog("Khong co du lieu ghi am de upload", "warning");
-          showNotification("Không có dữ liệu", "Không có dữ liệu ghi âm để lưu", "warning", 3000);
           return;
         }
 
         const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
-        addLog("Chuan bi upload file " + sizeMB + " MB...", "info");
+        addLog(`Chuan bi upload ${recordingType} file ${sizeMB} MB...`, "info");
 
         // Kiem tra kich thuoc file (max 100MB)
         if (blob.size > 100 * 1024 * 1024) {
           addLog("File qua lon (>100MB), khong the upload", "error");
-          showNotification("File quá lớn", "File ghi âm vượt quá 100MB, không thể lưu", "error", 5000);
           return;
         }
 
@@ -1383,15 +1460,21 @@
               : blob.type.includes("mp4")
                 ? ".mp4"
                 : ".webm";
-          const filename = `call_${currentUser.stringeeUserId}_to_user_${patient.id}_${timestamp}${extension}`;
+          const filename = `call_${currentUser.stringeeUserId}_to_user_${patient.id}_${timestamp}_${recordingType}${extension}`;
 
-          addLog("Dang upload: " + filename, "info");
-          showNotification("Đang lưu file", `Đang lưu file ghi âm (${sizeMB} MB)...`, "info", 3000);
+          addLog(`Dang upload ${recordingType}: ${filename}`, "info");
 
           const formData = new FormData();
           formData.append("file", blob, filename);
-          formData.append("callId", "web_" + Date.now());
+          // Sử dụng database call ID từ param (snapshot) hoặc fallback
+          const callIdForUpload = dbCallIdParam || currentDbCallId || ("web_" + Date.now());
+          formData.append("callId", callIdForUpload);
           formData.append("userId", currentUser.stringeeUserId);
+          // Thêm recordingType từ parameter
+          formData.append("recordingType", recordingType || "combined");
+
+          console.log("DEBUG: callIdForUpload =", callIdForUpload, "(from param:", dbCallIdParam, "current:", currentDbCallId, ")");
+          addLog(`📤 Upload với callId: ${callIdForUpload} (param=${dbCallIdParam || 'null'})`, "info");
 
           // Upload voi retry
           let retries = 3;
@@ -1412,10 +1495,18 @@
               const result = await response.json();
 
               if (result.success) {
-                addLog("Upload thanh cong! S3 Key: " + result.s3Key, "success");
-                showNotification("Lưu thành công", "File ghi âm đã được lưu vào hệ thống", "success", 3000);
-                // Reload danh sach recordings sau 1 giay
-                setTimeout(() => loadRecordings(), 1000);
+                addLog(`Upload ${recordingType} thanh cong! S3 Key: ${result.s3Key}`, "success");
+                
+                // Nếu có database call ID, cập nhật recording URL vào database
+                const dbCallIdToSave = dbCallIdParam || currentDbCallId;
+                if (dbCallIdToSave && result.s3Key) {
+                  await saveRecordingToDatabase(dbCallIdToSave, result.s3Key, result.presignedUrl, recordingType);
+                }
+                
+                // Reload danh sach recordings sau 1 giay (chỉ reload sau khi upload combined - cuối cùng)
+                if (recordingType === "combined") {
+                  setTimeout(() => loadRecordings(), 1000);
+                }
                 return;
               } else {
                 throw new Error(result.error || "Upload that bai");
@@ -1437,11 +1528,38 @@
             "Upload that bai sau 3 lan thu: " + lastError.message,
             "error",
           );
-          showNotification("Lưu thất bại", `Không thể lưu file sau 3 lần thử: ${lastError.message}`, "error", 5000);
         } catch (err) {
           addLog("Loi upload: " + err.message, "error");
-          showNotification("Lỗi lưu file", `Không thể lưu file ghi âm: ${err.message}`, "error", 5000);
           console.error("Upload error:", err);
+        }
+      }
+      
+      // Lưu recording URL vào database WebCallLog
+      async function saveRecordingToDatabase(callId, s3Key, presignedUrl, recordingType) {
+        try {
+          const params = new URLSearchParams();
+          params.append('callId', callId);
+          params.append('s3Key', s3Key);
+          params.append('recordingType', recordingType || 'combined');
+          if (presignedUrl) params.append('presignedUrl', presignedUrl);
+          
+          const response = await fetch('/api/web-call/recording', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: params.toString()
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+              addLog(`Đã lưu recording vào database (call #${callId})`, "success");
+            }
+          }
+        } catch (err) {
+          console.error("Error saving recording to database:", err);
+          addLog("Lưu recording vào DB thất bại: " + err.message, "warning");
         }
       }
 
@@ -1450,103 +1568,132 @@
           // Đảm bảo patient đã được load
           if (!patient || !patient.id) {
             addLog("Chưa có thông tin bệnh nhân, chờ load...", "warning");
-            showNotification("Chờ tải dữ liệu", "Đang chờ thông tin bệnh nhân...", "info", 2000);
             return;
           }
 
-          const response = await fetch("/api/stringee/recordings");
-          if (!response.ok) throw new Error("HTTP " + response.status);
-          const result = await response.json();
-          if (result.success) {
-            addLog(
-              "Tổng số recordings trong S3: " + result.recordings.length,
-              "info",
-            );
+          // Load cả 2 loại: AI call recordings và Web call recordings
+          const [aiRecordings, webCallRecordings] = await Promise.all([
+            loadAICallRecordings(),
+            loadWebCallRecordings()
+          ]);
 
-            // Filter recordings related to this patient
-            // Format ten file: call_user_X_to_user_Y_timestamp.webm
-            // Trong do Y la patient.id (stringee userId cua benh nhan)
-            const patientRecordings = result.recordings.filter((r) => {
-              const filename = r.filename || "";
-              const key = r.key || "";
-
-              // Pattern: _to_user_Y_ hoac _to_user_Y. (Y la patient id hoac stringee user id)
-              // Patient co the la user_2 hoac chi la so 2
-              const patientUserId = `user_${patient.id}`;
-
-              // Tim trong filename va key de dam bao match duoc
-              const searchString = filename + " " + key;
-
-              // Pattern 1: _to_user_Y_ (Y tiep tuc la phan khac)
-              const pattern1 = `_to_${patientUserId}_`;
-              // Pattern 2: _to_user_Y. (Y la cuoi truoc extension)
-              const pattern2 = `_to_${patientUserId}.`;
-              // Pattern 3: Chi so patient id (truong hop cu)
-              const pattern3 = `_user_${patient.id}_`;
-              const pattern4 = `_user_${patient.id}.`;
-
-              const matches =
-                searchString.includes(pattern1) ||
-                searchString.includes(pattern2) ||
-                searchString.includes(pattern3) ||
-                searchString.includes(pattern4);
-
-              // Debug log
-              console.log(`== clearCheckExistCall ==`);
-              console.log(
-                `File: ${filename}, PatientID: ${patient.id}, Matches: ${matches}`,
-              );
-
-              return matches;
-            });
-
-            displayRecordings(patientRecordings);
-            addLog(
-              "Đã tải " +
-                patientRecordings.length +
-                " file ghi âm của bệnh nhân #" +
-                patient.id,
-              "success",
-            );
-            showNotification("Đã tải danh sách", `Tìm thấy ${patientRecordings.length} file ghi âm`, "success", 2000);
-          }
+          // Merge và hiển thị
+          const allRecordings = [...aiRecordings, ...webCallRecordings];
+          displayRecordings(allRecordings);
+          
+          addLog(
+            `Đã tải ${aiRecordings.length} AI call + ${webCallRecordings.length} web call = ${allRecordings.length} recordings`,
+            "success",
+          );
         } catch (err) {
           addLog("Lỗi tải danh sách: " + err.message, "error");
-          showNotification("Lỗi tải danh sách", `Không thể tải danh sách ghi âm: ${err.message}`, "error", 5000);
         }
       }
 
-      // Group recordings by date (Year > Month > Day)
-      function groupRecordingsByDate(recordings) {
-        const groups = {};
-        
-        recordings.forEach((rec) => {
-          const date = new Date(rec.lastModified);
-          const year = date.getFullYear();
-          const month = date.getMonth(); // 0-11
-          const day = date.getDate();
+      // Load AI Call Recordings từ S3
+      async function loadAICallRecordings() {
+        try {
+          const response = await fetch("/api/stringee/recordings");
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          const result = await response.json();
           
-          if (!groups[year]) groups[year] = {};
-          if (!groups[year][month]) groups[year][month] = {};
-          if (!groups[year][month][day]) groups[year][month][day] = [];
-          
-          groups[year][month][day].push(rec);
-        });
-        
-        return groups;
+          if (!result.success) return [];
+
+          // Filter recordings related to this patient
+          const patientUserId = `user_${patient.id}`;
+          const patientRecordings = result.recordings.filter((r) => {
+            const filename = r.filename || "";
+            const key = r.key || "";
+            const searchString = filename + " " + key;
+
+            const pattern1 = `_to_${patientUserId}_`;
+            const pattern2 = `_to_${patientUserId}.`;
+            const pattern3 = `_user_${patient.id}_`;
+            const pattern4 = `_user_${patient.id}.`;
+
+            return searchString.includes(pattern1) ||
+                   searchString.includes(pattern2) ||
+                   searchString.includes(pattern3) ||
+                   searchString.includes(pattern4);
+          });
+
+          return patientRecordings.map(r => ({
+            ...r,
+            type: 'ai_call',
+            displayType: 'AI Callbot'
+          }));
+        } catch (err) {
+          console.error("Error loading AI call recordings:", err);
+          return [];
+        }
       }
 
-      // Toggle accordion
-      function toggleAccordion(element) {
-        const content = element.nextElementSibling;
-        const icon = element.querySelector('.expand-icon');
-        
-        if (content.classList.contains('expanded')) {
-          content.classList.remove('expanded');
-          element.classList.remove('expanded');
-        } else {
-          content.classList.add('expanded');
-          element.classList.add('expanded');
+      // Load Web Call Recordings từ database
+      async function loadWebCallRecordings() {
+        try {
+          const response = await fetch(`/api/web-call/patient/${patient.id}/recordings`);
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          const result = await response.json();
+          
+          if (!result.success || !result.calls) return [];
+
+          // Chuyển đổi web call logs thành recording format
+          const recordings = [];
+          result.calls.forEach(call => {
+            if (!call.hasRecording) return;
+
+            const callDate = new Date(call.startTime);
+            const baseInfo = {
+              type: 'web_call',
+              displayType: 'Web Call',
+              callId: call.id,
+              duration: call.durationFormatted || '0:00',
+              otherUser: call.otherUserName,
+              isOutgoing: call.isOutgoing,
+              lastModified: callDate.toISOString()
+            };
+
+            // Combined recording
+            if (call.recordingUrl) {
+              recordings.push({
+                ...baseInfo,
+                filename: `Web Call - ${call.otherUserName} (Combined) - ${callDate.toLocaleString('vi-VN')}`,
+                url: call.recordingUrl,
+                s3Key: call.recordingS3Key,
+                size: 0,
+                recordingType: 'combined'
+              });
+            }
+
+            // Caller recording
+            if (call.recordingCallerUrl) {
+              recordings.push({
+                ...baseInfo,
+                filename: `Web Call - ${call.otherUserName} (Caller) - ${callDate.toLocaleString('vi-VN')}`,
+                url: call.recordingCallerUrl,
+                s3Key: call.recordingCallerS3Key,
+                size: 0,
+                recordingType: 'caller'
+              });
+            }
+
+            // Receiver recording
+            if (call.recordingReceiverUrl) {
+              recordings.push({
+                ...baseInfo,
+                filename: `Web Call - ${call.otherUserName} (Receiver) - ${callDate.toLocaleString('vi-VN')}`,
+                url: call.recordingReceiverUrl,
+                s3Key: call.recordingReceiverS3Key,
+                size: 0,
+                recordingType: 'receiver'
+              });
+            }
+          });
+
+          return recordings;
+        } catch (err) {
+          console.error("Error loading web call recordings:", err);
+          return [];
         }
       }
 
@@ -1557,121 +1704,69 @@
           return;
         }
         
-        // Group recordings by date
-        const grouped = groupRecordingsByDate(recordings);
-        const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", 
-                           "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
-        
-        let html = '<div class="space-y-4">';
-        
-        // Sort years descending
-        const years = Object.keys(grouped).sort((a, b) => b - a);
-        
-        years.forEach(year => {
-          const yearData = grouped[year];
-          const yearCount = Object.values(yearData).reduce((sum, monthData) => 
-            sum + Object.values(monthData).reduce((s, dayData) => s + dayData.length, 0), 0);
+        let html = "";
+        recordings.forEach((rec) => {
+          const size = rec.size ? (rec.size / 1024).toFixed(2) : '~';
+          const date = new Date(rec.lastModified).toLocaleString("vi-VN");
+          
+          // Icon và màu theo loại
+          let iconColor = 'purple';
+          let iconBg = 'bg-purple-100';
+          let textColor = 'text-purple-600';
+          let badge = '';
+          
+          if (rec.type === 'web_call') {
+            iconColor = 'blue';
+            iconBg = 'bg-blue-100';
+            textColor = 'text-blue-600';
+            
+            // Badge cho loại recording
+            if (rec.recordingType === 'caller') {
+              badge = '<span class="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">Caller</span>';
+            } else if (rec.recordingType === 'receiver') {
+              badge = '<span class="ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full">Receiver</span>';
+            } else if (rec.recordingType === 'combined') {
+              badge = '<span class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">Combined</span>';
+            }
+          }
           
           html += `
-            <div class="border border-gray-200 rounded-xl overflow-hidden">
-              <button onclick="toggleAccordion(this)" class="accordion-header w-full px-4 py-3 bg-gray-50 flex items-center justify-between hover:bg-gray-100">
-                <div class="flex items-center gap-2">
-                  <span class="material-symbols-rounded text-primary">calendar_today</span>
-                  <span class="font-semibold text-gray-800">${year}</span>
-                  <span class="text-sm text-gray-500">(${yearCount} cuộc gọi)</span>
-                </div>
-                <span class="material-symbols-rounded expand-icon">expand_more</span>
-              </button>
-              
-              <div class="accordion-content">`;
-          
-          // Sort months descending
-          const months = Object.keys(yearData).sort((a, b) => b - a);
-          
-          months.forEach(month => {
-            const monthData = yearData[month];
-            const monthCount = Object.values(monthData).reduce((sum, dayData) => sum + dayData.length, 0);
-            
-            html += `
-              <div class="border-t border-gray-200">
-                <button onclick="toggleAccordion(this)" class="accordion-header w-full px-6 py-2.5 bg-white flex items-center justify-between hover:bg-gray-50">
-                  <div class="flex items-center gap-2">
-                    <span class="text-sm font-medium text-gray-700">${monthNames[month]}</span>
-                    <span class="text-xs text-gray-500">(${monthCount} cuộc gọi)</span>
-                  </div>
-                  <span class="material-symbols-rounded expand-icon text-sm">expand_more</span>
-                </button>
-                
-                <div class="accordion-content">`;
-            
-            // Sort days descending
-            const days = Object.keys(monthData).sort((a, b) => b - a);
-            
-            days.forEach(day => {
-              const dayRecordings = monthData[day];
-              
-              html += `
-                <div class="border-t border-gray-100">
-                  <button onclick="toggleAccordion(this)" class="accordion-header w-full px-8 py-2 bg-gray-50 flex items-center justify-between hover:bg-gray-100">
-                    <span class="text-sm text-gray-700">Ngày ${day}</span>
-                    <span class="text-xs text-gray-500">(${dayRecordings.length} cuộc gọi)</span>
-                  </button>
-                  
-                  <div class="accordion-content">
-                    <div class="space-y-2 p-3 bg-white">`;
-              
-              // Display recordings for this day
-              dayRecordings.forEach(rec => {
-                const size = (rec.size / 1024).toFixed(2);
-                const time = new Date(rec.lastModified).toLocaleTimeString("vi-VN", { hour: '2-digit', minute: '2-digit' });
-                
-                html += `
-                  <div class="border border-gray-200 rounded-lg p-3 hover:border-primary transition-colors">
-                    <div class="flex items-start justify-between mb-2">
-                      <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-800">${time} - ${rec.filename}</p>
-                        <p class="text-xs text-gray-500 mt-1">Kích thước: ${size} KB</p>
-                      </div>
-                    </div>
-                    
-                    <div class="flex gap-2 mt-3">
-                      <button onclick="playRecording('${rec.url}', '${rec.filename}')" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 flex items-center justify-center gap-1">
-                        <span class="material-symbols-rounded text-sm">play_arrow</span>
-                        <span class="hidden sm:inline">Nghe lại</span>
-                      </button>
-                      <button onclick="viewTranscript('${rec.url}', '${rec.filename}')" class="flex-1 px-3 py-2 border border-primary text-primary rounded-lg text-sm hover:bg-primary/5 flex items-center justify-center gap-1">
-                        <span class="material-symbols-rounded text-sm">description</span>
-                        <span class="hidden sm:inline">Xem nội dung</span>
-                      </button>
-                      <button onclick="downloadRecording('${rec.url}', '${rec.filename}')" class="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center">
-                        <span class="material-symbols-rounded text-sm">download</span>
-                      </button>
-                    </div>
-                  </div>`;
-              });
-              
-              html += `
-                    </div>
-                  </div>
-                </div>`;
-            });
-            
-            html += `
-                </div>
-              </div>`;
-          });
-          
-          html += `
-              </div>
-            </div>`;
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                            <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center">
+                                <span class="material-symbols-rounded ${textColor}">${rec.type === 'web_call' ? 'phone' : 'smart_toy'}</span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-1">
+                                    <p class="font-medium text-gray-800 truncate text-sm">${rec.filename}</p>
+                                    ${badge}
+                                </div>
+                                <p class="text-xs text-gray-500">
+                                    ${date} • ${size} KB
+                                    ${rec.duration ? ` • ${rec.duration}` : ''}
+                                    ${rec.type === 'web_call' ? ` • <span class="${textColor}">Web Call</span>` : ' • <span class="text-purple-600">AI Callbot</span>'}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="viewTranscript('${rec.url}', '${rec.filename}', '${rec.s3Key || ''}', '${rec.type}')" class="flex items-center gap-1 px-3 py-1.5 ${rec.type === 'web_call' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'} rounded-lg text-sm font-medium" title="Xem nội dung cuộc gọi">
+                                <span class="material-symbols-rounded text-lg">description</span>
+                                <span class="hidden sm:inline">Nội dung</span>
+                            </button>
+                            <button onclick="playRecording('${rec.url}', '${rec.filename}')" class="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm font-medium hover:bg-green-200">
+                                <span class="material-symbols-rounded text-lg">play_arrow</span>
+                            </button>
+                            <button onclick="downloadRecording('${rec.url}', '${rec.filename}')" class="flex items-center gap-1 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200">
+                                <span class="material-symbols-rounded text-lg">download</span>
+                            </button>
+                        </div>
+                    </div>`;
         });
-        
-        html += '</div>';
         container.innerHTML = html;
       }
 
       // View Transcript Modal function
-      async function viewTranscript(url, filename) {
+      async function viewTranscript(url, filename, s3Key, recordingType) {
         // Create modal if not exists
         let modal = document.getElementById("transcriptModal");
         if (!modal) {
@@ -1683,8 +1778,8 @@
             <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] flex flex-col">
               <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <span class="material-symbols-rounded text-primary">description</span>
-                  Nội dung cuộc thoại (văn bản)
+                  <span class="material-symbols-rounded text-purple-500">description</span>
+                  Nội dung cuộc gọi
                 </h3>
                 <button onclick="closeTranscriptModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                   <span class="material-symbols-rounded text-2xl">close</span>
@@ -1695,8 +1790,8 @@
               </div>
               <div id="transcriptContent" class="p-4 overflow-y-auto flex-1">
                 <div class="text-center py-8">
-                  <div class="w-8 h-8 border-3 border-gray-200 border-t-primary rounded-full animate-spin mx-auto mb-3"></div>
-                  <p class="text-sm text-gray-500">Đang chuyển đổi giọng nói thành văn bản...</p>
+                  <div class="w-8 h-8 border-3 border-gray-200 border-t-purple-500 rounded-full animate-spin mx-auto mb-3"></div>
+                  <p class="text-sm text-gray-500">Đang phân tích nội dung...</p>
                 </div>
               </div>
             </div>
@@ -1711,22 +1806,29 @@
 
         // Load transcript
         const content = document.getElementById("transcriptContent");
-        content.innerHTML = `<div class="text-center py-8"><div class="w-8 h-8 border-3 border-gray-200 border-t-primary rounded-full animate-spin mx-auto mb-3"></div><p class="text-sm text-gray-500">Đang phân tích nội dung cuộc gọi...</p></div>`;
-        showNotification("Đang phân tích", "Đang chuyển đổi giọng nói thành văn bản...", "info", 3000);
+        content.innerHTML = `<div class="text-center py-8"><div class="w-8 h-8 border-3 border-gray-200 border-t-purple-500 rounded-full animate-spin mx-auto mb-3"></div><p class="text-sm text-gray-500">Đang phân tích nội dung cuộc gọi...</p></div>`;
 
         // Lưu filename để dùng cho edit/delete
         window.currentTranscriptFilename = filename;
 
         try {
-          // Extract recordingKey từ filename
-          // filename format: call_user_X_to_user_Y_timestamp.webm
-          const recordingKey = "recordings/" + filename;
+          // Xác định request body tùy theo loại recording
+          let requestBody;
+          
+          if (recordingType === 'web_call' && s3Key) {
+            // Web call - sử dụng s3Key
+            requestBody = JSON.stringify({ s3Key: s3Key });
+          } else {
+            // AI call - sử dụng recordingKey pattern cũ
+            const recordingKey = "recordings/" + filename;
+            requestBody = JSON.stringify({ recordingKey: recordingKey });
+          }
           
           // Call ASR API to get transcript
           const response = await fetch("/api/web-call/transcribe", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ recordingKey: recordingKey }),
+            body: requestBody,
           });
 
           if (!response.ok) {
@@ -1736,7 +1838,6 @@
 
           const result = await response.json();
           if (result.success && result.transcript) {
-            showNotification("Phân tích thành công", "Nội dung cuộc thoại đã được chuyển đổi", "success", 3000);
             const cachedBadge = result.cached 
               ? '<span class="ml-2 px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded-full">Đã lưu</span>' 
               : '<span class="ml-2 px-2 py-0.5 bg-blue-100 text-blue-600 text-xs rounded-full">Mới phân tích</span>';
@@ -1746,22 +1847,17 @@
             
             content.innerHTML = `
               <div class="space-y-4">
-                <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-gray-200">
-                  <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
-                    <div class="flex items-center gap-2">
-                      <span class="material-symbols-rounded text-primary">description</span>
-                      <p class="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                        Nội dung cuộc thoại (văn bản) ${cachedBadge}
-                      </p>
-                    </div>
+                <div class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                  <div class="flex items-center justify-between mb-2">
+                    <p class="text-sm font-medium text-purple-700 dark:text-purple-300">
+                      Nội dung cuộc hội thoại: ${cachedBadge}
+                    </p>
                     <div class="flex gap-2">
-                      <button onclick="editTranscript()" class="px-3 py-1.5 text-xs bg-primary text-white rounded-lg hover:bg-primary/90 flex items-center gap-1" title="Chỉnh sửa nội dung văn bản">
-                        <span class="material-symbols-rounded text-sm">edit</span> 
-                        <span class="hidden sm:inline">Chỉnh sửa</span>
+                      <button onclick="editTranscript()" class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 flex items-center gap-1">
+                        <span class="material-symbols-rounded text-sm">edit</span> Sửa
                       </button>
-                      <button onclick="deleteTranscript()" class="px-3 py-1.5 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200 flex items-center gap-1" title="Xóa nội dung văn bản">
-                        <span class="material-symbols-rounded text-sm">delete</span> 
-                        <span class="hidden sm:inline">Xóa</span>
+                      <button onclick="deleteTranscript()" class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded-lg hover:bg-red-200 flex items-center gap-1">
+                        <span class="material-symbols-rounded text-sm">delete</span> Xóa
                       </button>
                     </div>
                   </div>
@@ -1771,12 +1867,10 @@
             `;
           } else {
             content.innerHTML = `<div class="text-center py-8 text-gray-500"><span class="material-symbols-rounded text-4xl text-gray-300 mb-2">error</span><p>Chưa có nội dung cuộc gọi hoặc đang xử lý.</p></div>`;
-            showNotification("Chưa có nội dung", "Chưa có nội dung cuộc gọi hoặc đang xử lý", "warning", 3000);
           }
         } catch (err) {
           console.error("Transcribe error:", err);
           content.innerHTML = `<div class="text-center py-8 text-gray-500"><span class="material-symbols-rounded text-4xl text-gray-300 mb-2">error</span><p>Không thể tải nội dung cuộc gọi.</p><p class="text-sm mt-2">${err.message}</p></div>`;
-          showNotification("Phân tích thất bại", `Không thể chuyển đổi: ${err.message}`, "error", 5000);
         }
       }
 
@@ -1786,10 +1880,10 @@
         const currentText = window.currentTranscript || textDiv.innerText;
         
         textDiv.innerHTML = `
-          <textarea id="transcriptEditArea" class="w-full h-48 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent resize-y text-sm">${currentText}</textarea>
+          <textarea id="transcriptEditArea" class="w-full h-48 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y text-sm">${currentText}</textarea>
           <div class="flex justify-end gap-2 mt-3">
             <button onclick="cancelEditTranscript()" class="px-3 py-1.5 text-sm bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Hủy</button>
-            <button onclick="saveTranscript()" class="px-3 py-1.5 text-sm bg-primary text-white rounded-lg hover:bg-primary/90">Lưu thay đổi</button>
+            <button onclick="saveTranscript()" class="px-3 py-1.5 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700">Lưu</button>
           </div>
         `;
       }
@@ -1806,7 +1900,7 @@
         const newTranscript = textarea.value.trim();
         
         if (!newTranscript) {
-          showNotification("Nội dung trống", "Nội dung không được để trống", "warning", 3000);
+          alert("Nội dung không được để trống");
           return;
         }
         
@@ -1831,11 +1925,11 @@
           textDiv.innerHTML = newTranscript;
           
           // Show success notification
-          showNotification("Đã lưu", "Nội dung cuộc thoại đã được cập nhật", "success", 3000);
+          showToast("Đã lưu nội dung thành công", "success");
           
         } catch (err) {
           console.error("Save transcript error:", err);
-          showNotification("Lỗi lưu", `Không thể lưu nội dung: ${err.message}`, "error", 5000);
+          alert("Lỗi: " + err.message);
         }
       }
 
@@ -1857,11 +1951,11 @@
           
           // Close modal
           closeTranscriptModal();
-          showNotification("Đã xóa", "Nội dung cuộc thoại đã được xóa", "success", 3000);
+          showToast("Đã xóa nội dung thành công", "success");
           
         } catch (err) {
           console.error("Delete transcript error:", err);
-          showNotification("Lỗi xóa", `Không thể xóa nội dung: ${err.message}`, "error", 5000);
+          alert("Lỗi: " + err.message);
         }
       }
 
@@ -1887,7 +1981,6 @@
         document.getElementById("audioPlayerTitle").textContent = filename;
         document.getElementById("audioPlayer").src = url;
         document.getElementById("audioPlayerModal").classList.remove("hidden");
-        showNotification("Đang phát", "Đang mở file ghi âm...", "info", 2000);
       }
 
       function closeAudioPlayer() {
@@ -1896,16 +1989,12 @@
       }
 
       function downloadRecording(url, filename) {
-        showNotification("Đang tải xuống", `Đang tải file ${filename}`, "info", 2000);
         const a = document.createElement("a");
         a.href = url;
         a.download = filename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        setTimeout(() => {
-          showNotification("Tải xuống thành công", "File đã được tải về máy của bạn", "success", 3000);
-        }, 500);
       }
 
       function getInitials(name) {

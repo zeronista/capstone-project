@@ -29,7 +29,7 @@ public class TicketMessage {
     private Ticket ticket;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id")
+    @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
     
     @Column(name = "message_text", columnDefinition = "TEXT", nullable = false)

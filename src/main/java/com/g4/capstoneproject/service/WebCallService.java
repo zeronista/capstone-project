@@ -164,22 +164,55 @@ public class WebCallService {
     }
     
     /**
-     * Lưu thông tin ghi âm
+     * Lưu thông tin ghi âm (hỗ trợ cả 3 loại: caller, receiver, combined)
+     * @param callId ID cuộc gọi
+     * @param recordingType Loại recording: "caller", "receiver", hoặc "combined"
+     * @param s3Key S3 key của file
+     * @param presignedUrl Pre-signed URL
      */
     @Transactional
-    public WebCallLog saveRecording(Long callId, String s3Key, String presignedUrl) {
+    public WebCallLog saveRecording(Long callId, String recordingType, String s3Key, String presignedUrl) {
         WebCallLog callLog = webCallLogRepository.findById(callId)
             .orElseThrow(() -> new RuntimeException("Call not found"));
         
-        callLog.setRecordingS3Key(s3Key);
-        callLog.setRecordingUrl(presignedUrl);
+        // Tạo folder nếu chưa có
+        if (callLog.getRecordingFolder() == null) {
+            String folder = "voice/calls/" + callId + "/";
+            callLog.setRecordingFolder(folder);
+        }
+        
+        // Lưu theo loại recording
+        switch (recordingType.toLowerCase()) {
+            case "caller":
+                callLog.setRecordingCallerS3Key(s3Key);
+                callLog.setRecordingCallerUrl(presignedUrl);
+                break;
+            case "receiver":
+                callLog.setRecordingReceiverS3Key(s3Key);
+                callLog.setRecordingReceiverUrl(presignedUrl);
+                break;
+            case "combined":
+            default:
+                callLog.setRecordingS3Key(s3Key);
+                callLog.setRecordingUrl(presignedUrl);
+                break;
+        }
+        
         callLog.setRecordingUrlExpiry(LocalDateTime.now().plusDays(7));
         callLog.setHasRecording(true);
         
         callLog = webCallLogRepository.save(callLog);
-        logger.info("Recording saved for call {}: {}", callId, s3Key);
+        logger.info("Recording ({}) saved for call {}: {}", recordingType, callId, s3Key);
         
         return callLog;
+    }
+    
+    /**
+     * Lưu thông tin ghi âm (backward compatible - mặc định là combined)
+     */
+    @Transactional
+    public WebCallLog saveRecording(Long callId, String s3Key, String presignedUrl) {
+        return saveRecording(callId, "combined", s3Key, presignedUrl);
     }
     
     /**
@@ -215,6 +248,18 @@ public class WebCallService {
     }
     
     /**
+     * Lấy tất cả cuộc gọi của bệnh nhân (cho receptionist xem)
+     * @param patientId ID của bệnh nhân
+     * @return Danh sách cuộc gọi của bệnh nhân
+     */
+    public List<WebCallDTO> getCallsByPatientId(Long patientId) {
+        List<WebCallLog> calls = webCallLogRepository.findAllByUserId(patientId);
+        return calls.stream()
+            .map(call -> convertToDTO(call, patientId))
+            .collect(Collectors.toList());
+    }
+    
+    /**
      * Lấy cuộc gọi nhỡ
      */
     public List<WebCallDTO> getMissedCalls(Long userId) {
@@ -236,14 +281,25 @@ public class WebCallService {
             throw new RuntimeException("Access denied");
         }
         
-        // Refresh presigned URL nếu hết hạn
-        if (call.getHasRecording() && call.getRecordingS3Key() != null) {
-            if (call.getRecordingUrlExpiry() == null || call.getRecordingUrlExpiry().isBefore(LocalDateTime.now())) {
+        // Refresh presigned URLs nếu hết hạn
+        if (call.getHasRecording() && (call.getRecordingUrlExpiry() == null || call.getRecordingUrlExpiry().isBefore(LocalDateTime.now()))) {
+            // Refresh combined recording URL
+            if (call.getRecordingS3Key() != null) {
                 String newUrl = s3Service.generatePresignedUrl(call.getRecordingS3Key(), 7 * 24 * 3600);
                 call.setRecordingUrl(newUrl);
-                call.setRecordingUrlExpiry(LocalDateTime.now().plusDays(7));
-                webCallLogRepository.save(call);
             }
+            // Refresh caller recording URL
+            if (call.getRecordingCallerS3Key() != null) {
+                String newUrl = s3Service.generatePresignedUrl(call.getRecordingCallerS3Key(), 7 * 24 * 3600);
+                call.setRecordingCallerUrl(newUrl);
+            }
+            // Refresh receiver recording URL
+            if (call.getRecordingReceiverS3Key() != null) {
+                String newUrl = s3Service.generatePresignedUrl(call.getRecordingReceiverS3Key(), 7 * 24 * 3600);
+                call.setRecordingReceiverUrl(newUrl);
+            }
+            call.setRecordingUrlExpiry(LocalDateTime.now().plusDays(7));
+            webCallLogRepository.save(call);
         }
         
         return convertToDTO(call, userId);
@@ -318,7 +374,13 @@ public class WebCallService {
             .duration(call.getDuration())
             .durationFormatted(formatDuration(call.getDuration()))
             .hasRecording(call.getHasRecording())
+            .recordingFolder(call.getRecordingFolder())
+            .recordingS3Key(call.getRecordingS3Key())
+            .recordingCallerS3Key(call.getRecordingCallerS3Key())
+            .recordingReceiverS3Key(call.getRecordingReceiverS3Key())
             .recordingUrl(call.getRecordingUrl())
+            .recordingCallerUrl(call.getRecordingCallerUrl())
+            .recordingReceiverUrl(call.getRecordingReceiverUrl())
             .rating(call.getRating())
             .notes(call.getNotes())
             .createdAt(call.getCreatedAt())

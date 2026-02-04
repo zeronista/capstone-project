@@ -2,6 +2,7 @@ package com.g4.capstoneproject.dto;
 
 import com.g4.capstoneproject.entity.TreatmentPlan;
 import com.g4.capstoneproject.entity.TreatmentPlanItem;
+import com.g4.capstoneproject.entity.CheckupSchedule;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,8 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * DTO for TreatmentPlan detail view with items
- * Note: CheckupSchedule entity removed in schema v4.0
+ * DTO for TreatmentPlan detail view with items and checkup schedules
  */
 @Data
 @Builder
@@ -32,6 +32,7 @@ public class TreatmentPlanDetailResponse {
     private Boolean aiSuggested;
     private String aiSuggestionData;
     private List<TreatmentItemDTO> items;
+    private List<CheckupScheduleDTO> checkups;
 
     /**
      * Nested DTO for treatment plan items
@@ -67,9 +68,38 @@ public class TreatmentPlanDetailResponse {
     }
 
     /**
+     * Nested DTO for checkup schedules
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CheckupScheduleDTO {
+        private Long id;
+        private LocalDate scheduledDate;
+        private String checkupType;
+        private CheckupSchedule.CheckupStatus status;
+        private String notes;
+        private LocalDate completedDate;
+        private String resultSummary;
+
+        public static CheckupScheduleDTO fromEntity(CheckupSchedule checkup) {
+            return CheckupScheduleDTO.builder()
+                    .id(checkup.getId())
+                    .scheduledDate(checkup.getScheduledDate())
+                    .checkupType(checkup.getCheckupType())
+                    .status(checkup.getStatus())
+                    .notes(checkup.getNotes())
+                    .completedDate(checkup.getCompletedDate())
+                    .resultSummary(checkup.getResultSummary())
+                    .build();
+        }
+    }
+
+    /**
      * Convert entity to DTO
      */
-    public static TreatmentPlanDetailResponse fromEntity(TreatmentPlan plan) {
+    public static TreatmentPlanDetailResponse fromEntity(TreatmentPlan plan, List<CheckupSchedule> checkups) {
         return TreatmentPlanDetailResponse.builder()
                 .id(plan.getId())
                 .patientName(plan.getPatient() != null && plan.getPatient().getUserInfo() != null
@@ -90,6 +120,9 @@ public class TreatmentPlanDetailResponse {
                 .aiSuggestionData(plan.getAiSuggestionData())
                 .items(plan.getItems() != null
                         ? plan.getItems().stream().map(TreatmentItemDTO::fromEntity).collect(Collectors.toList())
+                        : List.of())
+                .checkups(checkups != null
+                        ? checkups.stream().map(CheckupScheduleDTO::fromEntity).collect(Collectors.toList())
                         : List.of())
                 .build();
     }

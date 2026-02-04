@@ -68,14 +68,6 @@ public class SurveyService {
      */
     @Transactional
     public SurveyDTO createSurvey(SurveyDTO dto) {
-        // Validation
-        if (dto.getTitle() == null || dto.getTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("Tiêu đề không được để trống");
-        }
-        if (dto.getFormUrl() == null || dto.getFormUrl().trim().isEmpty()) {
-            throw new IllegalArgumentException("Đường dẫn form không được để trống");
-        }
-
         User currentUser = getCurrentUser();
 
         Survey survey = Survey.builder()
@@ -88,8 +80,8 @@ public class SurveyService {
                 .tagColor(dto.getTagColor() != null ? dto.getTagColor() : "#3B82F6")
                 .displayOrder(dto.getDisplayOrder() != null ? dto.getDisplayOrder() : 0)
                 .responseCount(0)
-                .isActive(dto.getIsActive() != null ? dto.getIsActive() : Boolean.TRUE)
-                .showOnLanding(dto.getShowOnLanding() != null ? dto.getShowOnLanding() : Boolean.TRUE)
+                .isActive(dto.getIsActive() != null ? dto.getIsActive() : true)
+                .showOnLanding(dto.getShowOnLanding() != null ? dto.getShowOnLanding() : true)
                 .createdBy(currentUser)
                 .build();
 
@@ -106,14 +98,6 @@ public class SurveyService {
     public SurveyDTO updateSurvey(Long id, SurveyDTO dto) {
         Survey survey = surveyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Survey not found with id: " + id));
-
-        // Validation
-        if (dto.getTitle() != null && dto.getTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("Tiêu đề không được để trống");
-        }
-        if (dto.getFormUrl() != null && dto.getFormUrl().trim().isEmpty()) {
-            throw new IllegalArgumentException("Đường dẫn form không được để trống");
-        }
 
         if (dto.getTitle() != null)
             survey.setTitle(dto.getTitle());

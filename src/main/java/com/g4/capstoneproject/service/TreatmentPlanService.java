@@ -1,7 +1,10 @@
 package com.g4.capstoneproject.service;
 
+import com.g4.capstoneproject.entity.CheckupSchedule;
 import com.g4.capstoneproject.entity.TreatmentPlan;
 import com.g4.capstoneproject.entity.TreatmentPlanItem;
+import com.g4.capstoneproject.entity.User;
+import com.g4.capstoneproject.repository.CheckupScheduleRepository;
 import com.g4.capstoneproject.repository.TreatmentPlanRepository;
 import com.g4.capstoneproject.repository.TreatmentPlanItemRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +13,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +28,7 @@ public class TreatmentPlanService {
 
     private final TreatmentPlanRepository treatmentPlanRepository;
     private final TreatmentPlanItemRepository treatmentPlanItemRepository;
+    private final CheckupScheduleRepository checkupScheduleRepository;
 
     /**
      * Lấy tất cả treatment plan
@@ -162,5 +167,100 @@ public class TreatmentPlanService {
                     return treatmentPlanItemRepository.save(item);
                 })
                 .orElse(null);
+    }
+
+    // ==================== CHECKUP SCHEDULE MANAGEMENT ====================
+
+    /**
+     * Tạo lịch tái khám cho treatment plan
+     */
+    public CheckupSchedule createCheckupSchedule(Long treatmentPlanId, CheckupSchedule checkupSchedule, User doctor) {
+        return treatmentPlanRepository.findById(treatmentPlanId)
+                .map(plan -> {
+                    checkupSchedule.setTreatmentPlan(plan);
+                    checkupSchedule.setPatient(plan.getPatient());
+                    checkupSchedule.setDoctor(doctor);
+                    return checkupScheduleRepository.save(checkupSchedule);
+                })
+                .orElse(null);
+    }
+
+    /**
+     * Lấy danh sách lịch tái khám của treatment plan
+     */
+    @Transactional(readOnly = true)
+    public List<CheckupSchedule> getCheckupSchedulesByPlanId(Long treatmentPlanId) {
+        return checkupScheduleRepository.findByTreatmentPlanId(treatmentPlanId);
+    }
+
+    /**
+     * Lấy lịch tái khám theo ID
+     */
+    @Transactional(readOnly = true)
+    public CheckupSchedule getCheckupScheduleById(Long checkupId) {
+        return checkupScheduleRepository.findById(checkupId).orElse(null);
+    }
+
+    /**
+     * Cập nhật trạng thái lịch tái khám
+     */
+    public CheckupSchedule updateCheckupScheduleStatus(Long checkupId, CheckupSchedule.CheckupStatus status,
+            LocalDate completedDate, String resultSummary) {
+        return checkupScheduleRepository.findById(checkupId)
+                .map(checkup -> {
+                    checkup.setStatus(status);
+                    if (status == CheckupSchedule.CheckupStatus.COMPLETED) {
+                        checkup.setCompletedDate(completedDate != null ? completedDate : LocalDate.now());
+                        if (resultSummary != null) {
+                            checkup.setResultSummary(resultSummary);
+                        }
+                    }
+                    return checkupScheduleRepository.save(checkup);
+                })
+                .orElse(null);
+    }
+
+    /**
+     * Cập nhật lịch tái khám
+     */
+    public CheckupSchedule updateCheckupSchedule(Long checkupId, CheckupSchedule updatedCheckup) {
+        return checkupScheduleRepository.findById(checkupId)
+                .map(existing -> {
+                    existing.setScheduledDate(updatedCheckup.getScheduledDate());
+                    existing.setCheckupType(updatedCheckup.getCheckupType());
+                    existing.setNotes(updatedCheckup.getNotes());
+                    if (updatedCheckup.getStatus() != null) {
+                        existing.setStatus(updatedCheckup.getStatus());
+                    }
+                    return checkupScheduleRepository.save(existing);
+                })
+                .orElse(null);
+    }
+
+    /**
+     * Lấy lịch tái khám sắp tới của bác sĩ
+     */
+    @Transactional(readOnly = true)
+    public List<CheckupSchedule> getUpcomingCheckupsByDoctorId(Long doctorId) {
+        return checkupScheduleRepository.findUpcomingByDoctorId(doctorId, LocalDate.now());
+    }
+
+    /**
+     * Lấy lịch tái khám quá hạn
+     */
+    @Transactional(readOnly = true)
+    public List<CheckupSchedule> getOverdueCheckups() {
+        return checkupScheduleRepository.findOverdue(LocalDate.now());
+    }
+
+    /**
+     * Xóa lịch tái khám
+     */
+    public boolean deleteCheckupSchedule(Long checkupId) {
+        if (checkupScheduleRepository.existsById(checkupId)) {
+            checkupScheduleRepository.deleteById(checkupId);
+            return true;
+        }
+        return false;
     }
 }
