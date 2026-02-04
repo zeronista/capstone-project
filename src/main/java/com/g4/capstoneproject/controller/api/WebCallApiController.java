@@ -614,6 +614,47 @@ public class WebCallApiController {
     }
     
     /**
+     * Xóa recording (file ghi âm)
+     */
+    @DeleteMapping("/recording")
+    public ResponseEntity<?> deleteRecording(
+            @RequestParam String s3Key,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            if (s3Key == null || s3Key.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "s3Key là bắt buộc"));
+            }
+            
+            if (!s3Service.doesFileExist(s3Key)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Recording không tồn tại"));
+            }
+            
+            logger.info("Deleting recording: {}", s3Key);
+            s3Service.deleteFile(s3Key);
+            
+            // Xóa transcript liên quan nếu có
+            String transcriptKey = s3Key.replaceAll("\\.(webm|mp3|wav|ogg|m4a)$", ".txt")
+                                        .replaceAll("^recordings/", "transcripts/");
+            if (s3Service.doesFileExist(transcriptKey)) {
+                logger.info("Deleting related transcript: {}", transcriptKey);
+                s3Service.deleteFile(transcriptKey);
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Xóa recording thành công"
+            ));
+            
+        } catch (Exception e) {
+            logger.error("Error deleting recording", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Lỗi khi xóa recording: " + e.getMessage()));
+        }
+    }
+    
+    /**
      * Lấy danh sách web call recordings của một bệnh nhân
      * Dành cho Receptionist xem lịch sử cuộc gọi
      */
