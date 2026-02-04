@@ -9,7 +9,7 @@ faster-whisper>=1.1.0
 # Audio processing
 pydub==0.25.1
 soundfile==0.12.1
-numpy>=1.26.0
+numpy==1.26.3
 
 # Async support
 aiofiles==23.2.1
