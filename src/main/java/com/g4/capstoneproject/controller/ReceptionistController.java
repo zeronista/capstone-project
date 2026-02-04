@@ -37,6 +37,7 @@ public class ReceptionistController {
 
     private final TicketService ticketService;
     private final UserRepository userRepository;
+    private final com.g4.capstoneproject.service.WebCallService webCallService;
 
     /**
      * Survey Management - Quản lý khảo sát
@@ -176,6 +177,28 @@ public class ReceptionistController {
     }
 
     // ==================== REST API ENDPOINTS ====================
+    
+    /**
+     * API: Get web call logs of a specific patient
+     * GET /api/receptionist/web-calls/{patientId}
+     */
+    @GetMapping("/api/receptionist/web-calls/{patientId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getPatientWebCalls(@PathVariable Long patientId) {
+        try {
+            List<com.g4.capstoneproject.dto.WebCallDTO> calls = webCallService.getCallsByPatientId(patientId);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("calls", calls);
+            response.put("total", calls.size());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
 
     /**
      * API: Get all patients (for dropdown)
