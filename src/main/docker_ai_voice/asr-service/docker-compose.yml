@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # ASR Service với GPU support
+  # ============================================
+  asr-gpu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    image: asr-service:gpu
+    container_name: asr-service-gpu
+    ports:
+      - "8001:8000"
+    environment:
+      - MODEL_SIZE=large-v3
+      - DEVICE=cuda
+      - COMPUTE_TYPE=float16
+      - MAX_FILE_SIZE_MB=100
+      - BEAM_SIZE=5
+    volumes:
+      # Persist model cache để không download lại mỗi lần restart
+      - asr-models:/app/models
+      - asr-temp:/app/temp
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    networks:
+      - capstone-network
+
+  # ============================================
+  # ASR Service CPU-only (cho máy không có GPU)
+  # ============================================
+  asr-cpu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: cpu
+    image: asr-service:cpu
+    container_name: asr-service-cpu
+    ports:
+      - "8002:8000"
+    environment:
+      - MODEL_SIZE=large-v3
+      - DEVICE=cpu
+      - COMPUTE_TYPE=int8
+      - MAX_FILE_SIZE_MB=100
+      - BEAM_SIZE=5
+      - NUM_WORKERS=4
+    volumes:
+      - asr-models:/app/models
+      - asr-temp:/app/temp
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+    profiles:
+      - cpu
+    networks:
+      - capstone-network
+
+  # ============================================
+  # Lighter model cho development/testing
+  # ============================================
+  asr-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: cpu
+    image: asr-service:dev
+    container_name: asr-service-dev
+    ports:
+      - "8003:8000"
+    environment:
+      - MODEL_SIZE=base        # Dùng model nhỏ hơn
+      - DEVICE=cpu
+      - COMPUTE_TYPE=int8
+      - MAX_FILE_SIZE_MB=50
+      - BEAM_SIZE=3
+    volumes:
+      - asr-models:/app/models
+      - ./:/app:ro             # Mount source để hot reload
+      - asr-temp:/app/temp
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    profiles:
+      - dev
+    networks:
+      - capstone-network
+
+volumes:
+  asr-models:
+    name: asr-whisper-models
+  asr-temp:
+    name: asr-temp-files
+
+networks:
+  capstone-network:
+    external: true
+    name: capstone-network

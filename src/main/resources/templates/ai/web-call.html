@@ -90,8 +90,8 @@
         border-radius: 50%;
       }
       .status-dot.connected {
-        background: #0d7cf2;
-        box-shadow: 0 0 0 3px rgba(13, 124, 242, 0.2);
+        background: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
       }
       .status-dot.connecting {
         background: #f59e0b;
@@ -99,32 +99,6 @@
       }
       .status-dot.disconnected {
         background: #ef4444;
-      }
-      
-      /* Accordion styles */
-      .accordion-header {
-        transition: all 0.2s ease;
-      }
-      .accordion-header:hover {
-        background: #f8fafc;
-      }
-      .dark .accordion-header:hover {
-        background: #1e293b;
-      }
-      .accordion-header .expand-icon {
-        transition: transform 0.3s ease;
-      }
-      .accordion-header.expanded .expand-icon {
-        transform: rotate(180deg);
-      }
-      .accordion-content {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease-out;
-      }
-      .accordion-content.expanded {
-        max-height: 5000px;
-        transition: max-height 0.5s ease-in;
       }
     </style>
   </head>
@@ -598,15 +572,12 @@
           myToken = data.token;
         } catch (err) {
           console.error("Lỗi lấy token:", err);
-          showNotification("Lỗi kết nối", `Không thể lấy token: ${err.message}`, "error", 5000);
+          alert("Lỗi lấy token: " + err.message);
           return;
         }
 
         stringeeClient = new StringeeClient(STRINGEE_SERVER_ADDRS);
-        stringeeClient.on("connect", () => {
-          updateConnectionStatus("connected");
-          showNotification("Đã kết nối", "Hệ thống cuộc gọi đã sẵn sàng", "success", 2000);
-        });
+        stringeeClient.on("connect", () => updateConnectionStatus("connected"));
         stringeeClient.on("authen", (res) => {
           if (res.r === 0) {
             document.getElementById("login-screen").classList.add("hidden");
@@ -617,15 +588,14 @@
               currentUser.fullName;
             loadPatients();
           } else {
-            showNotification("Xác thực thất bại", `Lỗi: ${res.message}`, "error", 5000);
+            alert("Xác thực thất bại: " + res.message);
           }
         });
-        stringeeClient.on("disconnect", () => {
-          updateConnectionStatus("disconnected");
-          showNotification("Mất kết nối", "Đã mất kết nối với hệ thống cuộc gọi", "error", 5000);
-        });
+        stringeeClient.on("disconnect", () =>
+          updateConnectionStatus("disconnected"),
+        );
         stringeeClient.on("incomingcall", (incomingCall) => {
-          showNotification("Cuộc gọi đến", `Có cuộc gọi từ ${incomingCall.fromNumber}`, "info");
+          alert("Có cuộc gọi đến từ: " + incomingCall.fromNumber);
         });
         stringeeClient.connect(myToken);
       }
@@ -639,10 +609,8 @@
           document.getElementById("totalPatients").textContent =
             patients.length;
           displayPatients(patients);
-          showNotification("Đã tải danh sách", `Tìm thấy ${patients.length} bệnh nhân`, "success", 2000);
         } catch (err) {
           console.error("Lỗi:", err);
-          showNotification("Lỗi tải dữ liệu", `Không thể tải danh sách: ${err.message}`, "error", 5000);
           document.getElementById("patientsList").innerHTML = `
                     <div class="col-span-full p-8 text-center text-red-500">
                         <span class="material-symbols-rounded text-4xl text-red-300 mb-2">error</span>
@@ -652,161 +620,59 @@
         }
       }
 
-      // Group patients by date (Year > Month > Day)
-      function groupPatientsByDate(patients) {
-        const groups = {};
-        
-        patients.forEach((p) => {
-          // TEMPORARY: Use dateOfBirth for grouping
-          // TODO: Replace with lastCallDate from backend
-          const date = p.dateOfBirth ? new Date(p.dateOfBirth) : new Date();
-          const year = date.getFullYear();
-          const month = date.getMonth();
-          const day = date.getDate();
-          
-          if (!groups[year]) groups[year] = {};
-          if (!groups[year][month]) groups[year][month] = {};
-          if (!groups[year][month][day]) groups[year][month][day] = [];
-          
-          groups[year][month][day].push(p);
-        });
-        
-        return groups;
-      }
-
-      function toggleAccordion(element) {
-        const content = element.nextElementSibling;
-        if (content.classList.contains('expanded')) {
-          content.classList.remove('expanded');
-          element.classList.remove('expanded');
-        } else {
-          content.classList.add('expanded');
-          element.classList.add('expanded');
-        }
-      }
-
       function displayPatients(patientList) {
         const container = document.getElementById("patientsList");
-        document.getElementById("patientCount").textContent = `(${patientList.length} bệnh nhân)`;
-        
+        document.getElementById("patientCount").textContent =
+          `(${patientList.length} bệnh nhân)`;
         if (!patientList || patientList.length === 0) {
           container.innerHTML = `<div class="col-span-full p-8 text-center text-gray-500"><span class="material-symbols-rounded text-4xl text-gray-300 mb-2">person_off</span><p>Không tìm thấy bệnh nhân nào</p></div>`;
           return;
         }
-        
-        const grouped = groupPatientsByDate(patientList);
-        const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", 
-                           "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
-        
-        let html = '<div class="col-span-full space-y-4">';
-        
-        // Sort years descending
-        const years = Object.keys(grouped).sort((a, b) => b - a);
-        
-        years.forEach(year => {
-          const yearData = grouped[year];
-          const yearCount = Object.values(yearData).reduce((sum, monthData) => 
-            sum + Object.values(monthData).reduce((s, dayData) => s + dayData.length, 0), 0);
-          
+        let html = "";
+        patientList.forEach((p) => {
+          const initials = getInitials(p.fullName || "N/A");
+          const genderIcon =
+            p.gender === "MALE"
+              ? "male"
+              : p.gender === "FEMALE"
+                ? "female"
+                : "person";
+          const genderBg =
+            p.gender === "MALE"
+              ? "from-blue-400 to-blue-600"
+              : p.gender === "FEMALE"
+                ? "from-pink-400 to-pink-600"
+                : "from-gray-400 to-gray-600";
+          const age = p.dateOfBirth ? calculateAge(p.dateOfBirth) : "?";
           html += `
-            <div class="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-800">
-              <button onclick="toggleAccordion(this)" class="accordion-header w-full px-4 py-3 bg-slate-50 dark:bg-slate-700/50 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-700">
-                <div class="flex items-center gap-2">
-                  <span class="material-symbols-rounded text-primary">calendar_today</span>
-                  <span class="font-semibold text-slate-800 dark:text-white">${year}</span>
-                  <span class="text-sm text-slate-500 dark:text-slate-400">(${yearCount} bệnh nhân)</span>
-                </div>
-                <span class="material-symbols-rounded expand-icon text-slate-600 dark:text-slate-400">expand_more</span>
-              </button>
-              <div class="accordion-content">`;
-          
-          // Sort months descending
-          const months = Object.keys(yearData).sort((a, b) => b - a);
-          
-          months.forEach(month => {
-            const monthData = yearData[month];
-            const monthCount = Object.values(monthData).reduce((sum, dayData) => sum + dayData.length, 0);
-            
-            html += `
-              <div class="border-t border-slate-200 dark:border-slate-700">
-                <button onclick="toggleAccordion(this)" class="accordion-header w-full px-6 py-2.5 bg-white dark:bg-slate-800 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50">
-                  <div class="flex items-center gap-2">
-                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">${monthNames[month]}</span>
-                    <span class="text-xs text-slate-500 dark:text-slate-400">(${monthCount} bệnh nhân)</span>
-                  </div>
-                  <span class="material-symbols-rounded expand-icon text-sm text-slate-600 dark:text-slate-400">expand_more</span>
-                </button>
-                <div class="accordion-content">`;
-            
-            // Sort days descending
-            const days = Object.keys(monthData).sort((a, b) => b - a);
-            
-            days.forEach(day => {
-              const dayPatients = monthData[day];
-              
-              html += `
-                <div class="border-t border-slate-100 dark:border-slate-700/50">
-                  <button onclick="toggleAccordion(this)" class="accordion-header w-full px-8 py-2 bg-slate-50 dark:bg-slate-700/30 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-700">
-                    <span class="text-sm text-slate-700 dark:text-slate-300">Ngày ${day}</span>
-                    <span class="text-xs text-slate-500 dark:text-slate-400">(${dayPatients.length} bệnh nhân)</span>
-                  </button>
-                  <div class="accordion-content">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-white dark:bg-slate-800">`;
-              
-              // Render patient cards
-              dayPatients.forEach((p) => {
-                const initials = getInitials(p.fullName || "N/A");
-                const genderIcon = p.gender === "MALE" ? "male" : p.gender === "FEMALE" ? "female" : "person";
-                const genderBg = p.gender === "MALE" ? "from-blue-400 to-blue-600" : p.gender === "FEMALE" ? "from-gray-300 to-gray-500" : "from-gray-400 to-gray-600";
-                const age = p.dateOfBirth ? calculateAge(p.dateOfBirth) : "?";
-                
-                html += `
-                  <div class="patient-card bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 cursor-pointer hover:border-primary dark:hover:border-primary" onclick="openPatientDetail(${p.id})">
-                    <div class="flex items-start gap-4">
-                      <div class="w-14 h-14 rounded-full bg-gradient-to-br ${genderBg} flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">${initials}</div>
-                      <div class="flex-1 min-w-0">
-                        <h3 class="font-semibold text-slate-800 dark:text-white truncate">${p.fullName || "Chưa có tên"}</h3>
-                        <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
-                          <span class="material-symbols-rounded text-base">${genderIcon}</span>
-                          <span>${p.gender === "MALE" ? "Nam" : p.gender === "FEMALE" ? "Nữ" : "Chưa rõ"}</span>
-                          <span>•</span><span>${age} tuổi</span>
+                    <div class="patient-card bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 cursor-pointer hover:border-primary dark:hover:border-primary" onclick="openPatientDetail(${p.id})">
+                        <div class="flex items-start gap-4">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-br ${genderBg} flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">${initials}</div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-slate-800 dark:text-white truncate">${p.fullName || "Chưa có tên"}</h3>
+                                <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                    <span class="material-symbols-rounded text-base">${genderIcon}</span>
+                                    <span>${p.gender === "MALE" ? "Nam" : p.gender === "FEMALE" ? "Nữ" : "Chưa rõ"}</span>
+                                    <span>•</span><span>${age} tuổi</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                    <span class="material-symbols-rounded text-base">phone</span>
+                                    <span>${p.phoneNumber || "Chưa có SĐT"}</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-sm text-slate-400 dark:text-slate-500 mt-1 truncate">
+                                    <span class="material-symbols-rounded text-base">mail</span>
+                                    <span class="truncate">${p.email || "Chưa có email"}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
-                          <span class="material-symbols-rounded text-base">phone</span>
-                          <span>${p.phoneNumber || "Chưa có SĐT"}</span>
+                        <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                            <span class="text-xs text-slate-400 dark:text-slate-500">ID: user_${p.id}</span>
+                            <button class="flex items-center gap-1 px-3 py-1.5 bg-success text-white rounded-lg text-sm font-medium hover:bg-success/90" onclick="event.stopPropagation(); openPatientDetail(${p.id})">
+                                <span class="material-symbols-rounded text-lg">call</span> Gọi điện
+                            </button>
                         </div>
-                        <div class="flex items-center gap-2 text-sm text-slate-400 dark:text-slate-500 mt-1 truncate">
-                          <span class="material-symbols-rounded text-base">mail</span>
-                          <span class="truncate">${p.email || "Chưa có email"}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                      <span class="text-xs text-slate-400 dark:text-slate-500">ID: user_${p.id}</span>
-                      <button class="flex items-center gap-1 px-3 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90" onclick="event.stopPropagation(); openPatientDetail(${p.id})">
-                        <span class="material-symbols-rounded text-lg">call</span> Gọi điện
-                      </button>
-                    </div>
-                  </div>`;
-              });
-              
-              html += `
-                    </div>
-                  </div>
-                </div>`;
-            });
-            
-            html += `
-                </div>
-              </div>`;
-          });
-          
-          html += `
-              </div>
-            </div>`;
+                    </div>`;
         });
-        
-        html += '</div>';
         container.innerHTML = html;
       }
 
@@ -837,7 +703,6 @@
           return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
         return name.substring(0, 2).toUpperCase();
       }
-      
       function calculateAge(dob) {
         const today = new Date();
         const birth = new Date(dob);
@@ -845,57 +710,6 @@
         const m = today.getMonth() - birth.getMonth();
         if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
         return age;
-      }
-
-      // Create notification container if not exists
-      function initNotificationContainer() {
-        if (!document.getElementById('notificationContainer')) {
-          const container = document.createElement('div');
-          container.id = 'notificationContainer';
-          container.className = 'fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none';
-          container.style.maxWidth = '400px';
-          document.body.appendChild(container);
-        }
-      }
-
-      // Universal notification function with stacking support
-      function showNotification(title, message, type = "info", duration = 3000) {
-        initNotificationContainer();
-        const container = document.getElementById('notificationContainer');
-        
-        const configs = {
-          success: { icon: "check_circle", bgColor: "bg-green-500", defaultTitle: "Thành công" },
-          error: { icon: "error", bgColor: "bg-red-500", defaultTitle: "Lỗi" },
-          info: { icon: "info", bgColor: "bg-blue-500", defaultTitle: "Thông báo" },
-          warning: { icon: "warning", bgColor: "bg-yellow-500", defaultTitle: "Cảnh báo" }
-        };
-        
-        const config = configs[type] || configs.info;
-        const finalTitle = title || config.defaultTitle;
-        
-        const notification = document.createElement("div");
-        notification.className = `${config.bgColor} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 transition-all duration-300 pointer-events-auto opacity-0 translate-x-full`;
-        notification.innerHTML = `
-          <span class="material-symbols-rounded text-2xl">${config.icon}</span>
-          <div class="flex-1">
-            <p class="font-semibold">${finalTitle}</p>
-            <p class="text-sm text-white/90">${message}</p>
-          </div>
-          <button onclick="this.parentElement.remove()" class="ml-4 text-white/70 hover:text-white">
-            <span class="material-symbols-rounded">close</span>
-          </button>
-        `;
-
-        container.appendChild(notification);
-
-        setTimeout(() => {
-          notification.classList.remove("opacity-0", "translate-x-full");
-        }, 100);
-
-        setTimeout(() => {
-          notification.classList.add("opacity-0", "translate-x-full");
-          setTimeout(() => notification.remove(), 300);
-        }, duration);
       }
     </script>
   </body>

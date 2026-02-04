@@ -167,9 +167,8 @@ public class S3Service {
     }
 
     /**
-     * Upload file recording len S3 vao folder voice/{userId}/
-     * Cau truc folder: voice/{userId}/{yyyyMMdd}/{timestamp}_{callId}.webm
-     * Giup sap xep recordings theo user va ngay de de quan ly
+     * Upload file recording len S3 vao folder voice/calls/{callId}/
+     * Cau truc folder: voice/calls/{callId}/{type}_{timestamp}.webm
      * 
      * Validation:
      * - Kiem tra file khong rong
@@ -177,56 +176,75 @@ public class S3Service {
      * 
      * @param file File ghi am can upload
      * @param callId ID cua cuoc goi
-     * @param userId ID cua user
+     * @param userId ID cua user (dung de log)
      * @return Key cua file trong S3
      * @throws IOException Neu file khong hop le hoac loi upload
      */
     public String uploadRecordingFile(MultipartFile file, String callId, String userId) throws IOException {
+        return uploadRecordingFile(file, callId, userId, "combined");
+    }
+    
+    /**
+     * Upload file recording len S3 vao folder voice/calls/{callId}/
+     * Cau truc folder: voice/calls/{callId}/{type}_{timestamp}.webm
+     * 
+     * Types: caller, receiver, combined
+     * 
+     * @param file File ghi am can upload
+     * @param callId ID cua cuoc goi
+     * @param userId ID cua user (dung de log)
+     * @param recordingType Loai recording: "caller", "receiver", "combined"
+     * @return Key cua file trong S3
+     * @throws IOException Neu file khong hop le hoac loi upload
+     */
+    public String uploadRecordingFile(MultipartFile file, String callId, String userId, String recordingType) throws IOException {
         // Validate file
         validateFile(file);
         
-        // Tao cau truc folder theo user va ngay
-        String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        // Tao cau truc folder theo callId
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
         String originalFilename = file.getOriginalFilename();
+        String extension = originalFilename != null && originalFilename.contains(".") 
+            ? originalFilename.substring(originalFilename.lastIndexOf(".")) 
+            : ".webm";
         
-        // Giu lai original filename neu co chua thong tin ve cuoc goi (call_user_X_to_user_Y)
-        // Neu khong co thi tao filename moi voi timestamp va callId
-        String finalFilename;
-        if (originalFilename != null && originalFilename.contains("_to_user_")) {
-            // Original filename chua thong tin patient, giu nguyen
-            // Loai bo ky tu khong hop le trong filename
-            finalFilename = originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
-        } else {
-            // Tao filename moi voi timestamp va callId
-            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmmss"));
-            String extension = originalFilename != null && originalFilename.contains(".") 
-                ? originalFilename.substring(originalFilename.lastIndexOf(".")) 
-                : ".webm";
-            finalFilename = timestamp + "_" + callId + extension;
+        // Dat ten file theo type
+        String fileName;
+        switch (recordingType.toLowerCase()) {
+            case "caller":
+                fileName = "caller_" + timestamp + extension;
+                break;
+            case "receiver":
+                fileName = "receiver_" + timestamp + extension;
+                break;
+            case "combined":
+            default:
+                fileName = "combined_" + timestamp + extension;
+                break;
         }
         
-        // Cau truc: voice/{userId}/{yyyyMMdd}/{filename}
-        String fileName = "voice/" + userId + "/" + date + "/" + finalFilename;
+        // Cau truc: voice/calls/{callId}/{type}_{timestamp}.webm
+        String s3Key = "voice/calls/" + callId + "/" + fileName;
 
-        logger.info("Uploading recording: {} (size: {} bytes, user: {}, callId: {})", 
-                fileName, file.getSize(), userId, callId);
+        logger.info("Uploading recording: {} (size: {} bytes, user: {}, callId: {}, type: {})", 
+                s3Key, file.getSize(), userId, callId, recordingType);
 
         try {
             // Tao request upload
             PutObjectRequest putOb = PutObjectRequest.builder()
                     .bucket(bucketName)
-                    .key(fileName)
+                    .key(s3Key)
                     .contentType(file.getContentType() != null ? file.getContentType() : "audio/webm")
                     .build();
 
             // Thuc hien upload
             s3Client.putObject(putOb, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
 
-            logger.info("Upload recording thanh cong: {}", fileName);
+            logger.info("Upload recording thanh cong: {}", s3Key);
             // Tra ve key cua file
-            return fileName;
+            return s3Key;
         } catch (S3Exception e) {
-            logger.error("Loi S3 khi upload recording {}: {}", fileName, e.getMessage());
+            logger.error("Loi S3 khi upload recording {}: {}", s3Key, e.getMessage());
             throw new IOException("Loi upload recording len S3: " + e.getMessage(), e);
         }
     }

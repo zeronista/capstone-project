@@ -191,8 +191,7 @@ public class AuthController {
      */
     @GetMapping("/oauth2/success")
     public String oauthSuccess(@AuthenticationPrincipal OAuth2User principal,
-            HttpSession session,
-            jakarta.servlet.http.HttpServletRequest request) {
+            HttpSession session) {
 
         if (principal == null) {
             log.error("OAuth2 principal is null");
@@ -211,26 +210,6 @@ public class AuthController {
             AuthResponse response = authService.processOAuthPostLogin(email, name, googleId);
 
             if (response.getSuccess()) {
-                // Lấy user từ database để tạo CustomUserDetails
-                User user = userRepository.findByEmail(email).orElse(null);
-                if (user != null) {
-                    // Tạo CustomUserDetails với role đúng
-                    CustomUserDetails userDetails = new CustomUserDetails(user);
-
-                    // Tạo Authentication mới với authorities từ role
-                    Authentication authentication = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
-
-                    // Set vào SecurityContext
-                    SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-                    securityContext.setAuthentication(authentication);
-                    SecurityContextHolder.setContext(securityContext);
-
-                    // Lưu SecurityContext vào session (quan trọng!)
-                    session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-                            securityContext);
-                }
-
                 // Lưu thông tin user vào session
                 session.setAttribute("userId", response.getUserId());
                 session.setAttribute("userFullName", response.getFullName());

@@ -13,7 +13,7 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 /**
  * Cấu hình Security với Role-based Authorization
- * OAuth2 enabled for Google login
+ * OAuth2 disabled for Phase 1 demo
  */
 @Configuration
 @EnableWebSecurity
@@ -53,8 +53,8 @@ public class SecurityConfig {
                                                 .permitAll()
                                                 // Role-based access control
                                                 .requestMatchers("/doctor/**").hasRole("DOCTOR")
-                                                .requestMatchers("/receptionist/**", "/api/receptionist/**").hasRole("RECEPTIONIST")
-                                                .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
+                                                .requestMatchers("/receptionist/**").hasRole("RECEPTIONIST")
+                                                .requestMatchers("/admin/**").hasRole("ADMIN")
                                                 .requestMatchers("/patient/**")
                                                 .hasAnyRole("PATIENT", "DOCTOR", "RECEPTIONIST", "ADMIN")
                                                 // Web Call - authenticated users only (all roles)
@@ -72,11 +72,6 @@ public class SecurityConfig {
                                                 .logoutSuccessUrl("/auth/login?logout")
                                                 .invalidateHttpSession(true)
                                                 .deleteCookies("JSESSIONID")
-                                                .permitAll())
-                                .oauth2Login(oauth2 -> oauth2
-                                                .loginPage("/auth/login")
-                                                .defaultSuccessUrl("/auth/oauth2/success", true)
-                                                .failureUrl("/auth/login?error=oauth2")
                                                 .permitAll())
                                 .csrf(csrf -> csrf
                                                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
@@ -98,15 +93,7 @@ public class SecurityConfig {
                                                                 // Allow patient document upload (multipart form)
                                                                 "/api/patient/documents/**",
                                                                 // Allow profile update and avatar (for patient portal)
-                                                                "/api/profile/**",
-                                                                // Allow Admin API endpoints (protected by role-based auth)
-                                                                "/api/admin/**",
-                                                                // Allow Receptionist API endpoints (protected by role-based auth)
-                                                                "/api/receptionist/**",
-                                                                // Allow User Management API endpoints (protected by role-based auth)
-                                                                "/api/users/**",
-                                                                // Allow Patient Management API endpoints (protected by role-based auth)
-                                                                "/api/patients/**"));
+                                                                "/api/profile/**"));
 
                 return http.build();
         }
