@@ -49,4 +49,5 @@ google-credentials.json
 
 app.log
 mvnw
-mvnw.cmdmodels/
+mvnw.cmd
+models/

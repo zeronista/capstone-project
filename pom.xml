@@ -33,7 +33,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- Docker build settings -->
         <docker.ai.voice.dir>${project.basedir}/src/main/docker_ai_voice</docker.ai.voice.dir>
-        <docker.build.skip>false</docker.build.skip>
+        <docker.build.skip>true</docker.build.skip>
         <docker.build.type>gpu</docker.build.type>
     </properties>
 

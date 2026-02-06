@@ -20,3 +20,20 @@ mysql -u medicaluser -p medical_system < docs/database_full_schema.sql
 
 Truy cập: http://localhost:8080  
 ASR Service: http://localhost:8001
+
+# On server:
+## Build docker:
+```
+# Build Spring Boot trước
+.\mvnw.cmd clean package -DskipTests
+
+# Chạy tất cả với Docker Compose
+docker-compose up -d
+
+# Xem logs
+docker-compose logs -f
+
+# Dừng tất cả
+docker-compose down
+```
+
