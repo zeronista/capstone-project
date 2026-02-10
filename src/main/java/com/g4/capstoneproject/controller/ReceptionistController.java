@@ -4,10 +4,12 @@ import com.g4.capstoneproject.dto.Ticket.TicketCreateRequest;
 import com.g4.capstoneproject.dto.Ticket.TicketDetailResponse;
 import com.g4.capstoneproject.dto.Ticket.TicketMessageRequest;
 import com.g4.capstoneproject.dto.Ticket.TicketResponse;
+import com.g4.capstoneproject.entity.GoogleFormSyncRecord;
 import com.g4.capstoneproject.entity.Ticket;
 import com.g4.capstoneproject.entity.TicketMessage;
 import com.g4.capstoneproject.entity.User;
 import com.g4.capstoneproject.repository.UserRepository;
+import com.g4.capstoneproject.service.GoogleFormsSyncService;
 import com.g4.capstoneproject.service.TicketService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +32,6 @@ import java.util.stream.Collectors;
  * Handles all receptionist-specific routes with role-based authorization
  */
 @Controller
-@RequestMapping("/receptionist")
 @PreAuthorize("hasRole('RECEPTIONIST')")
 @RequiredArgsConstructor
 public class ReceptionistController {
@@ -38,11 +39,12 @@ public class ReceptionistController {
     private final TicketService ticketService;
     private final UserRepository userRepository;
     private final com.g4.capstoneproject.service.WebCallService webCallService;
+    private final GoogleFormsSyncService googleFormsSyncService;
 
     /**
      * Survey Management - Quản lý khảo sát
      */
-    @GetMapping("/surveys")
+    @GetMapping("/receptionist/surveys")
     public String surveys(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         String username = userDetails.getUsername();
         User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
@@ -53,7 +55,7 @@ public class ReceptionistController {
     /**
      * Receptionist Dashboard
      */
-    @GetMapping("/dashboard")
+    @GetMapping("/receptionist/dashboard")
     public String dashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         String username = userDetails.getUsername();
         User receptionist = userRepository.findByEmailOrPhoneNumberWithUserInfo(username).orElse(null);
@@ -80,7 +82,7 @@ public class ReceptionistController {
     /**
      * Appointments Management (placeholder)
      */
-    @GetMapping("/appointments")
+    @GetMapping("/receptionist/appointments")
     public String appointments(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         String username = userDetails.getUsername();
         User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
@@ -91,7 +93,7 @@ public class ReceptionistController {
     /**
      * Patients Management
      */
-    @GetMapping("/patients")
+    @GetMapping("/receptionist/patients")
     public String patients(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         String username = userDetails.getUsername();
         User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
@@ -108,7 +110,7 @@ public class ReceptionistController {
     /**
      * Reminders / Follow-ups
      */
-    @GetMapping("/reminders")
+    @GetMapping("/receptionist/reminders")
     public String reminders(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         String username = userDetails.getUsername();
         User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
@@ -119,7 +121,7 @@ public class ReceptionistController {
     /**
      * Tickets Management
      */
-    @GetMapping("/tickets")
+    @GetMapping("/receptionist/tickets")
     public String tickets(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         String username = userDetails.getUsername();
         User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
@@ -140,7 +142,7 @@ public class ReceptionistController {
     /**
      * AI Callbot / Web-to-Web Demo
      */
-    @GetMapping("/callbot")
+    @GetMapping("/receptionist/callbot")
     public String callbot(Model model) {
         return "ai/web-call";
     }
@@ -148,7 +150,7 @@ public class ReceptionistController {
     /**
      * User Management - Quản lý người dùng
      */
-    @GetMapping("/users")
+    @GetMapping("/receptionist/users")
     public String users(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         String username = userDetails.getUsername();
         User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
@@ -157,9 +159,20 @@ public class ReceptionistController {
     }
 
     /**
+     * Danh sach benh nhan thu thap tu Google Forms
+     */
+    @GetMapping("/receptionist/google-form-patients")
+    public String googleFormPatients(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        String username = userDetails.getUsername();
+        User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+        model.addAttribute("receptionist", receptionist);
+        return "receptionist/google-form-patients";
+    }
+
+    /**
      * Patient Call Detail - Chi tiết bệnh nhân và gọi điện
      */
-    @GetMapping("/call-detail/{patientId}")
+    @GetMapping("/receptionist/call-detail/{patientId}")
     public String callDetail(@PathVariable Long patientId, Model model) {
         model.addAttribute("patientId", patientId);
         return "ai/call-detail";
@@ -168,7 +181,7 @@ public class ReceptionistController {
     /**
      * Call History
      */
-    @GetMapping("/calls")
+    @GetMapping("/receptionist/calls")
     public String calls(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         String username = userDetails.getUsername();
         User receptionist = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
@@ -245,6 +258,81 @@ public class ReceptionistController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(result);
+    }
+
+    /**
+     * API: Lay danh sach benh nhan dong bo tu Google Forms
+     * GET /api/receptionist/google-form-patients
+     */
+    @GetMapping("/api/receptionist/google-form-patients")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getGoogleFormPatients(
+            @RequestParam(defaultValue = "100") int limit) {
+        Map<String, Object> response = new HashMap<>();
+        List<Map<String, Object>> patients = googleFormsSyncService.getRecentSyncedPatients(limit);
+        response.put("success", true);
+        response.put("patients", patients);
+        response.put("total", patients.size());
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * API: Lay chi tiet noi dung khao sat tu ban ghi Google Forms
+     * GET /api/receptionist/google-form-patients/{syncRecordId}
+     */
+    @GetMapping("/api/receptionist/google-form-patients/{syncRecordId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getGoogleFormPatientDetail(@PathVariable Long syncRecordId) {
+        try {
+            Map<String, Object> result = googleFormsSyncService.getSurveyDetail(syncRecordId);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", result);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+
+    /**
+     * API: Cap nhat trang thai goi cho ban ghi Google Forms (placeholder)
+     * PUT /api/receptionist/google-form-patients/{syncRecordId}/call-status
+     */
+    @PutMapping("/api/receptionist/google-form-patients/{syncRecordId}/call-status")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateGoogleFormCallStatus(
+            @PathVariable Long syncRecordId,
+            @RequestParam GoogleFormSyncRecord.CallStatus status) {
+        try {
+            Map<String, Object> result = googleFormsSyncService.updateCallStatus(syncRecordId, status);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+
+    /**
+     * API: Trigger dong bo du lieu tu Google Forms
+     * POST /api/receptionist/google-form-patients/sync
+     */
+    @PostMapping("/api/receptionist/google-form-patients/sync")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> syncGoogleFormPatients() {
+        try {
+            Map<String, Object> result = googleFormsSyncService.syncPatientsFromConfiguredForms("manual");
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "Loi dong bo Google Forms: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
     }
 
     /**
