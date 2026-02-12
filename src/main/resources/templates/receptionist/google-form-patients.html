@@ -45,6 +45,65 @@
           "GRAD" 0,
           "opsz" 24;
       }
+
+      /* ===== Receptionist Sidebar Styles ===== */
+      /* Mobile Hidden State */
+      @media (max-width: 1023px) {
+        .sidebar-hidden {
+          transform: translateX(-100%);
+        }
+        .sidebar-open {
+          transform: translateX(0);
+        }
+      }
+
+      /* Desktop Collapsed State */
+      @media (min-width: 1024px) {
+        .sidebar-collapsed {
+          width: 4.5rem !important;
+        }
+        .sidebar-collapsed .sidebar-text {
+          display: none;
+        }
+        .sidebar-collapsed .menu-item {
+          justify-content: center;
+          padding-left: 0.75rem;
+          padding-right: 0.75rem;
+          position: relative;
+        }
+        .sidebar-collapsed .menu-item:hover::after {
+          content: attr(title);
+          position: absolute;
+          left: 100%;
+          top: 50%;
+          transform: translateY(-50%);
+          margin-left: 0.5rem;
+          padding: 0.5rem 0.75rem;
+          background-color: #1e293b;
+          color: white;
+          border-radius: 0.375rem;
+          font-size: 0.875rem;
+          white-space: nowrap;
+          z-index: 50;
+          pointer-events: none;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .sidebar-collapsed .p-4 > a > .overflow-hidden {
+          display: none;
+        }
+        .sidebar-collapsed .p-4 > a > div.bg-primary {
+          margin: 0 auto;
+        }
+        .sidebar-collapsed form button .sidebar-text {
+          display: none;
+        }
+      }
+
+      /* AI Callbot Special Styling */
+      .ai-callbot-item.menu-item-active {
+        background-color: rgb(6 182 212 / 0.2) !important;
+        color: rgb(6 182 212) !important;
+      }
     </style>
   </head>
   <body
@@ -63,36 +122,34 @@
     <main
       class="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-slate-50 via-white to-violet-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800"
     >
+      <!-- Header -->
       <header
-        class="h-16 flex items-center justify-between px-6 bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 shrink-0 z-10"
-      >
-        <button
-          onclick="toggleSidebar()"
-          class="lg:hidden flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors mr-2"
-        >
-          <span class="material-symbols-outlined text-[24px]">menu</span>
-        </button>
-        <div class="flex-1">
-          <h1 class="text-xl font-bold text-slate-900 dark:text-white">
-            Danh sách bệnh nhân thu thập ở Google Form
-          </h1>
-          <p class="text-sm text-slate-500 dark:text-slate-400">
-            Đồng bộ và theo dõi bệnh nhân intake từ Google Forms
-          </p>
-        </div>
-        <div class="flex items-center gap-3">
-          <button
-            id="syncBtn"
-            onclick="syncGoogleForms()"
-            class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-          >
-            <span class="material-symbols-outlined text-[18px] mr-2">sync</span>
-            Đồng bộ Google Forms
-          </button>
-        </div>
-      </header>
+        th:replace="~{fragments/header/unified-header :: unified-header}"
+      ></header>
 
-      <div class="flex-1 overflow-auto p-6">
+      <!-- Content Area -->
+      <div class="flex-1 overflow-y-auto p-4 lg:p-6">
+        <!-- Page Header -->
+        <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
+              Danh sách bệnh nhân thu thập ở Google Form
+            </h1>
+            <p class="text-slate-500 dark:text-slate-400 mt-1">
+              Đồng bộ và theo dõi bệnh nhân intake từ Google Forms
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button
+              id="syncBtn"
+              onclick="syncGoogleForms()"
+              class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+            >
+              <span class="material-symbols-outlined text-[18px] mr-2">sync</span>
+              Đồng bộ Google Forms
+            </button>
+          </div>
+        </div>
         <div class="mb-4 text-sm text-slate-600 dark:text-slate-300">
           Tổng số bản ghi hiển thị: <span id="totalCount" class="font-semibold">0</span>
         </div>
@@ -181,6 +238,7 @@
           </div>
         </div>
       </div>
+      </div>
     </main>
 
     <div
@@ -231,7 +289,10 @@
     </div>
 
     <script src="/js/modules/receptionist/google-form-patients.js"></script>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9c32598664ec7ef2b626ad71e6d8412e3656472f
     <!-- Common Scripts -->
     <th:block
       th:replace="~{fragments/receptionist-layout :: scripts}"

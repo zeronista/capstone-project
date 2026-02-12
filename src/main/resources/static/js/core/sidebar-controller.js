@@ -192,4 +192,7 @@
   window.toggleMobileSidebar = toggleMobileSidebar;
   window.closeMobileSidebar = closeMobileSidebar;
   window.toggleDesktopSidebar = toggleDesktopSidebar;
+  
+  // Backward compatibility alias
+  window.toggleSidebar = toggleMobileSidebar;
 })();

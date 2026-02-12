@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 
 <head>
   <meta charset="UTF-8" />
@@ -10,6 +10,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
   <script src="/js/vendor/stringee/sdk.bundle.min.js"></script>
   <script>
     tailwind.config = {
@@ -39,7 +41,24 @@
       font-family: "Inter", sans-serif;
     }
 
+    .material-symbols-rounded,
+    .material-symbols-outlined {
+      font-variation-settings:
+        "FILL" 0,
+        "wght" 400,
+        "GRAD" 0,
+        "opsz" 24;
+    }
+    
     .material-symbols-rounded {
+      font-variation-settings:
+        "FILL" 1,
+        "wght" 400,
+        "GRAD" 0,
+        "opsz" 24;
+    }
+    
+    .material-symbols-outlined.fill {
       font-variation-settings:
         "FILL" 1,
         "wght" 400,
@@ -149,127 +168,112 @@
       max-height: 5000px;
       transition: max-height 0.5s ease-in;
     }
+
+    /* ===== Receptionist Sidebar Styles ===== */
+    /* Mobile Hidden State */
+    @media (max-width: 1023px) {
+      .sidebar-hidden {
+        transform: translateX(-100%);
+      }
+      .sidebar-open {
+        transform: translateX(0);
+      }
+    }
+
+    /* Desktop Collapsed State */
+    @media (min-width: 1024px) {
+      .sidebar-collapsed {
+        width: 4.5rem !important;
+      }
+      .sidebar-collapsed .sidebar-text {
+        display: none;
+      }
+      .sidebar-collapsed .menu-item {
+        justify-content: center;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+        position: relative;
+      }
+      .sidebar-collapsed .menu-item:hover::after {
+        content: attr(title);
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        background-color: #1e293b;
+        color: white;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        white-space: nowrap;
+        z-index: 50;
+        pointer-events: none;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+      .sidebar-collapsed .p-4 > a > .overflow-hidden {
+        display: none;
+      }
+      .sidebar-collapsed .p-4 > a > div.bg-primary {
+        margin: 0 auto;
+      }
+      .sidebar-collapsed form button .sidebar-text {
+        display: none;
+      }
+    }
+
+    /* AI Callbot Special Styling */
+    .ai-callbot-item.menu-item-active {
+      background-color: rgb(6 182 212 / 0.2) !important;
+      color: rgb(6 182 212) !important;
+    }
   </style>
 </head>
 
-<body class="bg-background-light dark:bg-background-dark min-h-screen text-slate-900 dark:text-slate-100">
-  <!-- Sidebar Overlay -->
-  <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden" onclick="toggleSidebar()">
-  </div>
+<body class="bg-background-light dark:bg-background-dark h-screen flex overflow-hidden text-slate-900 dark:text-slate-100">
+  <!-- Mobile Sidebar Backdrop -->
+  <div
+    th:replace="~{fragments/receptionist-layout :: receptionist-sidebar-backdrop}"
+  ></div>
 
-  <!-- Slide-out Sidebar -->
-  <aside id="sidebarMenu"
-    class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col transform -translate-x-full transition-transform duration-300 ease-in-out">
-    <!-- Logo -->
-    <div class="h-16 flex items-center gap-3 px-5 border-b border-slate-200 dark:border-slate-700 shrink-0">
-      <div
-        class="flex size-10 items-center justify-center rounded-xl bg-primary text-white font-bold text-lg shadow-md shadow-primary/30">
-        AB
-      </div>
-      <span class="text-lg font-bold text-slate-900 dark:text-white tracking-tight">ABClinic</span>
-      <button class="ml-auto p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500"
-        onclick="toggleSidebar()">
-        <span class="material-symbols-rounded text-[20px]">close</span>
-      </button>
-    </div>
+  <!-- Receptionist Sidebar -->
+  <aside
+    th:replace="~{fragments/receptionist-layout :: receptionist-sidebar}"
+  ></aside>
 
-    <!-- Navigation -->
-    <nav class="flex-1 overflow-y-auto p-3 space-y-1">
-      <p class="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
-        Menu chính
-      </p>
-      <a href="/receptionist/dashboard"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
-        <span class="material-symbols-rounded text-[22px]">dashboard</span>
-        <span>Bảng điều khiển</span>
-      </a>
-      <a href="/receptionist/callbot"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium transition-all">
-        <span class="material-symbols-rounded text-[22px]">phone_in_talk</span>
-        <span>AI Callbot</span>
-        <span
-          class="ml-auto text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-1.5 py-0.5 rounded font-bold">NEW</span>
-      </a>
-      <a href="/receptionist/users"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
-        <span class="material-symbols-rounded text-[22px]">personal_injury</span>
-        <span>Quản lý bệnh nhân</span>
-      </a>
-      <a href="/receptionist/surveys"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
-        <span class="material-symbols-rounded text-[22px]">quiz</span>
-        <span>Quản lý Survey</span>
-      </a>
-      <a href="/receptionist/profile"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
-        <span class="material-symbols-rounded text-[22px]">person</span>
-        <span>Hồ sơ cá nhân</span>
-      </a>
-    </nav>
+  <!-- Main Container -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- Header -->
+    <header
+      th:replace="~{fragments/header/unified-header :: unified-header}"
+    ></header>
 
-    <!-- Logout -->
-    <div class="p-3 border-t border-slate-200 dark:border-slate-700">
-      <form action="/auth/logout" method="post">
-        <button type="submit"
-          class="w-full flex items-center justify-center gap-2 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-500 hover:text-red-500 transition-colors text-sm">
-          <span class="material-symbols-rounded text-[20px]">logout</span>
-          <span>Đăng xuất</span>
-        </button>
-      </form>
-    </div>
-  </aside>
-
-  <!-- Header -->
-  <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <div class="flex items-center gap-4">
-          <!-- Menu Button -->
-          <button onclick="toggleSidebar()"
-            class="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-            title="Menu">
-            <span class="material-symbols-rounded">menu</span>
-          </button>
-          <a href="/receptionist/dashboard"
-            class="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-primary transition-colors">
-            <span class="material-symbols-rounded">arrow_back</span>
-            <span class="hidden sm:inline">Quay lại</span>
-          </a>
-          <div class="h-6 w-px bg-slate-300 dark:bg-slate-600"></div>
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        <!-- Page Header -->
+        <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div class="flex items-center gap-3">
-            <div
-              class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center">
-              <span class="material-symbols-rounded text-white">call</span>
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center">
+              <span class="material-symbols-rounded text-white text-xl">call</span>
             </div>
             <div>
-              <h1 class="text-lg font-semibold text-slate-800 dark:text-white">
+              <h1 class="text-2xl font-bold text-slate-900 dark:text-white">
                 Tổng Đài Gọi Điện
               </h1>
-              <p class="text-xs text-slate-500 dark:text-slate-400">
+              <p class="text-slate-500 dark:text-slate-400 mt-1">
                 Chọn bệnh nhân để gọi
               </p>
             </div>
           </div>
-        </div>
-        <div class="flex items-center gap-3">
-          <!-- Dark Mode Toggle -->
-          <button onclick="ThemeController.toggle()"
-            class="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-            title="Chuyển đổi giao diện">
-            <span class="material-symbols-rounded dark:hidden">dark_mode</span>
-            <span class="material-symbols-rounded hidden dark:inline">light_mode</span>
-          </button>
-          <div id="headerStatus" class="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-700">
-            <div class="status-dot connecting" id="statusDot"></div>
-            <span class="text-sm font-medium text-slate-600 dark:text-slate-300" id="statusText">Đang kết nối...</span>
+          <div class="flex items-center gap-3">
+            <div id="headerStatus" class="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-700">
+              <div class="status-dot connecting" id="statusDot"></div>
+              <span class="text-sm font-medium text-slate-600 dark:text-slate-300" id="statusText">Đang kết nối...</span>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Content -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <!-- Login Screen -->
     <div id="login-screen" class="flex items-center justify-center min-h-[60vh]">
       <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
@@ -383,17 +387,13 @@
           </div>
         </div>
       </div>
-    </div>
-  </main>
+      </div>
+      </div>
+    </main>
+  </div>
 
   <script>
-    // Sidebar toggle function
-    function toggleSidebar() {
-      const sidebar = document.getElementById("sidebarMenu");
-      const overlay = document.getElementById("sidebarOverlay");
-      sidebar.classList.toggle("-translate-x-full");
-      overlay.classList.toggle("hidden");
-    }
+    // Sidebar toggle - handled by sidebar-controller.js
 
     const STRINGEE_SERVER_ADDRS = [
       "wss://v1.stringee.com:6899/",
@@ -790,6 +790,12 @@
       }, duration);
     }
   </script>
+
+  <!-- Common Scripts -->
+  <script th:src="@{/js/core/api-client.js}"></script>
+  <script th:src="@{/js/core/sidebar-controller.js}"></script>
+  <script th:src="@{/js/core/notification-dropdown.js}"></script>
+  <script th:src="@{/js/core/app.js}"></script>
 </body>
 
 </html>
