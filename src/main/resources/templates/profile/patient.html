@@ -860,6 +860,31 @@
         }
       }
 
+      // ================== HEALTH PROFILE (BACKEND) ==================
+
+      async function loadHealthProfile() {
+        try {
+          const response = await fetch("/api/patient/health-profile");
+          const result = await response.json();
+
+          if (!result.success || !result.data) {
+            return;
+          }
+
+          const data = result.data;
+          document.getElementById("bloodType").value = data.bloodType || "";
+          document.getElementById("height").value =
+            data.heightCm != null ? data.heightCm : "";
+          document.getElementById("weight").value =
+            data.weightKg != null ? data.weightKg : "";
+          document.getElementById("allergies").value = data.allergies || "";
+          document.getElementById("chronicDiseases").value =
+            data.chronicDiseases || "";
+        } catch (error) {
+          console.error("Error loading health profile:", error);
+        }
+      }
+
       function updateUI(data) {
         // Avatar
         if (data.avatarUrl) {
@@ -1100,6 +1125,44 @@
         }
       }
 
+      // Submit health form -> backend
+      document
+        .getElementById("healthForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const payload = {
+            bloodType: document.getElementById("bloodType").value || null,
+            heightCm: document.getElementById("height").value
+              ? Number(document.getElementById("height").value)
+              : null,
+            weightKg: document.getElementById("weight").value
+              ? Number(document.getElementById("weight").value)
+              : null,
+            allergies: document.getElementById("allergies").value || null,
+            chronicDiseases:
+              document.getElementById("chronicDiseases").value || null,
+          };
+
+          try {
+            const response = await fetch("/api/patient/health-profile", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            const result = await response.json();
+            if (result.success) {
+              showToast("Cập nhật thông tin sức khỏe thành công!", "success");
+              await loadHealthProfile();
+            } else {
+              showToast(result.message || "Có lỗi xảy ra", "error");
+            }
+          } catch (error) {
+            console.error("Error updating health profile:", error);
+            showToast("Lỗi khi cập nhật thông tin sức khỏe", "error");
+          }
+        });
+
       // Toast notification
       function showToast(message, type = "success") {
         const toast = document.getElementById("toast");
@@ -1142,6 +1205,7 @@
 
       // Initialize
       loadProfile();
+      loadHealthProfile();
     </script>
   </body>
 </html>

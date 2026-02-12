@@ -63,7 +63,7 @@ public class Survey {
     @Builder.Default
     private Boolean showOnLanding = true;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "created_by")
     private User createdBy;
 

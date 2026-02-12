@@ -740,12 +740,13 @@
         document.getElementById("panel-" + tabName).classList.remove("hidden");
       }
 
-      // Dark mode toggle - Using ThemeController from /js/core/theme-controller.js
-      document
-        .getElementById("darkModeToggle")
-        .addEventListener("click", () => {
+      // Dark mode toggle - guard in case button is not present
+      const adminDarkToggle = document.getElementById("darkModeToggle");
+      if (adminDarkToggle && window.ThemeController) {
+        adminDarkToggle.addEventListener("click", () => {
           ThemeController.toggle();
         });
+      }
 
       // Load profile data
       let profileData = null;
@@ -766,12 +767,18 @@
       }
 
       function updateUI(data) {
-        // Avatar
-        if (data.avatarUrl) {
-          document.getElementById("avatarImg").src = data.avatarUrl;
+        if (!data) return;
+
+        // Avatar (DTO uses `avatar`)
+        if (data.avatar) {
+          document.getElementById("avatarImg").src = data.avatar;
           document.getElementById("avatarImg").classList.remove("hidden");
           document.getElementById("avatarPlaceholder").classList.add("hidden");
         } else {
+          document.getElementById("avatarImg").classList.add("hidden");
+          document
+            .getElementById("avatarPlaceholder")
+            .classList.remove("hidden");
           document.getElementById("avatarInitials").textContent = getInitials(
             data.fullName,
           );
@@ -781,27 +788,29 @@
         document.getElementById("profileName").textContent =
           data.fullName || "Administrator";
 
-        // Form fields
+        // Form fields (DTO uses `phone`)
         document.getElementById("fullName").value = data.fullName || "";
         document.getElementById("email").value = data.email || "";
-        document.getElementById("phoneNumber").value = data.phoneNumber || "";
-        document.getElementById("dateOfBirth").value = data.dateOfBirth || "";
+        document.getElementById("phoneNumber").value = data.phone || "";
+        document.getElementById("dateOfBirth").value =
+          data.dateOfBirth || "";
         document.getElementById("gender").value = data.gender || "";
         document.getElementById("address").value = data.address || "";
         document.getElementById("identityNumber").value =
           data.identityNumber || "";
 
-        // Profile completion
-        const completion = calculateCompletion(data);
+        // Profile completion (prefer backend value if available)
+        const completion =
+          typeof data.profileCompletion === "number"
+            ? data.profileCompletion
+            : calculateCompletion(data);
         document.getElementById("completionPercent").textContent =
           completion + "%";
         document.getElementById("completionBar").style.width = completion + "%";
 
-        // Verification badge
-        updateVerificationBadge(data.emailVerified);
-
-        // Email status
-        updateEmailStatus(data.email, data.emailVerified);
+        // Verification badge & email status (DTO uses `isVerified`)
+        updateVerificationBadge(data.isVerified);
+        updateEmailStatus(data.email, data.isVerified);
       }
 
       function getInitials(name) {
@@ -818,7 +827,7 @@
         const fields = [
           "fullName",
           "email",
-          "phoneNumber",
+          "phone", // match ProfileResponse.phone
           "dateOfBirth",
           "gender",
           "address",

@@ -97,8 +97,9 @@ public class SecurityConfig {
                                                                 "/api/web-call/**",
                                                                 // Allow patient document upload (multipart form)
                                                                 "/api/patient/documents/**",
-                                                                // Allow profile update and avatar (for patient portal)
+                                                                // Allow profile & patient health APIs (patient portal)
                                                                 "/api/profile/**",
+                                                                "/api/patient/health-profile/**",
                                                                 // Allow Admin API endpoints (protected by role-based auth)
                                                                 "/api/admin/**",
                                                                 // Allow Receptionist API endpoints (protected by role-based auth)

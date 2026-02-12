@@ -170,6 +170,15 @@ public class ReceptionistController {
     }
 
     /**
+     * Fallback route to avoid noisy 404 logs when some client accidentally navigates to /receptionist/undefined.
+     * Redirects gracefully to the receptionist dashboard.
+     */
+    @GetMapping("/receptionist/undefined")
+    public String receptionistUndefinedRedirect() {
+        return "redirect:/receptionist/dashboard";
+    }
+
+    /**
      * Patient Call Detail - Chi tiết bệnh nhân và gọi điện
      */
     @GetMapping("/receptionist/call-detail/{patientId}")
