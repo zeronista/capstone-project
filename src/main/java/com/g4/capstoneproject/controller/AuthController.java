@@ -7,6 +7,8 @@ import com.g4.capstoneproject.entity.User;
 import com.g4.capstoneproject.repository.UserRepository;
 import com.g4.capstoneproject.security.CustomUserDetails;
 import com.g4.capstoneproject.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -71,6 +74,8 @@ public class AuthController {
     @PostMapping("/login")
     public String login(@Valid @ModelAttribute LoginRequest request,
             BindingResult bindingResult,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse,
             HttpSession session,
             RedirectAttributes redirectAttributes,
             Model model) {
@@ -107,18 +112,20 @@ public class AuthController {
         CustomUserDetails userDetails = new CustomUserDetails(user);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails, // principal là CustomUserDetails object
-                null,
+                user.getPassword(), // credentials
                 userDetails.getAuthorities());
 
-        // Tạo SecurityContext mới và lưu vào session
+        // Tạo SecurityContext và set authentication
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
 
-        // Lưu SecurityContext vào HttpSession (quan trọng cho Spring Security 6+)
-        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+        // Sử dụng SecurityContextRepository để persist context vào session
+        SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+        securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
 
-        log.info("User logged in and session created for: {}", username);
+        log.info("User logged in and SecurityContext persisted for: {} with role {}",
+                username, user.getRole());
 
         // Điều hướng theo role
         if (response.getRole() == User.UserRole.PATIENT) {
@@ -191,8 +198,9 @@ public class AuthController {
      */
     @GetMapping("/oauth2/success")
     public String oauthSuccess(@AuthenticationPrincipal OAuth2User principal,
-            HttpSession session,
-            jakarta.servlet.http.HttpServletRequest request) {
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse,
+            HttpSession session) {
 
         if (principal == null) {
             log.error("OAuth2 principal is null");
@@ -219,16 +227,21 @@ public class AuthController {
 
                     // Tạo Authentication mới với authorities từ role
                     Authentication authentication = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities());
+                            userDetails,
+                            user.getPassword(),
+                            userDetails.getAuthorities());
 
-                    // Set vào SecurityContext
+                    // Tạo SecurityContext và set authentication
                     SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
                     securityContext.setAuthentication(authentication);
                     SecurityContextHolder.setContext(securityContext);
 
-                    // Lưu SecurityContext vào session (quan trọng!)
-                    session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-                            securityContext);
+                    // Sử dụng SecurityContextRepository để persist context
+                    SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+                    securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
+
+                    log.info("OAuth2 SecurityContext persisted for: {} with role {}",
+                            email, user.getRole());
                 }
 
                 // Lưu thông tin user vào session

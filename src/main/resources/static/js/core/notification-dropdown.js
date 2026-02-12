@@ -89,7 +89,16 @@
       renderNotifications();
     } catch (error) {
       console.error('Error loading notifications:', error);
-      showError('Không thể tải thông báo');
+      
+      // Better error messages based on error type
+      let errorMessage = 'Không thể tải thông báo';
+      if (error.status === 401 || error.code === 'UNAUTHORIZED') {
+        errorMessage = 'Phiên đăng nhập đã hết hạn';
+      } else if (error.status === 0 || error.code === 'NETWORK_ERROR') {
+        errorMessage = 'Lỗi kết nối. Vui lòng kiểm tra mạng';
+      }
+      
+      showError(errorMessage);
     } finally {
       state.isLoading = false;
       hideLoadingState();
@@ -104,7 +113,16 @@
       const response = await apiClient.get('/notifications/unread-count');
       updateBadgeCount(response.count);
     } catch (error) {
-      console.error('Error loading unread count:', error);
+      // Don't spam console for auth errors (user will be redirected)
+      if (error.status === 401 || error.code === 'UNAUTHORIZED') {
+        console.warn('Unable to load notifications: User not authenticated');
+        updateBadgeCount(0); // Clear badge
+      } else if (error.status === 0 || error.code === 'NETWORK_ERROR') {
+        console.warn('Unable to load notifications: Network error');
+        updateBadgeCount(0);
+      } else {
+        console.error('Error loading unread count:', error);
+      }
     }
   }
 

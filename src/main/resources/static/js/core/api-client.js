@@ -183,6 +183,37 @@ class ApiClient {
         
         // Check if response is successful
         if (!response.ok) {
+            // Handle authentication errors
+            if (response.status === 401) {
+                console.error('Authentication error: User not authenticated or session expired');
+                
+                // Check if we should redirect to login (not already on login page)
+                if (!window.location.pathname.includes('/auth/login')) {
+                    console.log('Redirecting to login page...');
+                    // Store current page for redirect after login
+                    sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
+                    // Redirect to login after short delay
+                    setTimeout(() => {
+                        window.location.href = '/auth/login?expired=true';
+                    }, 1000);
+                }
+                
+                const error = new Error(data?.message || 'Authentication required. Please login.');
+                error.status = 401;
+                error.data = data;
+                error.code = 'UNAUTHORIZED';
+                throw error;
+            }
+            
+            // Handle forbidden errors
+            if (response.status === 403) {
+                const error = new Error(data?.message || 'Access denied. You do not have permission.');
+                error.status = 403;
+                error.data = data;
+                error.code = 'FORBIDDEN';
+                throw error;
+            }
+            
             const error = new Error(data?.message || `HTTP ${response.status}: ${response.statusText}`);
             error.status = response.status;
             error.data = data;

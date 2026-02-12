@@ -716,6 +716,9 @@
          SCRIPTS FRAGMENT - Common JS includes
          ================================================================================== -->
     <th:block th:fragment="scripts">
+      <!-- API Client - MUST load before notification-dropdown.js -->
+      <script th:src="@{/js/core/api-client.js}"></script>
+
       <!-- Sidebar Controller -->
       <script th:src="@{/js/core/sidebar-controller.js}"></script>
 

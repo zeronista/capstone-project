@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
 
 /**
  * REST API Controller cho Notifications
+ * Fixed: Added null checks for @AuthenticationPrincipal User to prevent
+ * NullPointerException
  */
 @RestController
 @RequestMapping("/api/notifications")
@@ -34,30 +37,38 @@ public class NotificationController {
      * GET /api/notifications?page=0&size=10
      */
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getNotifications(
-            @AuthenticationPrincipal User user,
+    public ResponseEntity<?> getNotifications(
+            @AuthenticationPrincipal(expression = "user") User user,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        
+
+        // Check authentication
+        if (user == null) {
+            log.warn("Unauthorized access attempt to /api/notifications");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Unauthorized", "message", "User not authenticated"));
+        }
+
         try {
             Pageable pageable = PageRequest.of(page, size);
             Page<Notification> notificationsPage = notificationService.getNotificationsByUser(user, pageable);
-            
+
             List<NotificationDTO> notifications = notificationsPage.getContent()
                     .stream()
                     .map(NotificationDTO::fromEntity)
                     .collect(Collectors.toList());
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("notifications", notifications);
             response.put("currentPage", notificationsPage.getNumber());
             response.put("totalItems", notificationsPage.getTotalElements());
             response.put("totalPages", notificationsPage.getTotalPages());
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("Error getting notifications for user: {}", user.getId(), e);
-            return ResponseEntity.internalServerError().build();
+            log.error("Error getting notifications for user {}: {}", user.getId(), e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Internal Server Error", "message", "Failed to load notifications"));
         }
     }
 
@@ -66,23 +77,31 @@ public class NotificationController {
      * GET /api/notifications/recent?limit=10
      */
     @GetMapping("/recent")
-    public ResponseEntity<List<NotificationDTO>> getRecentNotifications(
-            @AuthenticationPrincipal User user,
+    public ResponseEntity<?> getRecentNotifications(
+            @AuthenticationPrincipal(expression = "user") User user,
             @RequestParam(defaultValue = "10") int limit) {
-        
+
+        // Check authentication
+        if (user == null) {
+            log.warn("Unauthorized access attempt to /api/notifications/recent");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Unauthorized", "message", "User not authenticated"));
+        }
+
         try {
             Pageable pageable = PageRequest.of(0, limit);
             Page<Notification> notificationsPage = notificationService.getNotificationsByUser(user, pageable);
-            
+
             List<NotificationDTO> notifications = notificationsPage.getContent()
                     .stream()
                     .map(NotificationDTO::fromEntity)
                     .collect(Collectors.toList());
-            
+
             return ResponseEntity.ok(notifications);
         } catch (Exception e) {
-            log.error("Error getting recent notifications for user: {}", user.getId(), e);
-            return ResponseEntity.internalServerError().build();
+            log.error("Error getting recent notifications for user {}: {}", user.getId(), e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Internal Server Error", "message", "Failed to load recent notifications"));
         }
     }
 
@@ -91,18 +110,26 @@ public class NotificationController {
      * GET /api/notifications/unread-count
      */
     @GetMapping("/unread-count")
-    public ResponseEntity<Map<String, Object>> getUnreadCount(@AuthenticationPrincipal User user) {
+    public ResponseEntity<?> getUnreadCount(@AuthenticationPrincipal(expression = "user") User user) {
+        // Check authentication
+        if (user == null) {
+            log.warn("Unauthorized access attempt to /api/notifications/unread-count");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Unauthorized", "message", "User not authenticated"));
+        }
+
         try {
             long count = notificationService.getUnreadCount(user);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("count", count);
             response.put("hasUnread", count > 0);
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("Error getting unread count for user: {}", user.getId(), e);
-            return ResponseEntity.internalServerError().build();
+            log.error("Error getting unread count for user {}: {}", user.getId(), e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Internal Server Error", "message", "Failed to get unread count"));
         }
     }
 
@@ -111,13 +138,20 @@ public class NotificationController {
      * PUT /api/notifications/{id}/read
      */
     @PutMapping("/{id}/read")
-    public ResponseEntity<Map<String, Object>> markAsRead(
+    public ResponseEntity<?> markAsRead(
             @PathVariable Long id,
-            @AuthenticationPrincipal User user) {
-        
+            @AuthenticationPrincipal(expression = "user") User user) {
+
+        // Check authentication
+        if (user == null) {
+            log.warn("Unauthorized access attempt to /api/notifications/{}/read", id);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Unauthorized", "message", "User not authenticated"));
+        }
+
         try {
             boolean success = notificationService.markAsRead(id, user);
-            
+
             Map<String, Object> response = new HashMap<>();
             if (success) {
                 response.put("success", true);
@@ -129,8 +163,9 @@ public class NotificationController {
                 return ResponseEntity.badRequest().body(response);
             }
         } catch (Exception e) {
-            log.error("Error marking notification as read: {}", id, e);
-            return ResponseEntity.internalServerError().build();
+            log.error("Error marking notification {} as read for user {}: {}", id, user.getId(), e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Internal Server Error", "message", "Failed to mark notification as read"));
         }
     }
 
@@ -139,18 +174,27 @@ public class NotificationController {
      * PUT /api/notifications/read-all
      */
     @PutMapping("/read-all")
-    public ResponseEntity<Map<String, Object>> markAllAsRead(@AuthenticationPrincipal User user) {
+    public ResponseEntity<?> markAllAsRead(@AuthenticationPrincipal(expression = "user") User user) {
+        // Check authentication
+        if (user == null) {
+            log.warn("Unauthorized access attempt to /api/notifications/read-all");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Unauthorized", "message", "User not authenticated"));
+        }
+
         try {
             notificationService.markAllAsRead(user);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Đã đánh dấu tất cả thông báo đã đọc");
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("Error marking all notifications as read for user: {}", user.getId(), e);
-            return ResponseEntity.internalServerError().build();
+            log.error("Error marking all notifications as read for user {}: {}", user.getId(), e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Internal Server Error", "message",
+                            "Failed to mark all notifications as read"));
         }
     }
 
@@ -159,13 +203,20 @@ public class NotificationController {
      * DELETE /api/notifications/{id}
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> deleteNotification(
+    public ResponseEntity<?> deleteNotification(
             @PathVariable Long id,
-            @AuthenticationPrincipal User user) {
-        
+            @AuthenticationPrincipal(expression = "user") User user) {
+
+        // Check authentication
+        if (user == null) {
+            log.warn("Unauthorized access attempt to DELETE /api/notifications/{}", id);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Unauthorized", "message", "User not authenticated"));
+        }
+
         try {
             boolean success = notificationService.deleteNotification(id, user);
-            
+
             Map<String, Object> response = new HashMap<>();
             if (success) {
                 response.put("success", true);
@@ -177,8 +228,9 @@ public class NotificationController {
                 return ResponseEntity.badRequest().body(response);
             }
         } catch (Exception e) {
-            log.error("Error deleting notification: {}", id, e);
-            return ResponseEntity.internalServerError().build();
+            log.error("Error deleting notification {} for user {}: {}", id, user.getId(), e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Internal Server Error", "message", "Failed to delete notification"));
         }
     }
 
@@ -187,18 +239,26 @@ public class NotificationController {
      * GET /api/notifications/unread
      */
     @GetMapping("/unread")
-    public ResponseEntity<List<NotificationDTO>> getUnreadNotifications(@AuthenticationPrincipal User user) {
+    public ResponseEntity<?> getUnreadNotifications(@AuthenticationPrincipal(expression = "user") User user) {
+        // Check authentication
+        if (user == null) {
+            log.warn("Unauthorized access attempt to /api/notifications/unread");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Unauthorized", "message", "User not authenticated"));
+        }
+
         try {
             List<Notification> notifications = notificationService.getUnreadNotifications(user.getId());
-            
+
             List<NotificationDTO> dtos = notifications.stream()
                     .map(NotificationDTO::fromEntity)
                     .collect(Collectors.toList());
-            
+
             return ResponseEntity.ok(dtos);
         } catch (Exception e) {
-            log.error("Error getting unread notifications for user: {}", user.getId(), e);
-            return ResponseEntity.internalServerError().build();
+            log.error("Error getting unread notifications for user {}: {}", user.getId(), e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", "Internal Server Error", "message", "Failed to load unread notifications"));
         }
     }
 }

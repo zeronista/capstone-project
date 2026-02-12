@@ -108,84 +108,107 @@ public class DoctorController {
      */
     @GetMapping("/api/patients")
     @ResponseBody
-    public ResponseEntity<List<Map<String, Object>>> getDashboardPatients(
+    public ResponseEntity<?> getDashboardPatients(
             @AuthenticationPrincipal UserDetails userDetails) {
-        String username = userDetails.getUsername();
-        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+        try {
+            String username = userDetails.getUsername();
+            User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
 
-        if (doctor == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        List<Map<String, Object>> result = new java.util.ArrayList<>();
-        java.util.Set<Long> addedPatientIds = new java.util.HashSet<>();
-
-        // 1. Get patients from treatment plans (with treatment info)
-        List<TreatmentPlan> plans = treatmentPlanService.getTreatmentPlansByDoctorId(doctor.getId());
-        for (TreatmentPlan plan : plans) {
-            User patient = plan.getPatient();
-            if (patient != null && !addedPatientIds.contains(patient.getId())) {
-                Map<String, Object> data = new HashMap<>();
-                data.put("id", patient.getId());
-                data.put("fullName", patient.getFullName());
-                data.put("email", patient.getEmail());
-                data.put("phone", patient.getPhoneNumber());
-                data.put("treatmentPlanId", plan.getId());
-                data.put("diagnosis", plan.getDiagnosis());
-                data.put("status", plan.getStatus().name());
-                data.put("startDate", plan.getStartDate());
-                data.put("endDate", plan.getExpectedEndDate());
-                data.put("lastUpdated", plan.getUpdatedAt());
-                data.put("createdAt", plan.getCreatedAt());
-                result.add(data);
-                addedPatientIds.add(patient.getId());
+            if (doctor == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Doctor not found"));
             }
-        }
 
-        // 2. If no treatment plans found, get all patients assigned to doctor
-        if (result.isEmpty()) {
-            List<User> patients = patientService.getPatientsByDoctorId(doctor.getId());
-            for (User patient : patients) {
-                if (!addedPatientIds.contains(patient.getId())) {
-                    Map<String, Object> data = new HashMap<>();
-                    data.put("id", patient.getId());
-                    data.put("fullName", patient.getFullName());
-                    data.put("email", patient.getEmail());
-                    data.put("phone", patient.getPhoneNumber());
-                    data.put("treatmentPlanId", null);
-                    data.put("diagnosis", null);
-                    data.put("status", "DRAFT"); // Default status for patients without treatment plan
-                    data.put("startDate", null);
-                    data.put("endDate", null);
-                    data.put("lastUpdated", patient.getUpdatedAt());
-                    data.put("createdAt", patient.getCreatedAt());
-                    result.add(data);
-                    addedPatientIds.add(patient.getId());
+            List<Map<String, Object>> result = new java.util.ArrayList<>();
+            java.util.Set<Long> addedPatientIds = new java.util.HashSet<>();
+
+            // 1. Get patients from treatment plans (with treatment info)
+            List<TreatmentPlan> plans = treatmentPlanService.getTreatmentPlansByDoctorId(doctor.getId());
+            for (TreatmentPlan plan : plans) {
+                try {
+                    User patient = plan.getPatient();
+                    if (patient != null && !addedPatientIds.contains(patient.getId())) {
+                        Map<String, Object> data = new HashMap<>();
+                        data.put("id", patient.getId());
+                        data.put("fullName", patient.getFullName() != null ? patient.getFullName() : "N/A");
+                        data.put("email", patient.getEmail() != null ? patient.getEmail() : "N/A");
+                        data.put("phone", patient.getPhoneNumber() != null ? patient.getPhoneNumber() : "N/A");
+                        data.put("treatmentPlanId", plan.getId());
+                        data.put("diagnosis", plan.getDiagnosis() != null ? plan.getDiagnosis() : "N/A");
+                        data.put("status", plan.getStatus() != null ? plan.getStatus().name() : "DRAFT");
+                        data.put("startDate", plan.getStartDate());
+                        data.put("endDate", plan.getExpectedEndDate());
+                        data.put("lastUpdated", plan.getUpdatedAt());
+                        data.put("createdAt", plan.getCreatedAt());
+                        result.add(data);
+                        addedPatientIds.add(patient.getId());
+                    }
+                } catch (Exception e) {
+                    // Log and skip this patient if there's an error
+                    System.err.println("Error processing treatment plan " + plan.getId() + ": " + e.getMessage());
                 }
             }
-        }
 
-        // 3. If still empty, get all active patients in the system (for testing/demo)
-        if (result.isEmpty()) {
-            List<User> allPatients = patientService.getAllActivePatients();
-            for (User patient : allPatients) {
-                Map<String, Object> data = new HashMap<>();
-                data.put("id", patient.getId());
-                data.put("fullName", patient.getFullName());
-                data.put("email", patient.getEmail());
-                data.put("phone", patient.getPhoneNumber());
-                data.put("treatmentPlanId", null);
-                data.put("diagnosis", null);
-                data.put("status", "DRAFT");
-                data.put("startDate", null);
-                data.put("endDate", null);
-                data.put("lastUpdated", patient.getUpdatedAt());
-                data.put("createdAt", patient.getCreatedAt());
-                result.add(data);
+            // 2. If no treatment plans found, get all patients assigned to doctor
+            if (result.isEmpty()) {
+                List<User> patients = patientService.getPatientsByDoctorId(doctor.getId());
+                for (User patient : patients) {
+                    try {
+                        if (!addedPatientIds.contains(patient.getId())) {
+                            Map<String, Object> data = new HashMap<>();
+                            data.put("id", patient.getId());
+                            data.put("fullName", patient.getFullName() != null ? patient.getFullName() : "N/A");
+                            data.put("email", patient.getEmail() != null ? patient.getEmail() : "N/A");
+                            data.put("phone", patient.getPhoneNumber() != null ? patient.getPhoneNumber() : "N/A");
+                            data.put("treatmentPlanId", null);
+                            data.put("diagnosis", null);
+                            data.put("status", "DRAFT"); // Default status for patients without treatment plan
+                            data.put("startDate", null);
+                            data.put("endDate", null);
+                            data.put("lastUpdated", patient.getUpdatedAt());
+                            data.put("createdAt", patient.getCreatedAt());
+                            result.add(data);
+                            addedPatientIds.add(patient.getId());
+                        }
+                    } catch (Exception e) {
+                        // Log and skip this patient if there's an error
+                        System.err.println("Error processing patient " + patient.getId() + ": " + e.getMessage());
+                    }
+                }
             }
-        }
 
-        return ResponseEntity.ok(result);
+            // 3. If still empty, get all active patients in the system (for testing/demo)
+            if (result.isEmpty()) {
+                List<User> allPatients = patientService.getAllActivePatients();
+                for (User patient : allPatients) {
+                    try {
+                        Map<String, Object> data = new HashMap<>();
+                        data.put("id", patient.getId());
+                        data.put("fullName", patient.getFullName() != null ? patient.getFullName() : "N/A");
+                        data.put("email", patient.getEmail() != null ? patient.getEmail() : "N/A");
+                        data.put("phone", patient.getPhoneNumber() != null ? patient.getPhoneNumber() : "N/A");
+                        data.put("treatmentPlanId", null);
+                        data.put("diagnosis", null);
+                        data.put("status", "DRAFT");
+                        data.put("startDate", null);
+                        data.put("endDate", null);
+                        data.put("lastUpdated", patient.getUpdatedAt());
+                        data.put("createdAt", patient.getCreatedAt());
+                        result.add(data);
+                    } catch (Exception e) {
+                        // Log and skip this patient if there's an error
+                        System.err.println("Error processing patient " + patient.getId() + ": " + e.getMessage());
+                    }
+                }
+            }
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.err.println("Error in getDashboardPatients: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to load patients: " + e.getMessage()));
+        }
     }
 
     /**
@@ -302,97 +325,114 @@ public class DoctorController {
      */
     @GetMapping("/api/patients/{id}")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> getPatientDetail(
+    public ResponseEntity<?> getPatientDetail(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
-        String username = userDetails.getUsername();
-        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
 
-        if (doctor == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        // Check authentication
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Unauthorized", "message", "User not authenticated"));
         }
 
-        // Get patient
-        User patient = userRepository.findById(id).orElse(null);
-        if (patient == null) {
-            return ResponseEntity.notFound().build();
+        try {
+            String username = userDetails.getUsername();
+            User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+
+            if (doctor == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "Unauthorized", "message", "Doctor not found"));
+            }
+
+            // Get patient
+            User patient = userRepository.findById(id).orElse(null);
+            if (patient == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Not Found", "message", "Patient not found"));
+            }
+
+            Map<String, Object> result = new HashMap<>();
+
+            // Basic patient info
+            Map<String, Object> patientInfo = new HashMap<>();
+            patientInfo.put("id", patient.getId());
+            patientInfo.put("fullName", patient.getFullName() != null ? patient.getFullName() : "N/A");
+            patientInfo.put("email", patient.getEmail() != null ? patient.getEmail() : "N/A");
+            patientInfo.put("phone", patient.getPhoneNumber() != null ? patient.getPhoneNumber() : "N/A");
+            patientInfo.put("dateOfBirth", patient.getDateOfBirth());
+            patientInfo.put("gender", patient.getGender() != null ? patient.getGender().name() : null);
+            patientInfo.put("address", patient.getAddress());
+            patientInfo.put("avatarUrl", patient.getAvatarUrl());
+            patientInfo.put("createdAt", patient.getCreatedAt());
+            result.put("patient", patientInfo);
+
+            // Treatment plans for this patient
+            List<TreatmentPlan> plans = treatmentPlanService.getTreatmentPlansByPatientId(id);
+            List<Map<String, Object>> treatmentPlans = plans.stream().map(plan -> {
+                Map<String, Object> planData = new HashMap<>();
+                planData.put("id", plan.getId());
+                planData.put("diagnosis", plan.getDiagnosis());
+                planData.put("treatmentGoal", plan.getTreatmentGoal());
+                planData.put("status", plan.getStatus() != null ? plan.getStatus().name() : "DRAFT");
+                planData.put("startDate", plan.getStartDate());
+                planData.put("expectedEndDate", plan.getExpectedEndDate());
+                planData.put("createdAt", plan.getCreatedAt());
+                planData.put("doctorName", plan.getDoctor() != null ? plan.getDoctor().getFullName() : null);
+                return planData;
+            }).collect(Collectors.toList());
+            result.put("treatmentPlans", treatmentPlans);
+
+            // Prescriptions for this patient
+            List<Prescription> prescriptions = prescriptionService.getPrescriptionHistory(id);
+            List<Map<String, Object>> prescriptionList = prescriptions.stream().map(rx -> {
+                Map<String, Object> rxData = new HashMap<>();
+                rxData.put("id", rx.getId());
+                rxData.put("prescriptionCode", "RX-" + rx.getId());
+                rxData.put("status", rx.getStatus() != null ? rx.getStatus().name() : "DRAFT");
+                rxData.put("prescribedAt", rx.getPrescriptionDate());
+                rxData.put("diagnosis", rx.getDiagnosis());
+                rxData.put("notes", rx.getNotes());
+                rxData.put("doctorName", rx.getDoctor() != null ? rx.getDoctor().getFullName() : null);
+                return rxData;
+            }).collect(Collectors.toList());
+            result.put("prescriptions", prescriptionList);
+
+            // NOTE: VitalSigns entity removed in schema v4.0
+            // Vital signs data now stored as JSONB in health_forecasts.vital_signs_snapshot
+            result.put("vitalSigns", List.of()); // Empty list for backward compatibility
+
+            // Tickets for this patient (using createdBy = patientId)
+            List<Ticket> tickets = ticketService.getTicketsByCreatedByUserId(id);
+            List<Map<String, Object>> ticketList = tickets.stream().map(ticket -> {
+                Map<String, Object> ticketData = new HashMap<>();
+                ticketData.put("id", ticket.getId());
+                ticketData.put("subject", ticket.getTitle());
+                ticketData.put("status", ticket.getStatus() != null ? ticket.getStatus().name() : "OPEN");
+                ticketData.put("priority", ticket.getPriority() != null ? ticket.getPriority().name() : "MEDIUM");
+                ticketData.put("category", ticket.getCategory() != null ? ticket.getCategory().name() : "GENERAL");
+                ticketData.put("createdAt", ticket.getCreatedAt());
+                return ticketData;
+            }).collect(Collectors.toList());
+            result.put("tickets", ticketList);
+
+            // Summary stats
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("totalTreatmentPlans", plans.size());
+            stats.put("activeTreatmentPlans",
+                    plans.stream().filter(p -> p.getStatus() == TreatmentPlan.PlanStatus.ACTIVE).count());
+            stats.put("totalPrescriptions", prescriptions.size());
+            stats.put("totalVitalRecords", 0); // VitalSigns entity removed in schema v4.0
+            stats.put("openTickets", tickets.stream().filter(t -> t.getStatus() == Ticket.Status.OPEN).count());
+            result.put("stats", stats);
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            System.err.println("Error getting patient detail for patient " + id + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Internal Server Error", "message",
+                            "Failed to load patient details: " + e.getMessage()));
         }
-
-        Map<String, Object> result = new HashMap<>();
-
-        // Basic patient info
-        Map<String, Object> patientInfo = new HashMap<>();
-        patientInfo.put("id", patient.getId());
-        patientInfo.put("fullName", patient.getFullName());
-        patientInfo.put("email", patient.getEmail());
-        patientInfo.put("phone", patient.getPhoneNumber());
-        patientInfo.put("dateOfBirth", patient.getDateOfBirth());
-        patientInfo.put("gender", patient.getGender() != null ? patient.getGender().name() : null);
-        patientInfo.put("address", patient.getAddress());
-        patientInfo.put("avatarUrl", patient.getAvatarUrl());
-        patientInfo.put("createdAt", patient.getCreatedAt());
-        result.put("patient", patientInfo);
-
-        // Treatment plans for this patient
-        List<TreatmentPlan> plans = treatmentPlanService.getTreatmentPlansByPatientId(id);
-        List<Map<String, Object>> treatmentPlans = plans.stream().map(plan -> {
-            Map<String, Object> planData = new HashMap<>();
-            planData.put("id", plan.getId());
-            planData.put("diagnosis", plan.getDiagnosis());
-            planData.put("treatmentGoal", plan.getTreatmentGoal());
-            planData.put("status", plan.getStatus().name());
-            planData.put("startDate", plan.getStartDate());
-            planData.put("expectedEndDate", plan.getExpectedEndDate());
-            planData.put("createdAt", plan.getCreatedAt());
-            planData.put("doctorName", plan.getDoctor() != null ? plan.getDoctor().getFullName() : null);
-            return planData;
-        }).collect(Collectors.toList());
-        result.put("treatmentPlans", treatmentPlans);
-
-        // Prescriptions for this patient
-        List<Prescription> prescriptions = prescriptionService.getPrescriptionHistory(id);
-        List<Map<String, Object>> prescriptionList = prescriptions.stream().map(rx -> {
-            Map<String, Object> rxData = new HashMap<>();
-            rxData.put("id", rx.getId());
-            rxData.put("prescriptionCode", "RX-" + rx.getId());
-            rxData.put("status", rx.getStatus().name());
-            rxData.put("prescribedAt", rx.getPrescriptionDate());
-            rxData.put("diagnosis", rx.getDiagnosis());
-            rxData.put("notes", rx.getNotes());
-            rxData.put("doctorName", rx.getDoctor() != null ? rx.getDoctor().getFullName() : null);
-            return rxData;
-        }).collect(Collectors.toList());
-        result.put("prescriptions", prescriptionList);
-
-        // NOTE: VitalSigns entity removed in schema v4.0
-        // Vital signs data now stored as JSONB in health_forecasts.vital_signs_snapshot
-        result.put("vitalSigns", List.of()); // Empty list for backward compatibility
-
-        // Tickets for this patient (using createdBy = patientId)
-        List<Ticket> tickets = ticketService.getTicketsByCreatedByUserId(id);
-        List<Map<String, Object>> ticketList = tickets.stream().map(ticket -> {
-            Map<String, Object> ticketData = new HashMap<>();
-            ticketData.put("id", ticket.getId());
-            ticketData.put("subject", ticket.getTitle());
-            ticketData.put("status", ticket.getStatus().name());
-            ticketData.put("priority", ticket.getPriority().name());
-            ticketData.put("category", ticket.getCategory().name());
-            ticketData.put("createdAt", ticket.getCreatedAt());
-            return ticketData;
-        }).collect(Collectors.toList());
-        result.put("tickets", ticketList);
-
-        // Summary stats
-        Map<String, Object> stats = new HashMap<>();
-        stats.put("totalTreatmentPlans", plans.size());
-        stats.put("activeTreatmentPlans",
-                plans.stream().filter(p -> p.getStatus() == TreatmentPlan.PlanStatus.ACTIVE).count());
-        stats.put("totalPrescriptions", prescriptions.size());
-        stats.put("totalVitalRecords", 0); // VitalSigns entity removed in schema v4.0
-        stats.put("openTickets", tickets.stream().filter(t -> t.getStatus() == Ticket.Status.OPEN).count());
-        result.put("stats", stats);
-
-        return ResponseEntity.ok(result);
     }
 
     /**
