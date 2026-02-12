@@ -103,9 +103,16 @@
   <body
     class="bg-slate-50 dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 font-sans"
   >
+    <!-- Mobile Sidebar Backdrop -->
+    <div
+      th:replace="~{fragments/receptionist-layout :: receptionist-sidebar-backdrop}"
+    ></div>
+
     <div class="flex h-screen overflow-hidden">
       <!-- Sidebar -->
-      <aside th:replace="~{fragments/layout :: receptionist-sidebar}"></aside>
+      <aside
+        th:replace="~{fragments/receptionist-layout :: receptionist-sidebar}"
+      ></aside>
 
       <!-- Main Content -->
       <div class="flex-1 flex flex-col overflow-hidden">
@@ -1176,6 +1183,10 @@
         setTimeout(() => toast.remove(), 3000);
       }
     </script>
-    <script th:src="@{/js/core/sidebar-controller.js}"></script>
+
+    <!-- Common Scripts -->
+    <th:block
+      th:replace="~{fragments/receptionist-layout :: scripts}"
+    ></th:block>
   </body>
 </html>

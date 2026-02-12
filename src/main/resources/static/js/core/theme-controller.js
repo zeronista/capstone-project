@@ -112,14 +112,38 @@
     });
   }
 
+  /**
+   * Setup theme toggle button listeners
+   */
+  function setupToggleListeners() {
+    // Find all theme toggle buttons
+    const toggleButtons = document.querySelectorAll('[data-theme-toggle]');
+    
+    console.log('[ThemeController] Found', toggleButtons.length, 'theme toggle buttons');
+    
+    toggleButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('[ThemeController] Toggle button clicked');
+        toggleTheme();
+      });
+    });
+  }
+
   // Initialize immediately
   initTheme();
   
-  // Setup storage listener when DOM is ready
+  // Setup storage listener and toggle buttons when DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupStorageListener);
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('[ThemeController] DOMContentLoaded - Setting up listeners');
+      setupStorageListener();
+      setupToggleListeners();
+    });
   } else {
+    console.log('[ThemeController] DOM already loaded - Setting up listeners immediately');
     setupStorageListener();
+    setupToggleListeners();
   }
 
   // Expose API globally

@@ -707,85 +707,10 @@
     </aside>
 
     <!-- ==================================================================================
-         HEADER FRAGMENT
+         HEADER FRAGMENT - DEPRECATED
+         Use unified-header fragment instead: fragments/header/unified-header.html
          ================================================================================== -->
-    <header
-      th:fragment="header(title)"
-      class="h-16 flex items-center justify-between px-6 bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 shrink-0 z-10"
-    >
-      <!-- Mobile Menu Toggle Button -->
-      <button
-        data-sidebar-toggle
-        class="lg:hidden flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors mr-2"
-        aria-label="Mở menu"
-        aria-expanded="false"
-      >
-        <span class="material-symbols-outlined text-[24px]">menu</span>
-      </button>
-
-      <!-- Desktop Sidebar Toggle Button -->
-      <button
-        data-sidebar-desktop-toggle
-        class="hidden lg:flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors mr-2"
-        aria-label="Thu gọn menu"
-        aria-expanded="true"
-        title="Ctrl+B"
-      >
-        <span class="material-symbols-outlined text-[24px]">menu</span>
-      </button>
-
-      <!-- Search Bar -->
-      <div class="flex-1 max-w-lg">
-        <div class="relative group">
-          <div
-            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-          >
-            <span class="material-symbols-outlined text-slate-400 text-[20px]"
-              >search</span
-            >
-          </div>
-          <input
-            class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg leading-5 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition-all"
-            placeholder="Tìm nhanh (Ctrl+K)..."
-            type="text"
-          />
-        </div>
-      </div>
-
-      <!-- Header Actions -->
-      <div class="flex items-center gap-3 ml-4">
-        <!-- Notifications -->
-        <button
-          class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors relative"
-        >
-          <span class="material-symbols-outlined text-[24px]"
-            >notifications</span
-          >
-          <span
-            class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-[#1a2634]"
-          ></span>
-        </button>
-        <!-- Settings -->
-        <button
-          class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
-        >
-          <span class="material-symbols-outlined text-[24px]">settings</span>
-        </button>
-        <!-- Dark Mode Toggle -->
-        <button
-          onclick="document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');"
-          class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
-          title="Chuyển đổi chế độ tối"
-        >
-          <span class="material-symbols-outlined text-[24px] dark:hidden"
-            >dark_mode</span
-          >
-          <span class="material-symbols-outlined text-[24px] hidden dark:block"
-            >light_mode</span
-          >
-        </button>
-      </div>
-    </header>
+    <!-- Old header(title) fragment removed - replaced by unified-header -->
 
     <!-- ==================================================================================
          SCRIPTS FRAGMENT - Common JS includes
@@ -794,20 +719,13 @@
       <!-- Sidebar Controller -->
       <script th:src="@{/js/core/sidebar-controller.js}"></script>
 
-      <!-- Theme Initialization -->
-      <script>
-        // Initialize theme from localStorage
-        (function () {
-          const theme = localStorage.getItem("theme");
-          if (
-            theme === "dark" ||
-            (!theme &&
-              window.matchMedia("(prefers-color-scheme: dark)").matches)
-          ) {
-            document.documentElement.classList.add("dark");
-          }
-        })();
-      </script>
+      <!-- Theme Controller: Already loaded in <head> to prevent flash -->
+
+      <!-- Notification Dropdown -->
+      <script th:src="@{/js/core/notification-dropdown.js}"></script>
+
+      <!-- App Core (Toast notifications) -->
+      <script th:src="@{/js/core/app.js}"></script>
     </th:block>
 
     <!-- Legacy Sidebar Reference (for backward compatibility) -->
@@ -816,124 +734,9 @@
     </nav>
 
     <!-- ==================================================================================
-         TOP NAVBAR (Header)
+         TOP NAVBAR (Header) - DEPRECATED
+         Use unified-header fragment instead: fragments/header/unified-header.html
          ================================================================================== -->
-    <header th:fragment="navbar" class="fixed top-0 left-0 lg:left-64 right-0 h-16 bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 z-20 transition-all duration-300">
-      <div class="h-full px-4 md:px-6 flex items-center justify-between">
-        <!-- Left: Mobile Menu Toggle + Search -->
-        <div class="flex items-center gap-4">
-          <!-- Mobile Menu Toggle -->
-          <button 
-            data-sidebar-toggle
-            class="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            aria-label="Toggle menu"
-          >
-            <span class="material-symbols-outlined">menu</span>
-          </button>
-
-          <!-- Desktop Sidebar Collapse Toggle -->
-          <button 
-            data-sidebar-collapse
-            class="hidden lg:block p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            aria-label="Thu gọn menu"
-          >
-            <span class="material-symbols-outlined">menu_open</span>
-          </button>
-
-          <!-- Search Bar (Optional) -->
-          <div class="hidden md:flex items-center">
-            <div class="relative">
-              <span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 text-[20px]">search</span>
-              <input 
-                type="search" 
-                placeholder="Tìm kiếm..." 
-                class="pl-10 pr-4 py-2 w-64 bg-slate-50 dark:bg-slate-800 border-0 rounded-lg text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-primary-500"
-              />
-            </div>
-          </div>
-        </div>
-
-        <!-- Right: Notifications + Theme Toggle + User Menu -->
-        <div class="flex items-center gap-2">
-          <!-- Notifications -->
-          <button 
-            class="relative p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            aria-label="Thông báo"
-          >
-            <span class="material-symbols-outlined">notifications</span>
-            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
-
-          <!-- Theme Toggle -->
-          <button 
-            data-theme-toggle
-            class="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            aria-label="Đổi chế độ sáng/tối"
-          >
-            <span class="material-symbols-outlined dark:hidden">light_mode</span>
-            <span class="material-symbols-outlined hidden dark:inline">dark_mode</span>
-          </button>
-
-          <!-- User Menu -->
-          <div class="relative" data-dropdown>
-            <button 
-              data-dropdown-trigger
-              class="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label="Menu người dùng"
-            >
-              <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                <span class="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[20px]">person</span>
-              </div>
-              <div class="hidden md:block text-left">
-                <p class="text-sm font-medium text-slate-900 dark:text-white" th:text="${#authentication?.name} ?: 'Người dùng'">User</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Tài khoản</p>
-              </div>
-              <span class="material-symbols-outlined text-slate-400 text-[20px]">expand_more</span>
-            </button>
-
-            <!-- Dropdown Menu -->
-            <div 
-              data-dropdown-menu
-              class="hidden absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-1 z-50"
-            >
-              <a th:href="@{/profile}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
-                <span class="material-symbols-outlined text-[20px]">person</span>
-                <span>Hồ sơ của tôi</span>
-              </a>
-              <a th:href="@{/settings}" class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700">
-                <span class="material-symbols-outlined text-[20px]">settings</span>
-                <span>Cài đặt</span>
-              </a>
-              <div class="border-t border-slate-200 dark:border-slate-700 my-1"></div>
-              <form th:action="@{/logout}" method="post" class="m-0">
-                <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
-                  <span class="material-symbols-outlined text-[20px]">logout</span>
-                  <span>Đăng xuất</span>
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <!-- Navbar Script for Dropdown -->
-    <script th:fragment="navbar-script">
-      // Dropdown functionality
-      document.querySelectorAll('[data-dropdown]').forEach(dropdown => {
-        const trigger = dropdown.querySelector('[data-dropdown-trigger]');
-        const menu = dropdown.querySelector('[data-dropdown-menu]');
-        
-        trigger.addEventListener('click', (e) => {
-          e.stopPropagation();
-          menu.classList.toggle('hidden');
-        });
-
-        // Close on click outside
-        document.addEventListener('click', () => {
-          menu.classList.add('hidden');
-        });
-      });
-    </script>
+    <!-- Old navbar fragment removed - replaced by unified-header -->
   </body>
 </html>

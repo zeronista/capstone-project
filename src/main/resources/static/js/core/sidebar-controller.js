@@ -11,11 +11,11 @@
 (function() {
   'use strict';
 
-  // DOM Elements
-  const sidebar = document.querySelector('[data-sidebar]');
-  const backdrop = document.querySelector('[data-sidebar-backdrop]');
-  const mobileToggle = document.querySelector('[data-sidebar-toggle]');
-  const desktopToggle = document.querySelector('[data-sidebar-desktop-toggle]');
+  // DOM Elements (will be initialized in init())
+  let sidebar = null;
+  let backdrop = null;
+  let mobileToggle = null;
+  let desktopToggle = null;
 
   // State
   const STORAGE_KEY = 'abclinic_sidebar_collapsed';
@@ -26,7 +26,23 @@
    * Initialize sidebar state
    */
   function init() {
-    if (!sidebar) return;
+    console.log('[SidebarController] Initializing...');
+    
+    // Query DOM elements
+    sidebar = document.querySelector('[data-sidebar]');
+    backdrop = document.querySelector('[data-sidebar-backdrop]');
+    mobileToggle = document.querySelector('[data-sidebar-toggle]');
+    desktopToggle = document.querySelector('[data-sidebar-desktop-toggle]');
+    
+    console.log('[SidebarController] Sidebar element:', sidebar);
+    console.log('[SidebarController] Backdrop element:', backdrop);
+    console.log('[SidebarController] Mobile toggle:', mobileToggle);
+    console.log('[SidebarController] Desktop toggle:', desktopToggle);
+    
+    if (!sidebar) {
+      console.warn('[SidebarController] Sidebar element not found!');
+      return;
+    }
 
     // Apply initial collapsed state on desktop
     if (window.innerWidth >= 1024 && isCollapsed) {
@@ -38,6 +54,8 @@
 
     // Apply initial ARIA states
     updateAriaStates();
+    
+    console.log('[SidebarController] Initialization complete');
   }
 
   /**

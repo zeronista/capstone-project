@@ -16,7 +16,7 @@
     >
       <!-- Header -->
       <header
-        th:replace="~{fragments/layout :: header(title='Gọi tư vấn')}"
+        th:replace="~{fragments/header/unified-header :: unified-header}"
       ></header>
 
       <!-- Content Area -->
@@ -985,5 +985,10 @@
         }
       }
     </style>
+
+    <!-- Common Scripts -->
+    <script th:src="@{/js/core/sidebar-controller.js}"></script>
+    <script th:src="@{/js/core/notification-dropdown.js}"></script>
+    <script th:src="@{/js/core/app.js}"></script>
   </body>
 </html>

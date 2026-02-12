@@ -16,7 +16,7 @@
     >
       <!-- Header -->
       <header
-        th:replace="~{fragments/layout :: header(title='Lịch Hẹn')}"
+        th:replace="~{fragments/header/unified-header :: unified-header}"
       ></header>
 
       <!-- Content Area -->
@@ -40,5 +40,10 @@
         </div>
       </div>
     </main>
+
+    <!-- Common Scripts -->
+    <script th:src="@{/js/core/sidebar-controller.js}"></script>
+    <script th:src="@{/js/core/notification-dropdown.js}"></script>
+    <script th:src="@{/js/core/app.js}"></script>
   </body>
 </html>

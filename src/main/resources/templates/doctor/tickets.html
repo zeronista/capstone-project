@@ -395,7 +395,6 @@
     ></div>
 
     <!-- Scripts -->
-    <script th:src="@{/js/modules/doctor/sidebar-controller.js}"></script>
     <script>
       // Global state
       let allTickets = [];
@@ -800,5 +799,8 @@
         setTimeout(() => toast.remove(), 3000);
       }
     </script>
+
+    <!-- Common Scripts -->
+    <th:block th:replace="~{fragments/doctor-layout :: scripts}"></th:block>
   </body>
 </html>

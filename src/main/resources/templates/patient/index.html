@@ -17,7 +17,7 @@
     >
       <!-- Header -->
       <header
-        th:replace="~{fragments/layout :: header(title='Trang Bệnh Nhân')}"
+        th:replace="~{fragments/header/unified-header :: unified-header}"
       ></header>
 
       <!-- Content Area -->
@@ -1063,5 +1063,8 @@
         }
       });
     </script>
+
+    <!-- Common Scripts -->
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
   </body>
 </html>

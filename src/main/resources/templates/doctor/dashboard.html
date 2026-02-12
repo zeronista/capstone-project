@@ -73,6 +73,34 @@
       ::-webkit-scrollbar-thumb:hover {
         background: #94a3b8;
       }
+
+      /* Sidebar Mobile Hidden State */
+      @media (max-width: 1023px) {
+        .sidebar-hidden {
+          transform: translateX(-100%);
+        }
+        .sidebar-open {
+          transform: translateX(0);
+        }
+      }
+
+      /* Sidebar Desktop Collapsed State */
+      @media (min-width: 1024px) {
+        .sidebar-hidden {
+          transform: translateX(0);
+        }
+        .sidebar-collapsed {
+          width: 4.5rem !important;
+        }
+        .sidebar-collapsed .sidebar-text {
+          display: none !important;
+        }
+        .sidebar-collapsed .doctor-menu-item {
+          justify-content: center;
+          padding-left: 0.75rem;
+          padding-right: 0.75rem;
+        }
+      }
     </style>
   </head>
   <body
@@ -88,83 +116,10 @@
     <main
       class="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800"
     >
+      <!-- Header -->
       <header
-        class="h-16 flex items-center justify-between px-6 bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 shrink-0 z-10"
-      >
-        <!-- Mobile Menu Toggle Button -->
-        <button
-          data-sidebar-toggle
-          class="lg:hidden flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors mr-2"
-          aria-label="Mở menu"
-          aria-expanded="false"
-        >
-          <span class="material-symbols-outlined text-[24px]">menu</span>
-        </button>
-
-        <!-- Desktop Sidebar Toggle Button -->
-        <button
-          data-sidebar-desktop-toggle
-          class="hidden lg:flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors mr-2"
-          aria-label="Thu gọn menu"
-          aria-expanded="true"
-          title="Ctrl+B"
-        >
-          <span class="material-symbols-outlined text-[24px]">menu</span>
-        </button>
-
-        <div class="flex-1 max-w-lg">
-          <div class="relative group">
-            <div
-              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-            >
-              <span class="material-symbols-outlined text-slate-400 text-[20px]"
-                >search</span
-              >
-            </div>
-            <input
-              id="globalSearch"
-              class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg leading-5 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition-all"
-              placeholder="Tìm nhanh bệnh nhân... (Ctrl+K)"
-              type="text"
-            />
-          </div>
-        </div>
-        <div class="flex items-center gap-3 ml-4">
-          <button
-            class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors relative"
-          >
-            <span class="material-symbols-outlined text-[24px]"
-              >notifications</span
-            >
-            <span
-              id="notificationBadge"
-              class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-[#1a2634] hidden"
-            ></span>
-          </button>
-          <button
-            onclick="toggleDarkMode()"
-            class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
-          >
-            <span class="material-symbols-outlined text-[24px] dark:hidden"
-              >dark_mode</span
-            >
-            <span
-              class="material-symbols-outlined text-[24px] hidden dark:block"
-              >light_mode</span
-            >
-          </button>
-          <!-- Logout Button -->
-          <form th:action="@{/auth/logout}" method="post" class="m-0">
-            <button
-              type="submit"
-              class="flex items-center justify-center size-10 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 transition-colors"
-              title="Đăng xuất"
-            >
-              <span class="material-symbols-outlined text-[24px]">logout</span>
-            </button>
-          </form>
-        </div>
-      </header>
+        th:replace="~{fragments/header/unified-header :: unified-header}"
+      ></header>
       <div class="flex flex-1 overflow-hidden">
         <div class="flex-1 overflow-y-auto p-4 lg:p-6">
           <div class="max-w-7xl mx-auto flex flex-col gap-6">
@@ -631,12 +586,6 @@
       </div>
     </div>
 
-    <!-- Sidebar Controller Script -->
-    <script
-      type="module"
-      th:src="@{/js/modules/doctor/sidebar-controller.js}"
-    ></script>
-
     <!-- Dashboard Script -->
     <script>
       // ==================== STATE ====================
@@ -991,5 +940,8 @@
         setTimeout(() => toast.classList.add("hidden"), 3000);
       }
     </script>
+
+    <!-- Common Scripts -->
+    <th:block th:replace="~{fragments/doctor-layout :: scripts}"></th:block>
   </body>
 </html>

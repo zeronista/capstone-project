@@ -1,0 +1,178 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+    ABClinic - Unified Header Fragment
+    Contains the unified header component for all roles
+    
+    Features:
+    - Sidebar Toggle (mobile + desktop, responsive)
+    - Notifications Dropdown with real-time updates
+    - Dark Mode Toggle
+    
+    @version 3.0.0 - Unified Header Refactor
+    @date February 12, 2026
+    -->
+  </head>
+  <body>
+    <!-- ==================================================================================
+         UNIFIED HEADER FRAGMENT
+         ================================================================================== -->
+    <header
+      th:fragment="unified-header"
+      class="h-16 flex items-center justify-between px-4 md:px-6 bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-800 shrink-0 z-10"
+    >
+      <!-- Left: Sidebar Toggle Buttons -->
+      <div class="flex items-center gap-2">
+        <!-- Mobile Sidebar Toggle -->
+        <button
+          data-sidebar-toggle
+          class="lg:hidden flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
+          aria-label="Mở menu"
+          aria-expanded="false"
+        >
+          <span class="material-symbols-outlined text-[24px]">menu</span>
+        </button>
+
+        <!-- Desktop Sidebar Toggle -->
+        <button
+          data-sidebar-desktop-toggle
+          class="hidden lg:flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
+          aria-label="Thu gọn menu"
+          aria-expanded="true"
+          title="Ctrl+B"
+        >
+          <span class="material-symbols-outlined text-[24px]">menu</span>
+        </button>
+      </div>
+
+      <!-- Right: Header Actions -->
+      <div class="flex items-center gap-2 md:gap-3">
+        <!-- Notifications Dropdown -->
+        <div class="relative" data-notification-dropdown>
+          <!-- Notification Button -->
+          <button
+            data-notification-trigger
+            class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors relative"
+            aria-label="Thông báo"
+          >
+            <span class="material-symbols-outlined text-[24px]"
+              >notifications</span
+            >
+            <!-- Unread Badge -->
+            <span
+              data-notification-badge
+              class="absolute top-2 right-2 min-w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-semibold rounded-full flex items-center justify-center px-1 border-2 border-white dark:border-[#1a2634] hidden"
+            >
+              <span data-notification-count>0</span>
+            </span>
+          </button>
+
+          <!-- Dropdown Menu -->
+          <div
+            data-notification-menu
+            class="hidden absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-50"
+          >
+            <!-- Dropdown Header -->
+            <div
+              class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700"
+            >
+              <h3
+                class="text-base font-semibold text-slate-900 dark:text-white"
+              >
+                Thông báo
+              </h3>
+              <button
+                data-mark-all-read
+                class="text-sm text-primary hover:text-primary-600 font-medium transition-colors"
+                title="Đánh dấu tất cả đã đọc"
+              >
+                Đánh dấu đã đọc
+              </button>
+            </div>
+
+            <!-- Notifications List Container -->
+            <div
+              data-notifications-list
+              class="max-h-96 overflow-y-auto divide-y divide-slate-200 dark:divide-slate-700"
+            >
+              <!-- Loading State -->
+              <div
+                data-loading-state
+                class="flex items-center justify-center py-12"
+              >
+                <div
+                  class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"
+                ></div>
+              </div>
+
+              <!-- Empty State -->
+              <div
+                data-empty-state
+                class="hidden py-12 text-center text-slate-400"
+              >
+                <span
+                  class="material-symbols-outlined text-5xl mb-2 block text-slate-300 dark:text-slate-600"
+                  >notifications_off</span
+                >
+                <p class="text-sm">Không có thông báo mới</p>
+              </div>
+
+              <!-- Notifications will be dynamically inserted here -->
+            </div>
+
+            <!-- Dropdown Footer -->
+            <div
+              class="px-4 py-3 border-t border-slate-200 dark:border-slate-700 text-center"
+            >
+              <a
+                th:href="@{/crm/notifications}"
+                class="text-sm text-primary hover:text-primary-600 font-medium transition-colors"
+                >Xem tất cả thông báo</a
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Dark Mode Toggle -->
+        <button
+          data-theme-toggle
+          class="flex items-center justify-center size-10 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
+          title="Chuyển đổi chế độ tối"
+          aria-label="Chuyển đổi chế độ sáng/tối"
+        >
+          <span class="material-symbols-outlined text-[24px] dark:hidden"
+            >dark_mode</span
+          >
+          <span class="material-symbols-outlined text-[24px] hidden dark:block"
+            >light_mode</span
+          >
+        </button>
+      </div>
+    </header>
+
+    <!-- ==================================================================================
+         NOTIFICATION ITEM TEMPLATE (for reference, actual rendering in JS)
+         ================================================================================== -->
+    <!--
+    <div class="notification-item p-4 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors [unread: bg-blue-50 dark:bg-blue-900/20]" 
+         data-notification-id="{id}"
+         data-notification-read="{isRead}">
+      <div class="flex gap-3">
+        <div class="flex-shrink-0">
+          <span class="material-symbols-outlined text-2xl {color}">
+            {icon}
+          </span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-slate-900 dark:text-white">{title}</p>
+          <p class="text-sm text-slate-600 dark:text-slate-400 truncate">{content}</p>
+          <p class="text-xs text-slate-400 mt-1">{timeAgo}</p>
+        </div>
+        <div class="w-2 h-2 bg-primary rounded-full mt-2 [only if unread]"></div>
+      </div>
+    </div>
+    -->
+  </body>
+</html>
