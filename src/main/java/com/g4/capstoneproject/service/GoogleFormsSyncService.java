@@ -2,10 +2,12 @@ package com.g4.capstoneproject.service;
 
 import com.g4.capstoneproject.entity.GoogleFormSyncRecord;
 import com.g4.capstoneproject.entity.MedicalReport;
+import com.g4.capstoneproject.entity.Survey;
 import com.g4.capstoneproject.entity.User;
 import com.g4.capstoneproject.entity.UserInfo;
 import com.g4.capstoneproject.repository.GoogleFormSyncRecordRepository;
 import com.g4.capstoneproject.repository.MedicalReportRepository;
+import com.g4.capstoneproject.repository.SurveyRepository;
 import com.g4.capstoneproject.repository.UserInfoRepository;
 import com.g4.capstoneproject.repository.UserRepository;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -49,6 +51,7 @@ public class GoogleFormsSyncService {
     private final UserInfoRepository userInfoRepository;
     private final MedicalReportRepository medicalReportRepository;
     private final GoogleFormSyncRecordRepository syncRecordRepository;
+    private final SurveyRepository surveyRepository;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @Value("${google.forms.ids:}")
@@ -68,9 +71,15 @@ public class GoogleFormsSyncService {
 
     @Transactional
     public Map<String, Object> syncPatientsFromConfiguredForms(String triggerSource) {
-        List<String> formIds = parseFormIds(formIdsConfig);
+        // Static IDs from configuration (for backward compatibility)
+        List<String> formIds = new ArrayList<>(parseFormIds(formIdsConfig));
+        // Dynamic IDs from Survey CRUD (bác sĩ chỉ cần dán link form vào survey)
+        formIds.addAll(extractFormIdsFromSurveys());
+        // Remove trùng
+        formIds = formIds.stream().distinct().toList();
+
         if (formIds.isEmpty()) {
-            throw new IllegalStateException("google.forms.ids chưa được cấu hình");
+            throw new IllegalStateException("Chưa cấu hình form Google nào cho đồng bộ (google.forms.ids hoặc Survey.formUrl).");
         }
 
         SyncSummary summary = new SyncSummary(triggerSource, formIds.size());
@@ -371,7 +380,8 @@ public class GoogleFormsSyncService {
     }
 
     private Map<String, String> extractQuestionMap(Form form) {
-        Map<String, String> questionMap = new HashMap<>();
+        // Use LinkedHashMap to preserve question order as defined in the Form
+        Map<String, String> questionMap = new LinkedHashMap<>();
         if (form.getItems() == null) {
             return questionMap;
         }
@@ -390,14 +400,16 @@ public class GoogleFormsSyncService {
 
     private Map<String, String> extractAnswers(Map<String, Answer> answerData, Map<String, String> questionMap) {
         Map<String, String> answerMap = new LinkedHashMap<>();
-        if (answerData == null || answerData.isEmpty()) {
+        if (answerData == null || answerData.isEmpty() || questionMap == null || questionMap.isEmpty()) {
             return answerMap;
         }
 
-        for (Map.Entry<String, Answer> entry : answerData.entrySet()) {
-            String questionId = entry.getKey();
-            String questionTitle = questionMap.getOrDefault(questionId, "Unknown question: " + questionId);
-            String answerText = extractAnswerText(entry.getValue());
+        // Iterate questions in form order, pick corresponding answers → đảm bảo thứ tự giống form
+        for (Map.Entry<String, String> questionEntry : questionMap.entrySet()) {
+            String questionId = questionEntry.getKey();
+            String questionTitle = questionEntry.getValue();
+            Answer rawAnswer = answerData.get(questionId);
+            String answerText = extractAnswerText(rawAnswer);
             if (answerText != null && !answerText.isBlank()) {
                 answerMap.put(questionTitle, answerText);
             }
@@ -430,6 +442,40 @@ public class GoogleFormsSyncService {
                 .filter(s -> !s.isBlank())
                 .distinct()
                 .toList();
+    }
+
+    private List<String> extractFormIdsFromSurveys() {
+        List<Survey> surveys = surveyRepository.findAll();
+        List<String> ids = new ArrayList<>();
+        for (Survey survey : surveys) {
+            String url = survey.getFormUrl();
+            if (url == null || url.isBlank()) {
+                continue;
+            }
+            String formId = extractFormIdFromUrl(url);
+            if (formId != null && !formId.isBlank()) {
+                ids.add(formId);
+            }
+        }
+        return ids;
+    }
+
+    private String extractFormIdFromUrl(String formUrl) {
+        if (formUrl == null || formUrl.isBlank()) {
+            return null;
+        }
+
+        try {
+            // Hỗ trợ cả dạng: /forms/d/FORM_ID/... và /forms/d/e/FORM_ID/...
+            Pattern pattern = Pattern.compile("/forms/d/(?:e/)?([^/]+)");
+            java.util.regex.Matcher matcher = pattern.matcher(formUrl);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+        } catch (Exception e) {
+            log.warn("Could not extract formId from survey url '{}': {}", formUrl, e.getMessage());
+        }
+        return null;
     }
 
     private String getByQuestionAlias(Map<String, String> answers, String... aliases) {

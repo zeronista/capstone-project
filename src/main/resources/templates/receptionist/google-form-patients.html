@@ -50,71 +50,15 @@
   <body
     class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display h-screen flex overflow-hidden"
   >
+    <!-- Mobile Sidebar Backdrop -->
     <div
-      id="sidebarBackdrop"
-      class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden hidden"
-      onclick="toggleSidebar()"
+      th:replace="~{fragments/receptionist-layout :: receptionist-sidebar-backdrop}"
     ></div>
 
+    <!-- Receptionist Sidebar -->
     <aside
-      id="sidebar"
-      class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-[#1a2634] border-r border-slate-200 dark:border-slate-800 flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out"
-    >
-      <div
-        class="h-16 flex items-center gap-3 px-5 border-b border-slate-200 dark:border-slate-800 shrink-0"
-      >
-        <div
-          class="flex size-10 items-center justify-center rounded-xl bg-primary text-white font-bold text-lg shadow-md shadow-primary/30"
-        >
-          AB
-        </div>
-        <span class="text-lg font-bold text-slate-900 dark:text-white tracking-tight"
-          >ABClinic</span
-        >
-      </div>
-
-      <nav class="flex-1 overflow-y-auto p-3 space-y-1">
-        <a
-          href="/receptionist/dashboard"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-        >
-          <span class="material-symbols-outlined text-[22px]">dashboard</span>
-          <span>Bảng điều khiển</span>
-        </a>
-        <a
-          href="/receptionist/users"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-        >
-          <span class="material-symbols-outlined text-[22px]">personal_injury</span>
-          <span>Quản lý bệnh nhân</span>
-        </a>
-        <a
-          href="/receptionist/google-form-patients"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium transition-all"
-        >
-          <span class="material-symbols-outlined text-[22px]">quiz</span>
-          <span>Bệnh nhân Google Form</span>
-        </a>
-        <a
-          href="/receptionist/tickets"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-        >
-          <span class="material-symbols-outlined text-[22px]">confirmation_number</span>
-          <span>Tickets</span>
-        </a>
-      </nav>
-      <div class="p-3 border-t border-slate-200 dark:border-slate-800">
-        <form th:action="@{/auth/logout}" method="post">
-          <button
-            type="submit"
-            class="w-full flex items-center justify-center gap-2 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-500 hover:text-red-500 transition-colors text-sm"
-          >
-            <span class="material-symbols-outlined text-[20px]">logout</span>
-            <span>Đăng xuất</span>
-          </button>
-        </form>
-      </div>
-    </aside>
+      th:replace="~{fragments/receptionist-layout :: receptionist-sidebar}"
+    ></aside>
 
     <main
       class="flex-1 flex flex-col min-w-0 bg-gradient-to-br from-slate-50 via-white to-violet-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800"
@@ -156,7 +100,7 @@
         <div
           class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 mb-4"
         >
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
             <div class="lg:col-span-2">
               <label for="searchInput" class="block text-xs mb-1 text-slate-500 dark:text-slate-400">Tìm kiếm theo tên</label>
               <input
@@ -193,6 +137,15 @@
                 <option value="CALLED">Đã gọi</option>
               </select>
             </div>
+            <div>
+              <label for="formTitleFilter" class="block text-xs mb-1 text-slate-500 dark:text-slate-400">Nguồn form</label>
+              <select
+                id="formTitleFilter"
+                class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-sm"
+              >
+                <option value="ALL">Tất cả form</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -222,6 +175,7 @@
               ></tbody>
             </table>
           </div>
+          <div id="paginationControls" class="flex items-center justify-end gap-1 px-4 py-3 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300"></div>
           <div id="emptyState" class="hidden p-8 text-center">
             <p class="text-sm text-slate-500 dark:text-slate-400">Chưa có dữ liệu từ Google Forms.</p>
           </div>
@@ -277,19 +231,10 @@
     </div>
 
     <script src="/js/modules/receptionist/google-form-patients.js"></script>
-    <script>
-      function toggleSidebar() {
-        const sidebar = document.getElementById("sidebar");
-        const backdrop = document.getElementById("sidebarBackdrop");
-        sidebar.classList.toggle("-translate-x-full");
-        backdrop.classList.toggle("hidden");
-      }
-    </script>
 
     <!-- Common Scripts -->
-    <script th:src="@{/js/core/api-client.js}"></script>
-    <script th:src="@{/js/core/sidebar-controller.js}"></script>
-    <script th:src="@{/js/core/notification-dropdown.js}"></script>
-    <script th:src="@{/js/core/app.js}"></script>
+    <th:block
+      th:replace="~{fragments/receptionist-layout :: scripts}"
+    ></th:block>
   </body>
 </html>

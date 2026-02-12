@@ -1,5 +1,8 @@
 let patientsData = [];
 let filteredData = [];
+let currentPage = 1;
+const PAGE_SIZE = 10;
+let formTitleOptions = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   bindFilters();
@@ -11,11 +14,13 @@ function bindFilters() {
   const dateFromInput = document.getElementById("dateFromInput");
   const dateToInput = document.getElementById("dateToInput");
   const callStatusFilter = document.getElementById("callStatusFilter");
+  const formTitleFilter = document.getElementById("formTitleFilter");
 
   if (searchInput) searchInput.addEventListener("input", applyFilters);
   if (dateFromInput) dateFromInput.addEventListener("change", applyFilters);
   if (dateToInput) dateToInput.addEventListener("change", applyFilters);
   if (callStatusFilter) callStatusFilter.addEventListener("change", applyFilters);
+  if (formTitleFilter) formTitleFilter.addEventListener("change", applyFilters);
 }
 
 async function loadGoogleFormPatients() {
@@ -31,6 +36,7 @@ async function loadGoogleFormPatients() {
 
     const result = await response.json();
     patientsData = Array.isArray(result.patients) ? result.patients : [];
+    populateFormTitleFilter();
     applyFilters();
   } catch (error) {
     showToast(error.message || "Có lỗi xảy ra khi tải dữ liệu", false);
@@ -74,10 +80,16 @@ function applyFilters() {
   const dateFrom = document.getElementById("dateFromInput")?.value || "";
   const dateTo = document.getElementById("dateToInput")?.value || "";
   const callStatus = document.getElementById("callStatusFilter")?.value || "ALL";
+  const formTitleValue = document.getElementById("formTitleFilter")?.value || "ALL";
 
   filteredData = patientsData.filter((item) => {
     const name = (item.fullName || "").toLowerCase();
     if (searchKeyword && !name.includes(searchKeyword)) {
+      return false;
+    }
+
+    const formTitle = item.formTitle || item.formId || "Khác";
+    if (formTitleValue !== "ALL" && formTitle !== formTitleValue) {
       return false;
     }
 
@@ -99,24 +111,35 @@ function applyFilters() {
     return true;
   });
 
-  renderPatientsTable(filteredData);
+  // reset về trang đầu khi đổi filter
+  currentPage = 1;
+  renderPatientsTable();
 }
 
-function renderPatientsTable(data) {
+function renderPatientsTable() {
   const tableBody = document.getElementById("googleFormPatientsTableBody");
   const emptyState = document.getElementById("emptyState");
   const totalCount = document.getElementById("totalCount");
 
-  totalCount.textContent = String(data.length);
+  const totalItems = filteredData.length;
+  totalCount.textContent = String(totalItems);
 
-  if (!data.length) {
+  if (!totalItems) {
     tableBody.innerHTML = "";
     emptyState.classList.remove("hidden");
+    renderPagination(0);
     return;
   }
 
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const end = start + PAGE_SIZE;
+  const pageData = filteredData.slice(start, end);
+
   emptyState.classList.add("hidden");
-  tableBody.innerHTML = data
+  tableBody.innerHTML = pageData
     .map((item, index) => {
       const submittedAt = formatDateTimeGmt7(item.submittedAt);
       const callStatus = item.callStatus || "NOT_CALLED";
@@ -129,9 +152,11 @@ function renderPatientsTable(data) {
       const nextStatus = callStatus === "CALLED" ? "NOT_CALLED" : "CALLED";
       const nextStatusLabel = callStatus === "CALLED" ? "Đánh dấu chưa gọi" : "Đánh dấu đã gọi";
 
+      const stt = start + index + 1;
+
       return `
         <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
-          <td class="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">${index + 1}</td>
+          <td class="px-4 py-4 text-sm text-slate-700 dark:text-slate-200">${stt}</td>
           <td class="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">${fullName}</td>
           <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-200">
             <div>${phone || "-"}</div>
@@ -166,6 +191,77 @@ function renderPatientsTable(data) {
       `;
     })
     .join("");
+
+  renderPagination(totalPages);
+}
+
+function populateFormTitleFilter() {
+  const select = document.getElementById("formTitleFilter");
+  if (!select) return;
+
+  const titlesSet = new Set();
+  patientsData.forEach((item) => {
+    const title = item.formTitle || item.formId || "Khác";
+    titlesSet.add(title);
+  });
+
+  formTitleOptions = Array.from(titlesSet).sort((a, b) => a.localeCompare(b, "vi"));
+
+  const currentValue = select.value || "ALL";
+  select.innerHTML = '<option value="ALL">Tất cả form</option>';
+  formTitleOptions.forEach((title) => {
+    const option = document.createElement("option");
+    option.value = title;
+    option.textContent = title;
+    select.appendChild(option);
+  });
+
+  // Giữ lại lựa chọn cũ nếu còn tồn tại
+  if (currentValue && currentValue !== "ALL" && titlesSet.has(currentValue)) {
+    select.value = currentValue;
+  } else {
+    select.value = "ALL";
+  }
+}
+
+function renderPagination(totalPages) {
+  const container = document.getElementById("paginationControls");
+  if (!container) return;
+
+  if (!totalPages || totalPages <= 1) {
+    container.innerHTML = "";
+    return;
+  }
+
+  const buttons = [];
+  buttons.push(
+    `<button class="px-3 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 mr-2 ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""}" ${
+      currentPage === 1 ? "disabled" : ""
+    } onclick="goToPage(${currentPage - 1})">Trước</button>`,
+  );
+
+  for (let i = 1; i <= totalPages; i++) {
+    buttons.push(
+      `<button class="px-3 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 mx-0.5 ${
+        i === currentPage
+          ? "bg-primary text-white border-primary"
+          : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200"
+      }" onclick="goToPage(${i})">${i}</button>`,
+    );
+  }
+
+  buttons.push(
+    `<button class="px-3 py-1 text-xs rounded border border-slate-300 dark:border-slate-600 ml-2 ${currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""}" ${
+      currentPage === totalPages ? "disabled" : ""
+    } onclick="goToPage(${currentPage + 1})">Sau</button>`,
+  );
+
+  container.innerHTML = buttons.join("");
+}
+
+function goToPage(page) {
+  currentPage = page;
+  renderPatientsTable();
 }
 
 function setLoading(isLoading) {

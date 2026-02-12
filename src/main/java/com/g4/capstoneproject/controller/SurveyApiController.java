@@ -96,6 +96,25 @@ public class SurveyApiController {
     }
 
     /**
+     * Sync survey response counts from Google Forms.
+     */
+    @PostMapping("/sync-responses")
+    public ResponseEntity<Map<String, Object>> syncSurveyResponses() {
+        try {
+            Map<String, Object> data = surveyService.syncResponseCountsFromGoogleForms();
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", data);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error syncing survey responses from Google Forms", e);
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
+    }
+
+    /**
      * Get survey by ID
      */
     @GetMapping("/{id}")
