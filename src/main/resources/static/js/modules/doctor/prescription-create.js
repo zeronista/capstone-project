@@ -1,7 +1,12 @@
 /**
  * Doctor Prescription Creation Module
- * Handles medication management, form validation, and prescription submission
+ * Handles medication management, autocomplete, AI suggestions, form validation, and prescription submission
  */
+
+// ==================== STATE MANAGEMENT ====================
+let currentSuggestion = null;
+let autocompleteTimeout = null;
+let activeAutocompleteField = null;
 
 /**
  * Toggle mobile sidebar
@@ -11,6 +16,8 @@ export function toggleMobileSidebar() {
     sidebar.classList.toggle("hidden");
 }
 
+// ==================== MEDICATION TABLE MANAGEMENT ====================
+
 /**
  * Add medication row to the table
  */
@@ -19,33 +26,35 @@ export function addMedicationRow() {
     const rowCount = tbody.querySelectorAll(".medication-row").length + 1;
 
     const newRow = document.createElement("tr");
-    newRow.className = "medication-row hover:bg-slate-50";
+    newRow.className = "medication-row bg-white dark:bg-[#1a2634] hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors";
     newRow.innerHTML = `
-        <td class="px-4 py-3 text-sm text-slate-600 row-number">${rowCount}</td>
-        <td class="px-4 py-3">
-            <input type="text" name="medicationName[]" required
-                   class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                   placeholder="Tên thuốc..." />
+        <td class="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 row-number">${rowCount}</td>
+        <td class="px-4 py-3 relative">
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">search</span>
+                <input type="text" name="medicationName[]" required
+                       class="medication-name-input w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors text-sm"
+                       placeholder="Tìm tên thuốc..."
+                       oninput="window.prescriptionCreate.handleMedicationSearch(this)"
+                       onfocus="window.prescriptionCreate.handleMedicationFocus(this)"
+                       onblur="window.prescriptionCreate.handleMedicationBlur(this)" />
+                <div class="autocomplete-dropdown hidden absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-10"></div>
+            </div>
         </td>
         <td class="px-4 py-3">
             <input type="number" name="quantity[]" required min="1" value="1"
-                   class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                   placeholder="SL" />
-        </td>
-        <td class="px-4 py-3">
-            <input type="text" name="dosage[]" required
-                   class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                   placeholder="Ví dụ: 500mg" />
+                   class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors text-sm text-center"
+                   placeholder="1" />
         </td>
         <td class="px-4 py-3">
             <input type="text" name="instructions[]"
-                   class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
-                   placeholder="Ngày 2 lần, sau ăn..." />
+                   class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors text-sm"
+                   placeholder="VD: Sáng 1 viên sau ăn" />
         </td>
         <td class="px-4 py-3 text-center">
             <button type="button" onclick="window.prescriptionCreate.removeMedicationRow(this)"
-                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                <span class="material-symbols-outlined text-lg">delete</span>
+                    class="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-[20px]">delete</span>
             </button>
         </td>
     `;
@@ -65,7 +74,7 @@ export function removeMedicationRow(button) {
         button.closest("tr").remove();
         updateRowNumbers();
     } else {
-        alert("Phải có ít nhất một loại thuốc trong đơn!");
+        showToast("Phải có ít nhất một loại thuốc trong đơn!", "error");
     }
 }
 
@@ -79,40 +88,256 @@ function updateRowNumbers() {
     });
 }
 
-/**
- * Setup revisit date toggle
- */
-function setupRevisitToggle() {
-    const revisitCheckbox = document.querySelector('input[name="requireRevisit"]');
-    const revisitDateField = document.getElementById("revisitDateField");
+// ==================== AUTOCOMPLETE FUNCTIONALITY ====================
 
-    if (revisitCheckbox) {
-        revisitCheckbox.addEventListener("change", function () {
-            if (this.checked) {
-                revisitDateField.classList.remove("hidden");
-                revisitDateField.querySelector("input").required = true;
-            } else {
-                revisitDateField.classList.add("hidden");
-                revisitDateField.querySelector("input").required = false;
-            }
-        });
+/**
+ * Handle medication search input with debouncing
+ */
+export function handleMedicationSearch(input) {
+    clearTimeout(autocompleteTimeout);
+    const query = input.value.trim();
+
+    if (query.length < 2) {
+        hideAutocompleteDropdown(input);
+        return;
     }
+
+    autocompleteTimeout = setTimeout(() => {
+        searchMedications(input, query);
+    }, 300);
+}
+
+/**
+ * Search medications via API
+ */
+async function searchMedications(input, query) {
+    try {
+        // Mock API call - replace with actual endpoint when available
+        // const response = await fetch(`/api/medications/search?query=${encodeURIComponent(query)}`);
+        // const data = await response.json();
+        
+        // Mock data for demonstration
+        const mockMedications = [
+            { id: 1, name: "Paracetamol 500mg", description: "Thuốc hạ sốt, giảm đau" },
+            { id: 2, name: "Ibuprofen 400mg", description: "Thuốc chống viêm" },
+            { id: 3, name: "Amoxicillin 500mg", description: "Kháng sinh" },
+            { id: 4, name: "Vitamin C 1000mg", description: "Bổ sung vitamin" },
+            { id: 5, name: "Omeprazole 20mg", description: "Thuốc dạ dày" }
+        ].filter(med => med.name.toLowerCase().includes(query.toLowerCase()));
+
+        showAutocompleteDropdown(input, mockMedications);
+    } catch (error) {
+        console.error("Error searching medications:", error);
+        hideAutocompleteDropdown(input);
+    }
+}
+
+/**
+ * Show autocomplete dropdown with results
+ */
+function showAutocompleteDropdown(input, medications) {
+    const dropdown = input.parentElement.querySelector('.autocomplete-dropdown');
+    
+    if (medications.length === 0) {
+        dropdown.innerHTML = `
+            <div class="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">
+                Không tìm thấy thuốc phù hợp
+            </div>
+        `;
+    } else {
+        dropdown.innerHTML = medications.map(med => `
+            <div class="autocomplete-item px-4 py-2.5 cursor-pointer transition-colors text-sm" 
+                 data-med-id="${med.id}" 
+                 data-med-name="${med.name}"
+                 onmousedown="window.prescriptionCreate.selectMedication(this, '${med.name}')">
+                <div class="font-medium text-slate-900 dark:text-white">${med.name}</div>
+                <div class="text-xs text-slate-500 dark:text-slate-400">${med.description}</div>
+            </div>
+        `).join('');
+    }
+    
+    dropdown.classList.remove('hidden');
+    activeAutocompleteField = input;
+}
+
+/**
+ * Hide autocomplete dropdown
+ */
+function hideAutocompleteDropdown(input) {
+    const dropdown = input.parentElement.querySelector('.autocomplete-dropdown');
+    if (dropdown) {
+        dropdown.classList.add('hidden');
+    }
+}
+
+/**
+ * Handle medication field focus
+ */
+export function handleMedicationFocus(input) {
+    if (input.value.trim().length >= 2) {
+        handleMedicationSearch(input);
+    }
+}
+
+/**
+ * Handle medication field blur with delay for click
+ */
+export function handleMedicationBlur(input) {
+    setTimeout(() => {
+        if (activeAutocompleteField === input) {
+            hideAutocompleteDropdown(input);
+            activeAutocompleteField = null;
+        }
+    }, 200);
+}
+
+/**
+ * Select medication from autocomplete
+ */
+export function selectMedication(element, name) {
+    if (activeAutocompleteField) {
+        activeAutocompleteField.value = name;
+        hideAutocompleteDropdown(activeAutocompleteField);
+        activeAutocompleteField = null;
+    }
+}
+
+// ==================== AI SUGGESTION FUNCTIONALITY ====================
+
+/**
+ * Load AI suggestions based on diagnosis
+ */
+async function loadAISuggestions(diagnosis) {
+    if (!diagnosis || diagnosis.trim().length < 5) {
+        return;
+    }
+
+    try {
+        // Mock AI suggestion - replace with actual API when available
+        // const response = await fetch(`/api/ai/prescription-suggestions?diagnosis=${encodeURIComponent(diagnosis)}`);
+        // const data = await response.json();
+        
+        // Mock suggestion based on common conditions
+        const mockSuggestion = generateMockSuggestion(diagnosis);
+        
+        if (mockSuggestion) {
+            showAISuggestion(mockSuggestion);
+        }
+    } catch (error) {
+        console.error("Error loading AI suggestions:", error);
+    }
+}
+
+/**
+ * Generate mock AI suggestion based on diagnosis keywords
+ */
+function generateMockSuggestion(diagnosis) {
+    const diagnosisLower = diagnosis.toLowerCase();
+    
+    if (diagnosisLower.includes("đái tháo đường") || diagnosisLower.includes("tiểu đường")) {
+        return {
+            text: "Dựa trên phác đồ điều trị cho <strong>Đái tháo đường</strong>. Đề xuất thêm <strong>Metformin 500mg</strong> vào đơn thuốc để kiểm soát đường huyết.",
+            medication: {
+                name: "Metformin 500mg",
+                quantity: 60,
+                instructions: "Sáng 1 viên, tối 1 viên sau ăn"
+            }
+        };
+    } else if (diagnosisLower.includes("huyết áp") || diagnosisLower.includes("cao huyết áp")) {
+        return {
+            text: "Dựa trên phác đồ điều trị cho <strong>Cao huyết áp</strong>. Đề xuất thêm <strong>Amlodipine 5mg</strong> vào đơn thuốc để kiểm soát huyết áp.",
+            medication: {
+                name: "Amlodipine 5mg",
+                quantity: 30,
+                instructions: "Sáng 1 viên trước ăn"
+            }
+        };
+    } else if (diagnosisLower.includes("ho") || diagnosisLower.includes("cảm")) {
+        return {
+            text: "Dựa trên triệu chứng <strong>Ho và cảm cúm</strong>. Đề xuất thêm <strong>Vitamin C 1000mg</strong> vào đơn thuốc để tăng cường miễn dịch.",
+            medication: {
+                name: "Vitamin C 1000mg",
+                quantity: 30,
+                instructions: "Ngày 1 viên sau ăn sáng"
+            }
+        };
+    }
+    
+    return null;
+}
+
+/**
+ * Show AI suggestion box
+ */
+function showAISuggestion(suggestion) {
+    currentSuggestion = suggestion;
+    const box = document.getElementById("aiSuggestionBox");
+    const textElement = document.getElementById("aiSuggestionText");
+    
+    textElement.innerHTML = suggestion.text;
+    box.classList.remove("hidden");
+}
+
+/**
+ * Apply AI suggestion to medication table
+ */
+export function applySuggestion() {
+    if (!currentSuggestion || !currentSuggestion.medication) {
+        showToast("Không có gợi ý để áp dụng", "error");
+        return;
+    }
+
+    // Add a new medication row with the suggestion
+    addMedicationRow();
+    
+    // Get the last row (newly added)
+    const tbody = document.getElementById("medicationTableBody");
+    const rows = tbody.querySelectorAll(".medication-row");
+    const lastRow = rows[rows.length - 1];
+    
+    // Fill in the suggestion data
+    const nameInput = lastRow.querySelector('input[name="medicationName[]"]');
+    const quantityInput = lastRow.querySelector('input[name="quantity[]"]');
+    const instructionsInput = lastRow.querySelector('input[name="instructions[]"]');
+    
+    nameInput.value = currentSuggestion.medication.name;
+    quantityInput.value = currentSuggestion.medication.quantity;
+    instructionsInput.value = currentSuggestion.medication.instructions;
+    
+    // Hide the suggestion box
+    document.getElementById("aiSuggestionBox").classList.add("hidden");
+    currentSuggestion = null;
+    
+    showToast("Đã áp dụng gợi ý từ AI", "success");
+}
+
+// ==================== VALIDATION ====================
+
+/**
+ * Clear all validation errors
+ */
+function clearAllErrors() {
+    document.querySelectorAll(".field-error").forEach((el) => el.remove());
+    document.querySelectorAll(".border-red-500").forEach((el) => {
+        el.classList.remove("border-red-500", "focus:ring-red-500", "focus:border-red-500");
+        el.classList.add("border-slate-300", "dark:border-slate-700");
+    });
 }
 
 /**
  * Show field-level error
  */
 function showFieldError(fieldName, message) {
-    const field = document.querySelector(`[name="${fieldName}"]`);
+    const field = document.querySelector(`[name="${fieldName}"]`) || document.getElementById(fieldName);
     if (!field) return;
 
     clearFieldError(fieldName);
 
     field.classList.add("border-red-500", "focus:ring-red-500", "focus:border-red-500");
-    field.classList.remove("border-slate-300");
+    field.classList.remove("border-slate-300", "dark:border-slate-700");
 
     const errorDiv = document.createElement("div");
-    errorDiv.className = "field-error text-red-600 text-xs mt-1 flex items-start gap-1";
+    errorDiv.className = "field-error text-red-600 dark:text-red-400 text-xs mt-1 flex items-start gap-1";
     errorDiv.innerHTML = `
         <span class="material-symbols-outlined text-sm">error</span>
         <span>${message}</span>
@@ -124,27 +349,16 @@ function showFieldError(fieldName, message) {
  * Clear field-level error
  */
 function clearFieldError(fieldName) {
-    const field = document.querySelector(`[name="${fieldName}"]`);
+    const field = document.querySelector(`[name="${fieldName}"]`) || document.getElementById(fieldName);
     if (!field) return;
 
     field.classList.remove("border-red-500", "focus:ring-red-500", "focus:border-red-500");
-    field.classList.add("border-slate-300");
+    field.classList.add("border-slate-300", "dark:border-slate-700");
 
     const errorDiv = field.parentElement.querySelector(".field-error");
     if (errorDiv) {
         errorDiv.remove();
     }
-}
-
-/**
- * Clear all validation errors
- */
-function clearAllErrors() {
-    document.querySelectorAll(".field-error").forEach((el) => el.remove());
-    document.querySelectorAll(".border-red-500").forEach((el) => {
-        el.classList.remove("border-red-500", "focus:ring-red-500", "focus:border-red-500");
-        el.classList.add("border-slate-300");
-    });
 }
 
 /**
@@ -174,9 +388,6 @@ function validateMedication(med) {
     }
     if (!med.quantity || med.quantity < 1 || med.quantity > 1000) {
         errors.push("Số lượng phải từ 1 đến 1000");
-    }
-    if (!med.dosage || med.dosage.trim().length === 0) {
-        errors.push("Liều dùng không được để trống");
     }
     if (med.instructions && med.instructions.length > 500) {
         errors.push("Hướng dẫn sử dụng không được vượt quá 500 ký tự");
@@ -209,10 +420,7 @@ function validateForm(data) {
         });
     }
 
-    // Validate revisit date
-    if (data.requireRevisit && !data.revisitDate) {
-        errors.revisitDate = ["Vui lòng chọn ngày tái khám"];
-    }
+    // Validate revisit date if provided
     if (data.revisitDate) {
         const revisitDateObj = new Date(data.revisitDate);
         const today = new Date();
@@ -242,7 +450,7 @@ function displayValidationErrors(errors) {
                 if (nameField) {
                     nameField.classList.add("border-red-500");
                     const errorDiv = document.createElement("div");
-                    errorDiv.className = "field-error text-red-600 text-xs mt-1";
+                    errorDiv.className = "field-error text-red-600 dark:text-red-400 text-xs mt-1";
                     errorDiv.textContent = message;
                     nameField.parentElement.appendChild(errorDiv);
                 }
@@ -252,8 +460,11 @@ function displayValidationErrors(errors) {
             const existingError = table.previousElementSibling;
             if (!existingError || !existingError.classList.contains("medication-table-error")) {
                 const errorDiv = document.createElement("div");
-                errorDiv.className = "medication-table-error bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4";
-                errorDiv.textContent = message;
+                errorDiv.className = "medication-table-error bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg mb-4 flex items-center gap-2";
+                errorDiv.innerHTML = `
+                    <span class="material-symbols-outlined">error</span>
+                    <span>${message}</span>
+                `;
                 table.parentElement.insertBefore(errorDiv, table);
             }
         } else {
@@ -269,22 +480,34 @@ function displayValidationErrors(errors) {
     showToast("Vui lòng kiểm tra lại các trường đã nhập", "error");
 }
 
+// ==================== TOAST NOTIFICATIONS ====================
+
 /**
  * Show toast notification
  */
 function showToast(message, type = "info") {
+    const container = document.getElementById("toastContainer");
+    
     const toast = document.createElement("div");
-    toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white z-50 animate-slide-in ${
+    toast.className = `toast-enter flex items-center gap-3 px-6 py-3 rounded-lg shadow-lg text-white ${
         type === "error" ? "bg-red-500" : type === "success" ? "bg-green-500" : "bg-blue-500"
     }`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
+    
+    const icon = type === "error" ? "error" : type === "success" ? "check_circle" : "info";
+    toast.innerHTML = `
+        <span class="material-symbols-outlined text-[20px]">${icon}</span>
+        <span class="font-medium">${message}</span>
+    `;
+    
+    container.appendChild(toast);
 
     setTimeout(() => {
-        toast.classList.add("animate-fade-out");
+        toast.classList.add("toast-exit");
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
+
+// ==================== FORM SUBMISSION ====================
 
 /**
  * Setup form submission handler
@@ -303,7 +526,7 @@ function setupFormSubmission() {
         const urlParams = new URLSearchParams(window.location.search);
         const patientId = urlParams.get("patientId");
 
-        // Get doctor ID from Thymeleaf model
+        // Get doctor ID from hidden field
         const doctorIdElement = document.getElementById("doctorId");
         const doctorId = doctorIdElement ? parseInt(doctorIdElement.value) : null;
 
@@ -311,8 +534,8 @@ function setupFormSubmission() {
             patientId: patientId ? parseInt(patientId) : null,
             doctorId: doctorId,
             diagnosis: formData.get("diagnosis"),
+            symptoms: formData.get("symptoms") || "",
             notes: formData.get("notes") || "",
-            requireRevisit: formData.get("requireRevisit") === "on",
             revisitDate: formData.get("revisitDate") || null,
             medications: [],
         };
@@ -320,7 +543,6 @@ function setupFormSubmission() {
         // Collect medications
         const medicationNames = formData.getAll("medicationName[]");
         const quantities = formData.getAll("quantity[]");
-        const dosages = formData.getAll("dosage[]");
         const instructions = formData.getAll("instructions[]");
 
         for (let i = 0; i < medicationNames.length; i++) {
@@ -328,7 +550,7 @@ function setupFormSubmission() {
                 data.medications.push({
                     name: medicationNames[i].trim(),
                     quantity: parseInt(quantities[i]) || 1,
-                    dosage: dosages[i].trim(),
+                    dosage: "N/A", // For backward compatibility
                     instructions: instructions[i].trim() || "",
                 });
             }
@@ -359,7 +581,11 @@ function setupFormSubmission() {
                 showToast("Đơn thuốc đã được lưu thành công!", "success");
 
                 setTimeout(() => {
-                    window.location.href = `/doctor/patients?id=${patientId}`;
+                    if (patientId) {
+                        window.location.href = `/doctor/patients?id=${patientId}`;
+                    } else {
+                        window.location.href = `/doctor/prescriptions`;
+                    }
                 }, 1500);
             } else {
                 const errorData = await response.json();
@@ -381,9 +607,51 @@ function setupFormSubmission() {
 }
 
 /**
+ * Setup diagnosis AI listener
+ */
+function setupDiagnosisAIListener() {
+    const diagnosisInput = document.getElementById("mainDiagnosis");
+    if (!diagnosisInput) return;
+
+    let diagnosisTimeout;
+    diagnosisInput.addEventListener("input", function() {
+        clearTimeout(diagnosisTimeout);
+        diagnosisTimeout = setTimeout(() => {
+            loadAISuggestions(this.value);
+        }, 1000);
+    });
+}
+
+/**
+ * Setup follow-up date minimum
+ */
+function setupFollowUpDate() {
+    const followUpInput = document.getElementById("followUpDate");
+    if (!followUpInput) return;
+
+    // Set minimum date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const minDate = tomorrow.toISOString().split('T')[0];
+    followUpInput.setAttribute('min', minDate);
+}
+
+// ==================== INITIALIZATION ====================
+
+/**
  * Initialize the prescription creation module
  */
 export function init() {
-    setupRevisitToggle();
+    console.log("Initializing prescription creation module");
+    
+    // Initialize with 2 empty medication rows
+    addMedicationRow();
+    addMedicationRow();
+    
+    // Setup form handlers
     setupFormSubmission();
+    setupDiagnosisAIListener();
+    setupFollowUpDate();
+    
+    console.log("Prescription creation module initialized");
 }

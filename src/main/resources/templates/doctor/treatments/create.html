@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Tạo Kế Hoạch Điều Trị - ABClinic</title>
+    <!-- Theme Controller - MUST be first to prevent flash -->
+    <script th:src="@{/js/core/theme-controller.js}"></script>
+
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#0d7cf2",
+              "primary-dark": "#0a62bf",
+              "background-light": "#f5f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              display: ["Roboto", "sans-serif"],
+              sans: ["Roboto", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 24px;
+      }
+      .material-symbols-outlined.fill {
+        font-variation-settings: "FILL" 1;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display h-screen flex overflow-hidden"
+  >
+    <!-- Mobile Sidebar Backdrop -->
+    <div
+      th:replace="~{fragments/doctor-layout :: doctor-sidebar-backdrop}"
+    ></div>
+
+    <!-- Doctor Sidebar -->
+    <aside th:replace="~{fragments/doctor-layout :: doctor-sidebar}"></aside>
+
+    <main
+      class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark"
+    >
+      <!-- Header -->
+      <header
+        th:replace="~{fragments/header/unified-header :: unified-header}"
+      ></header>
+
+      <!-- Main Content -->
+      <div class="flex-1 overflow-y-auto">
+        <div class="h-full lg:flex">
+          <!-- Patient Info Sidebar - 1/3 -->
+          <div
+            class="lg:w-1/3 bg-white dark:bg-[#1a2634] border-r border-slate-200 dark:border-slate-800 p-6 space-y-6"
+          >
+            <div class="flex items-center justify-between mb-6">
+              <h2 class="text-lg font-bold text-slate-900 dark:text-white">
+                Thông tin bệnh nhân
+              </h2>
+              <a
+                href="/doctor/patients"
+                class="text-sm text-primary hover:text-primary-dark font-medium"
+              >
+                Quay lại
+              </a>
+            </div>
+
+            <!-- Patient Card -->
+            <div th:if="${patient != null}">
+              <!-- Avatar & Basic Info -->
+              <div class="text-center mb-6">
+                <div
+                  class="w-24 h-24 mx-auto mb-4 rounded-full ring-4 ring-primary-50 overflow-hidden"
+                  th:if="${patient.avatarUrl != null}"
+                >
+                  <img
+                    th:src="${patient.avatarUrl}"
+                    alt="Avatar"
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+                <div
+                  class="w-24 h-24 mx-auto mb-4 rounded-full ring-4 ring-primary-50 bg-slate-100 flex items-center justify-center"
+                  th:if="${patient.avatarUrl == null}"
+                >
+                  <span
+                    class="text-3xl font-bold text-slate-400"
+                    th:text="${patient.fullName != null ? #strings.substring(patient.fullName, 0, 1) : 'P'}"
+                    >P</span
+                  >
+                </div>
+                <h3
+                  class="text-xl font-bold text-slate-900 dark:text-white mb-1"
+                  th:text="${patient.fullName}"
+                >
+                  Nguyễn Văn A
+                </h3>
+                <div
+                  class="flex items-center justify-center gap-2 text-sm text-slate-600 dark:text-slate-400"
+                >
+                  <span class="material-symbols-outlined text-sm">badge</span>
+                  <span th:text="'ID: ' + ${patient.id}">ID: 001</span>
+                </div>
+              </div>
+
+              <!-- Contact Info -->
+              <div class="space-y-3 mb-6">
+                <div class="flex items-start gap-3">
+                  <span
+                    class="material-symbols-outlined text-slate-400 dark:text-slate-500 text-lg"
+                    >phone</span
+                  >
+                  <div>
+                    <div
+                      class="text-xs text-slate-500 dark:text-slate-400 mb-0.5"
+                    >
+                      Số điện thoại
+                    </div>
+                    <div
+                      class="text-sm font-medium text-slate-900 dark:text-white"
+                      th:text="${patient.phoneNumber != null ? patient.phoneNumber : 'Chưa cập nhật'}"
+                    >
+                      0123456789
+                    </div>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="material-symbols-outlined text-slate-400 text-lg"
+                    >mail</span
+                  >
+                  <div>
+                    <div class="text-xs text-slate-500 mb-0.5">Email</div>
+                    <div
+                      class="text-sm font-medium text-slate-900 break-all"
+                      th:text="${patient.email}"
+                    >
+                      patient@example.com
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="flex items-start gap-3"
+                  th:if="${patient.dateOfBirth != null}"
+                >
+                  <span class="material-symbols-outlined text-slate-400 text-lg"
+                    >cake</span
+                  >
+                  <div>
+                    <div class="text-xs text-slate-500 mb-0.5">Ngày sinh</div>
+                    <div
+                      class="text-sm font-medium text-slate-900"
+                      th:text="${#temporals.format(patient.dateOfBirth, 'dd/MM/yyyy')}"
+                    >
+                      01/01/1990
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="flex items-start gap-3"
+                  th:if="${patient.gender != null}"
+                >
+                  <span class="material-symbols-outlined text-slate-400 text-lg"
+                    >wc</span
+                  >
+                  <div>
+                    <div class="text-xs text-slate-500 mb-0.5">Giới tính</div>
+                    <div
+                      class="text-sm font-medium text-slate-900"
+                      th:text="${patient.gender.name() == 'MALE' ? 'Nam' : (patient.gender.name() == 'FEMALE' ? 'Nữ' : 'Khác')}"
+                    >
+                      Nam
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="flex items-start gap-3"
+                  th:if="${patient.address != null}"
+                >
+                  <span class="material-symbols-outlined text-slate-400 text-lg"
+                    >location_on</span
+                  >
+                  <div>
+                    <div class="text-xs text-slate-500 mb-0.5">Địa chỉ</div>
+                    <div
+                      class="text-sm font-medium text-slate-900"
+                      th:text="${patient.address}"
+                    >
+                      123 Đường ABC
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Existing Treatment Plans -->
+              <div
+                th:if="${existingPlans != null && !existingPlans.empty}"
+                class="bg-amber-50 border border-amber-200 rounded-lg p-4"
+              >
+                <div class="flex items-start gap-3">
+                  <span class="material-symbols-outlined text-amber-600 text-lg"
+                    >info</span
+                  >
+                  <div>
+                    <div class="text-sm font-semibold text-amber-900 mb-1">
+                      Kế hoạch điều trị hiện có
+                    </div>
+                    <div
+                      class="text-sm text-amber-700"
+                      th:text="${#lists.size(existingPlans)} + ' kế hoạch'"
+                    >
+                      2 kế hoạch
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- No Patient Selected -->
+            <div th:if="${patient == null}" class="text-center py-12">
+              <span
+                class="material-symbols-outlined text-slate-300 text-6xl mb-4"
+                >person_off</span
+              >
+              <div class="text-slate-600 font-medium mb-2">
+                Chưa chọn bệnh nhân
+              </div>
+              <div class="text-sm text-slate-500 mb-4">
+                Vui lòng chọn bệnh nhân từ danh sách
+              </div>
+              <a
+                href="/doctor/patients"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
+              >
+                <span class="material-symbols-outlined text-lg">group</span>
+                <span>Chọn bệnh nhân</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Treatment Plan Form - 2/3 -->
+          <div class="lg:w-2/3 bg-slate-50 dark:bg-slate-900/30 p-6">
+            <form id="treatmentPlanForm" th:if="${patient != null}">
+              <input type="hidden" name="patientId" th:value="${patient.id}" />
+
+              <!-- Form Header -->
+              <div
+                class="bg-white dark:bg-[#1a2634] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 mb-6"
+              >
+                <h2
+                  class="text-xl font-bold text-slate-900 dark:text-white mb-4"
+                >
+                  Tạo Kế Hoạch Điều Trị
+                </h2>
+
+                <!-- Diagnosis Input -->
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-slate-700 mb-2">
+                    <span class="material-symbols-outlined text-sm align-middle"
+                      >clinical_notes</span
+                    >
+                    Chẩn đoán <span class="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    name="diagnosis"
+                    required
+                    rows="3"
+                    class="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all resize-none"
+                    placeholder="Nhập chẩn đoán bệnh..."
+                  ></textarea>
+                </div>
+
+                <!-- Treatment Goal -->
+                <div class="mb-4">
+                  <label class="block text-sm font-medium text-slate-700 mb-2">
+                    <span class="material-symbols-outlined text-sm align-middle"
+                      >target</span
+                    >
+                    Mục tiêu điều trị <span class="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    name="treatmentGoal"
+                    required
+                    rows="2"
+                    class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all resize-none"
+                    placeholder="Mô tả mục tiêu điều trị cần đạt được..."
+                  ></textarea>
+                </div>
+
+                <!-- Date Range -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-slate-700 mb-2"
+                    >
+                      <span
+                        class="material-symbols-outlined text-sm align-middle"
+                        >event</span
+                      >
+                      Ngày bắt đầu <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      name="startDate"
+                      required
+                      class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-medium text-slate-700 mb-2"
+                    >
+                      <span
+                        class="material-symbols-outlined text-sm align-middle"
+                        >event_upcoming</span
+                      >
+                      Ngày kết thúc dự kiến
+                    </label>
+                    <input
+                      type="date"
+                      name="expectedEndDate"
+                      class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Treatment Items Table -->
+              <div
+                class="bg-white dark:bg-[#1a2634] rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden mb-6"
+              >
+                <div
+                  class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between sticky top-0 bg-white dark:bg-[#1a2634] z-10"
+                >
+                  <h3 class="font-semibold text-slate-900 dark:text-white">
+                    Danh sách mục điều trị
+                  </h3>
+                  <button
+                    type="button"
+                    onclick="addTreatmentItemRow()"
+                    class="flex items-center gap-2 px-3 py-1.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
+                  >
+                    <span class="material-symbols-outlined text-lg">add</span>
+                    <span>Thêm mục</span>
+                  </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                  <table class="w-full">
+                    <thead class="bg-slate-50">
+                      <tr>
+                        <th
+                          class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-10"
+                        >
+                          STT
+                        </th>
+                        <th
+                          class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-32"
+                        >
+                          Loại
+                        </th>
+                        <th
+                          class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider"
+                        >
+                          Mô tả
+                        </th>
+                        <th
+                          class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-32"
+                        >
+                          Tần suất
+                        </th>
+                        <th
+                          class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-32"
+                        >
+                          Thời gian
+                        </th>
+                        <th
+                          class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-40"
+                        >
+                          Ghi chú
+                        </th>
+                        <th
+                          class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider w-16"
+                        >
+                          Xóa
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody
+                      id="treatmentItemsBody"
+                      class="divide-y divide-slate-200"
+                    >
+                      <!-- Dynamic rows will be added here -->
+                    </tbody>
+                  </table>
+                </div>
+
+                <div
+                  id="emptyState"
+                  class="p-8 text-center border-t border-slate-200"
+                >
+                  <span
+                    class="material-symbols-outlined text-slate-300 text-5xl mb-3"
+                    >assignment</span
+                  >
+                  <div class="text-slate-600 font-medium mb-2">
+                    Chưa có mục điều trị
+                  </div>
+                  <div class="text-sm text-slate-500 mb-4">
+                    Nhấn "Thêm mục" để bắt đầu xây dựng kế hoạch
+                  </div>
+                </div>
+              </div>
+
+              <!-- Form Actions -->
+              <div class="flex justify-end gap-3">
+                <a
+                  th:href="@{/doctor/patients/{id}(id=${patient.id})}"
+                  class="px-6 py-2.5 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium"
+                >
+                  Hủy
+                </a>
+                <button
+                  type="button"
+                  onclick="saveDraft()"
+                  class="px-6 py-2.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors font-medium flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-lg">save</span>
+                  Lưu nháp
+                </button>
+                <button
+                  type="submit"
+                  class="px-6 py-2.5 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-lg"
+                    >check_circle</span
+                  >
+                  Tạo kế hoạch
+                </button>
+              </div>
+            </form>
+
+            <!-- No Patient State -->
+            <div
+              th:if="${patient == null}"
+              class="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center"
+            >
+              <span
+                class="material-symbols-outlined text-slate-300 text-6xl mb-4"
+                >assignment</span
+              >
+              <div class="text-slate-600 font-medium mb-2">
+                Chọn bệnh nhân để tạo kế hoạch điều trị
+              </div>
+              <div class="text-sm text-slate-500">
+                Thông tin bệnh nhân sẽ được hiển thị ở đây
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div
+      id="toast"
+      class="fixed bottom-4 right-4 z-50 transform translate-x-full opacity-0 transition-all duration-300"
+    >
+      <div
+        id="toastContent"
+        class="flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border"
+      >
+        <span id="toastIcon" class="material-symbols-outlined text-lg"></span>
+        <span id="toastMessage" class="text-sm font-medium"></span>
+      </div>
+    </div>
+
+    <script th:inline="javascript">
+      const patientId = /*[[${patient?.id}]]*/ null;
+      let itemCount = 0;
+
+      const itemTypes = [
+        { value: "MEDICATION", label: "Thuốc", icon: "medication" },
+        { value: "THERAPY", label: "Liệu pháp", icon: "healing" },
+        { value: "LIFESTYLE", label: "Lối sống", icon: "self_improvement" },
+        { value: "CHECKUP", label: "Tái khám", icon: "event" },
+      ];
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Set default start date to today
+        const today = new Date().toISOString().split("T")[0];
+        const startDateInput = document.querySelector(
+          'input[name="startDate"]',
+        );
+        if (startDateInput) {
+          startDateInput.value = today;
+        }
+
+        // Initialize form submission
+        const form = document.getElementById("treatmentPlanForm");
+        if (form) {
+          form.addEventListener("submit", handleSubmit);
+        }
+      });
+
+      function addTreatmentItemRow() {
+        itemCount++;
+        const tbody = document.getElementById("treatmentItemsBody");
+        const emptyState = document.getElementById("emptyState");
+
+        if (emptyState) {
+          emptyState.classList.add("hidden");
+        }
+
+        const row = document.createElement("tr");
+        row.className = "hover:bg-slate-50";
+        row.id = `item-row-${itemCount}`;
+
+        row.innerHTML = `
+          <td class="px-4 py-3 text-sm font-medium text-slate-900">${itemCount}</td>
+          <td class="px-4 py-3">
+            <select name="items[${itemCount - 1}].itemType" required
+              class="w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none">
+              ${itemTypes.map((t) => `<option value="${t.value}">${t.label}</option>`).join("")}
+            </select>
+          </td>
+          <td class="px-4 py-3">
+            <input type="text" name="items[${itemCount - 1}].description" required
+              class="w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              placeholder="Mô tả chi tiết..." />
+          </td>
+          <td class="px-4 py-3">
+            <input type="text" name="items[${itemCount - 1}].frequency"
+              class="w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              placeholder="VD: 2 lần/ngày" />
+          </td>
+          <td class="px-4 py-3">
+            <input type="text" name="items[${itemCount - 1}].duration"
+              class="w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              placeholder="VD: 7 ngày" />
+          </td>
+          <td class="px-4 py-3">
+            <input type="text" name="items[${itemCount - 1}].notes"
+              class="w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              placeholder="Ghi chú..." />
+          </td>
+          <td class="px-4 py-3 text-center">
+            <button type="button" onclick="removeItemRow(${itemCount})"
+              class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+              <span class="material-symbols-outlined text-lg">delete</span>
+            </button>
+          </td>
+        `;
+
+        tbody.appendChild(row);
+      }
+
+      function removeItemRow(index) {
+        const row = document.getElementById(`item-row-${index}`);
+        if (row) {
+          row.remove();
+
+          // Update row numbers
+          const rows = document.querySelectorAll("#treatmentItemsBody tr");
+          if (rows.length === 0) {
+            document.getElementById("emptyState").classList.remove("hidden");
+          } else {
+            rows.forEach((r, i) => {
+              r.querySelector("td:first-child").textContent = i + 1;
+            });
+          }
+        }
+      }
+
+      function collectFormData(status = "ACTIVE") {
+        const form = document.getElementById("treatmentPlanForm");
+        const formData = new FormData(form);
+
+        const items = [];
+        const rows = document.querySelectorAll("#treatmentItemsBody tr");
+        rows.forEach((row, index) => {
+          const itemType = row.querySelector(`select[name*="itemType"]`)?.value;
+          const description = row.querySelector(
+            `input[name*="description"]`,
+          )?.value;
+          const frequency = row.querySelector(
+            `input[name*="frequency"]`,
+          )?.value;
+          const duration = row.querySelector(`input[name*="duration"]`)?.value;
+          const notes = row.querySelector(`input[name*="notes"]`)?.value;
+
+          if (itemType && description) {
+            items.push({
+              itemType,
+              description,
+              frequency: frequency || null,
+              duration: duration || null,
+              notes: notes || null,
+              status: "PENDING",
+            });
+          }
+        });
+
+        return {
+          patientId: patientId,
+          diagnosis: formData.get("diagnosis"),
+          treatmentGoal: formData.get("treatmentGoal"),
+          startDate: formData.get("startDate"),
+          expectedEndDate: formData.get("expectedEndDate") || null,
+          status: status,
+          items: items,
+        };
+      }
+
+      async function handleSubmit(e) {
+        e.preventDefault();
+
+        const data = collectFormData("ACTIVE");
+
+        if (!data.diagnosis || !data.treatmentGoal || !data.startDate) {
+          showToast("Vui lòng điền đầy đủ thông tin bắt buộc", "error");
+          return;
+        }
+
+        if (data.items.length === 0) {
+          showToast("Vui lòng thêm ít nhất một mục điều trị", "error");
+          return;
+        }
+
+        try {
+          const response = await fetch("/api/doctor/treatments", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (!response.ok) {
+            const error = await response.text();
+            throw new Error(error || "Không thể tạo kế hoạch điều trị");
+          }
+
+          const result = await response.json();
+          showToast("Tạo kế hoạch điều trị thành công!", "success");
+
+          // Redirect after success
+          setTimeout(() => {
+            window.location.href = `/doctor/treatments/${result.id}`;
+          }, 1500);
+        } catch (error) {
+          console.error("Error:", error);
+          showToast(error.message || "Đã xảy ra lỗi", "error");
+        }
+      }
+
+      async function saveDraft() {
+        const data = collectFormData("DRAFT");
+
+        if (!data.diagnosis) {
+          showToast("Vui lòng nhập chẩn đoán", "error");
+          return;
+        }
+
+        try {
+          const response = await fetch("/api/doctor/treatments", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (!response.ok) {
+            throw new Error("Không thể lưu nháp");
+          }
+
+          const result = await response.json();
+          showToast("Đã lưu nháp kế hoạch điều trị!", "success");
+
+          setTimeout(() => {
+            window.location.href = `/doctor/treatments/${result.id}`;
+          }, 1500);
+        } catch (error) {
+          console.error("Error:", error);
+          showToast(error.message || "Đã xảy ra lỗi", "error");
+        }
+      }
+
+      function showToast(message, type = "info") {
+        const toast = document.getElementById("toast");
+        const content = document.getElementById("toastContent");
+        const icon = document.getElementById("toastIcon");
+        const msg = document.getElementById("toastMessage");
+
+        const config = {
+          success: {
+            bg: "bg-emerald-50",
+            text: "text-emerald-800",
+            border: "border-emerald-200",
+            icon: "check_circle",
+          },
+          error: {
+            bg: "bg-red-50",
+            text: "text-red-800",
+            border: "border-red-200",
+            icon: "error",
+          },
+          info: {
+            bg: "bg-blue-50",
+            text: "text-blue-800",
+            border: "border-blue-200",
+            icon: "info",
+          },
+        };
+
+        const c = config[type] || config.info;
+        content.className = `flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border ${c.bg} ${c.border}`;
+        icon.className = `material-symbols-outlined text-lg ${c.text}`;
+        icon.textContent = c.icon;
+        msg.className = `text-sm font-medium ${c.text}`;
+        msg.textContent = message;
+
+        toast.classList.remove("translate-x-full", "opacity-0");
+
+        setTimeout(() => {
+          toast.classList.add("translate-x-full", "opacity-0");
+        }, 3000);
+      }
+    </script>
+
+    <!-- Common Scripts -->
+    <th:block th:replace="~{fragments/doctor-layout :: scripts}"></th:block>
+  </body>
+</html>

@@ -104,6 +104,34 @@
             </p>
           </div>
 
+          <!-- Error State -->
+          <div
+            id="errorState"
+            class="hidden flex flex-col items-center justify-center py-20"
+          >
+            <span
+              class="material-symbols-outlined text-[64px] text-red-500 mb-4"
+              >error</span
+            >
+            <h3
+              class="text-xl font-semibold text-slate-900 dark:text-white mb-2"
+            >
+              Không thể tải dữ liệu
+            </h3>
+            <p
+              id="errorMessage"
+              class="text-slate-500 dark:text-slate-400 mb-6 text-center max-w-md"
+            >
+              Đã xảy ra lỗi khi tải thông tin bệnh nhân. Vui lòng thử lại.
+            </p>
+            <button
+              onclick="window.location.reload()"
+              class="bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-dark transition-colors"
+            >
+              Tải lại trang
+            </button>
+          </div>
+
           <!-- Content Container -->
           <div id="contentContainer" class="hidden">
             <!-- Back Button & Actions -->
@@ -307,7 +335,7 @@
 
               <!-- Stats Bar -->
               <div
-                class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800 rounded-b-xl"
+                class="grid grid-cols-3 gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-800 rounded-b-xl"
               >
                 <div class="text-center">
                   <p
@@ -329,14 +357,6 @@
                   </p>
                   <p class="text-xs text-slate-500 dark:text-slate-400">
                     Đơn thuốc
-                  </p>
-                </div>
-                <div class="text-center">
-                  <p id="statVitals" class="text-2xl font-bold text-purple-500">
-                    0
-                  </p>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">
-                    Lần đo sinh hiệu
                   </p>
                 </div>
                 <div class="text-center">
@@ -657,6 +677,15 @@
 
       // ==================== INITIALIZATION ====================
       document.addEventListener("DOMContentLoaded", function () {
+        console.log("Patient detail page loaded. Patient ID:", patientId);
+
+        // Validate patient ID
+        if (!patientId || patientId === 0) {
+          console.error("Invalid patient ID:", patientId);
+          showError("ID bệnh nhân không hợp lệ");
+          return;
+        }
+
         // ThemeController auto-initializes - no manual init needed
         loadPatientData();
         initVitalsForm();
@@ -665,12 +694,28 @@
       // ==================== DATA LOADING ====================
       async function loadPatientData() {
         try {
+          console.log("Fetching patient data for ID:", patientId);
           const response = await fetch(`/doctor/api/patients/${patientId}`);
+          console.log("Response status:", response.status);
+
           if (!response.ok) {
-            throw new Error("Failed to load patient data");
+            if (response.status === 401) {
+              console.error("Unauthorized - redirecting to login");
+              window.location.href = "/auth/login?expired=true";
+              return;
+            }
+            const errorText = await response.text();
+            console.error("API error:", response.status, errorText);
+            throw new Error(`Lỗi ${response.status}: ${errorText}`);
           }
 
           patientData = await response.json();
+          console.log("Patient data loaded:", patientData);
+
+          if (!patientData || !patientData.patient) {
+            throw new Error("Dữ liệu bệnh nhân không hợp lệ");
+          }
+
           renderPatientInfo();
           renderStats();
           renderVitals();
@@ -682,18 +727,30 @@
           document
             .getElementById("contentContainer")
             .classList.remove("hidden");
+          console.log("Patient detail page rendered successfully");
         } catch (error) {
           console.error("Error loading patient data:", error);
-          showToast("Không thể tải thông tin bệnh nhân", "error");
+          showError(error.message || "Không thể tải thông tin bệnh nhân");
         }
+      }
+
+      function showError(message) {
+        document.getElementById("loadingState").classList.add("hidden");
+        document.getElementById("errorState").classList.remove("hidden");
+        document.getElementById("errorMessage").textContent = message;
+        showToast(message, "error");
       }
 
       // ==================== RENDERING ====================
       function renderPatientInfo() {
         const patient = patientData.patient;
 
-        document.getElementById("breadcrumbName").textContent =
-          patient.fullName || "Bệnh nhân";
+        // Breadcrumb (optional - only if element exists)
+        const breadcrumb = document.getElementById("breadcrumbName");
+        if (breadcrumb) {
+          breadcrumb.textContent = patient.fullName || "Bệnh nhân";
+        }
+
         document.getElementById("patientName").textContent =
           patient.fullName || "Chưa có tên";
         document.getElementById("patientId").textContent = `ID: #${patient.id}`;
@@ -730,8 +787,6 @@
           stats.totalTreatmentPlans;
         document.getElementById("statPrescriptions").textContent =
           stats.totalPrescriptions;
-        document.getElementById("statVitals").textContent =
-          stats.totalVitalRecords;
         document.getElementById("statTickets").textContent = stats.openTickets;
       }
 
@@ -743,7 +798,7 @@
           container.innerHTML = `
             <div class="text-center py-8">
               <span class="material-symbols-outlined text-[48px] text-slate-300 dark:text-slate-600 mb-2">monitoring</span>
-              <p class="text-slate-500 dark:text-slate-400">Chưa có dữ liệu sinh hiệu</p>
+              <p class="text-slate-500 dark:text-slate-400">Chưa có lịch sử khám bệnh</p>
             </div>
           `;
           return;
@@ -997,7 +1052,9 @@
                 },
               );
 
-              if (!response.ok) throw new Error("Failed to save vitals");
+              if (!response.ok) {
+                throw new Error("Failed to save vitals");
+              }
 
               showToast("Đã lưu chỉ số sinh hiệu", "success");
               closeVitalsModal();

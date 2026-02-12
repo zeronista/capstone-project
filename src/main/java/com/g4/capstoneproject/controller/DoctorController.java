@@ -34,12 +34,14 @@ import com.g4.capstoneproject.service.TicketService;
 import com.g4.capstoneproject.service.TreatmentPlanService;
 import com.g4.capstoneproject.service.HealthForecastService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,6 +61,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/doctor")
 @PreAuthorize("hasRole('DOCTOR')")
 @RequiredArgsConstructor
+@Slf4j
 public class DoctorController {
 
     private final PrescriptionService prescriptionService;
@@ -325,6 +328,7 @@ public class DoctorController {
      */
     @GetMapping("/api/patients/{id}")
     @ResponseBody
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getPatientDetail(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -337,9 +341,12 @@ public class DoctorController {
 
         try {
             String username = userDetails.getUsername();
+            log.info("Loading patient detail - PatientID: {}, RequestedBy: {}", id, username);
+
             User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
 
             if (doctor == null) {
+                log.error("Doctor not found for username: {}", username);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(Map.of("error", "Unauthorized", "message", "Doctor not found"));
             }
@@ -347,6 +354,7 @@ public class DoctorController {
             // Get patient
             User patient = userRepository.findById(id).orElse(null);
             if (patient == null) {
+                log.warn("Patient not found with ID: {}", id);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("error", "Not Found", "message", "Patient not found"));
             }
@@ -367,7 +375,15 @@ public class DoctorController {
             result.put("patient", patientInfo);
 
             // Treatment plans for this patient
-            List<TreatmentPlan> plans = treatmentPlanService.getTreatmentPlansByPatientId(id);
+            List<TreatmentPlan> plans = null;
+            try {
+                plans = treatmentPlanService.getTreatmentPlansByPatientId(id);
+                log.debug("Found {} treatment plans for patient {}", plans != null ? plans.size() : 0, id);
+            } catch (Exception e) {
+                log.error("Error loading treatment plans for patient {}: {}", id, e.getMessage(), e);
+                plans = List.of(); // Use empty list on error
+            }
+
             List<Map<String, Object>> treatmentPlans = plans.stream().map(plan -> {
                 Map<String, Object> planData = new HashMap<>();
                 planData.put("id", plan.getId());
@@ -377,13 +393,28 @@ public class DoctorController {
                 planData.put("startDate", plan.getStartDate());
                 planData.put("expectedEndDate", plan.getExpectedEndDate());
                 planData.put("createdAt", plan.getCreatedAt());
-                planData.put("doctorName", plan.getDoctor() != null ? plan.getDoctor().getFullName() : null);
+                // Safe access to lazy-loaded doctor
+                try {
+                    planData.put("doctorName", plan.getDoctor() != null ? plan.getDoctor().getFullName() : null);
+                } catch (Exception e) {
+                    log.warn("Could not load doctor name for treatment plan {}", plan.getId());
+                    planData.put("doctorName", null);
+                }
                 return planData;
             }).collect(Collectors.toList());
             result.put("treatmentPlans", treatmentPlans);
 
             // Prescriptions for this patient
-            List<Prescription> prescriptions = prescriptionService.getPrescriptionHistory(id);
+            List<Prescription> prescriptions = null;
+            try {
+                prescriptions = prescriptionService.getPrescriptionHistory(id);
+                log.debug("Found {} prescriptions for patient {}", prescriptions != null ? prescriptions.size() : 0,
+                        id);
+            } catch (Exception e) {
+                log.error("Error loading prescriptions for patient {}: {}", id, e.getMessage(), e);
+                prescriptions = List.of(); // Use empty list on error
+            }
+
             List<Map<String, Object>> prescriptionList = prescriptions.stream().map(rx -> {
                 Map<String, Object> rxData = new HashMap<>();
                 rxData.put("id", rx.getId());
@@ -392,7 +423,13 @@ public class DoctorController {
                 rxData.put("prescribedAt", rx.getPrescriptionDate());
                 rxData.put("diagnosis", rx.getDiagnosis());
                 rxData.put("notes", rx.getNotes());
-                rxData.put("doctorName", rx.getDoctor() != null ? rx.getDoctor().getFullName() : null);
+                // Safe access to lazy-loaded doctor
+                try {
+                    rxData.put("doctorName", rx.getDoctor() != null ? rx.getDoctor().getFullName() : null);
+                } catch (Exception e) {
+                    log.warn("Could not load doctor name for prescription {}", rx.getId());
+                    rxData.put("doctorName", null);
+                }
                 return rxData;
             }).collect(Collectors.toList());
             result.put("prescriptions", prescriptionList);
@@ -402,7 +439,15 @@ public class DoctorController {
             result.put("vitalSigns", List.of()); // Empty list for backward compatibility
 
             // Tickets for this patient (using createdBy = patientId)
-            List<Ticket> tickets = ticketService.getTicketsByCreatedByUserId(id);
+            List<Ticket> tickets = null;
+            try {
+                tickets = ticketService.getTicketsByCreatedByUserId(id);
+                log.debug("Found {} tickets for patient {}", tickets != null ? tickets.size() : 0, id);
+            } catch (Exception e) {
+                log.error("Error loading tickets for patient {}: {}", id, e.getMessage(), e);
+                tickets = List.of(); // Use empty list on error
+            }
+
             List<Map<String, Object>> ticketList = tickets.stream().map(ticket -> {
                 Map<String, Object> ticketData = new HashMap<>();
                 ticketData.put("id", ticket.getId());
@@ -425,13 +470,15 @@ public class DoctorController {
             stats.put("openTickets", tickets.stream().filter(t -> t.getStatus() == Ticket.Status.OPEN).count());
             result.put("stats", stats);
 
+            log.info("Successfully loaded patient detail for patient {}", id);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            System.err.println("Error getting patient detail for patient " + id + ": " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error getting patient detail for patient {}: {}", id, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Internal Server Error", "message",
-                            "Failed to load patient details: " + e.getMessage()));
+                    .body(Map.of(
+                            "error", "Internal Server Error",
+                            "message", "Failed to load patient details: " + e.getMessage(),
+                            "patientId", id));
         }
     }
 
@@ -532,6 +579,29 @@ public class DoctorController {
 
         model.addAttribute("doctor", doctor);
         return "doctor/treatments";
+    }
+
+    /**
+     * Create New Treatment Plan Form
+     */
+    @GetMapping("/treatments/create")
+    public String createTreatmentPlanForm(@RequestParam(required = false) Long patientId,
+            @AuthenticationPrincipal UserDetails userDetails,
+            Model model) {
+        String username = userDetails.getUsername();
+        User doctor = userRepository.findByEmailOrPhoneNumber(username, username).orElse(null);
+
+        if (doctor != null && patientId != null) {
+            User patient = userRepository.findById(patientId).orElse(null);
+            model.addAttribute("patient", patient);
+
+            // Get patient's existing treatment plans
+            List<TreatmentPlan> existingPlans = treatmentPlanService.getTreatmentPlansByPatientId(patientId);
+            model.addAttribute("existingPlans", existingPlans);
+        }
+
+        model.addAttribute("doctor", doctor);
+        return "doctor/treatments/create";
     }
 
     /**
