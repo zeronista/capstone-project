@@ -31,7 +31,7 @@ public class Ticket {
     @JoinColumn(name = "call_id")
     private CallLog callLog; // Cuộc gọi liên quan
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "patient_id")
     private User patient;
 
@@ -55,15 +55,15 @@ public class Ticket {
     @Column(nullable = false, length = 20)
     private Status status = Status.OPEN;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "created_by_id", nullable = false)
     private User createdBy; // Lễ tân tạo ticket
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "assigned_to_id")
     private User assignedTo; // Bác sĩ được assign
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "resolved_by_id")
     private User resolvedBy;
 
