@@ -886,15 +886,38 @@
       }
 
       function updateUI(data) {
-        // Avatar
-        if (data.avatarUrl) {
-          document.getElementById("avatarImg").src = data.avatarUrl;
+        // Avatar (DTO field: avatar = presigned URL)
+        if (data.avatar) {
+          document.getElementById("avatarImg").src = data.avatar;
           document.getElementById("avatarImg").classList.remove("hidden");
           document.getElementById("avatarPlaceholder").classList.add("hidden");
+
+          // Sync avatar to sidebar (patient layout)
+          const sidebarImg = document.getElementById("patientSidebarAvatarImg");
+          const sidebarFallback = document.getElementById("patientSidebarAvatarFallback");
+          if (sidebarImg && sidebarFallback) {
+            sidebarImg.src = data.avatar;
+            sidebarImg.classList.remove("hidden");
+            sidebarFallback.classList.add("hidden");
+          }
         } else {
+          document.getElementById("avatarImg").classList.add("hidden");
+          document.getElementById("avatarPlaceholder").classList.remove("hidden");
           document.getElementById("avatarInitials").textContent = getInitials(
             data.fullName,
           );
+
+          // Sidebar fallback initials
+          const sidebarImg = document.getElementById("patientSidebarAvatarImg");
+          const sidebarFallback = document.getElementById("patientSidebarAvatarFallback");
+          const sidebarInitials = document.getElementById("patientSidebarAvatarInitials");
+          if (sidebarImg && sidebarFallback) {
+            sidebarImg.classList.add("hidden");
+            sidebarFallback.classList.remove("hidden");
+            if (sidebarInitials) {
+              sidebarInitials.textContent = getInitials(data.fullName);
+            }
+          }
         }
 
         // Name

@@ -135,11 +135,18 @@ function renderUsers() {
             <td class="px-6 py-4 whitespace-nowrap">
                 ${getStatusBadge(user.isActive)}
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
-                ${formatDate(user.createdAt)}
-            </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div class="flex items-center justify-end gap-2">
+                    <button onclick="viewPatientDetail(${user.id})"
+                        class="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700/60 transition-colors"
+                        title="Xem hồ sơ">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
                     <button onclick="showEditModal(${user.id})" 
                         class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
                         title="Chỉnh sửa">
@@ -414,6 +421,122 @@ async function restoreUser(userId) {
     } catch (error) {
         console.error('Error restoring user:', error);
         showToast(error.message, 'error');
+    }
+}
+
+// ==================== Patient Detail Modal ====================
+async function viewPatientDetail(userId) {
+    try {
+        const response = await fetch(`/api/receptionist/patients/${userId}/detail`, {
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Không thể tải hồ sơ bệnh nhân');
+        }
+
+        const result = await response.json();
+        if (!result.success || !result.data) {
+            throw new Error(result.message || 'Không thể tải hồ sơ bệnh nhân');
+        }
+
+        const { patient, healthProfile, stats, labReports } = result.data;
+
+        // Basic info
+        document.getElementById('patientDetailName').textContent = patient.fullName || 'Chưa cập nhật';
+        document.getElementById('patientDetailEmail').textContent = patient.email || '-';
+        document.getElementById('patientDetailPhone').textContent = patient.phoneNumber || '-';
+        document.getElementById('patientDetailVisitCount').textContent =
+            (stats && typeof stats.visitCount === 'number') ? stats.visitCount : 0;
+
+        // Health profile
+        const bloodType = healthProfile && healthProfile.bloodType ? healthProfile.bloodType : 'Chưa cập nhật';
+        const height = healthProfile && healthProfile.heightCm != null ? `${healthProfile.heightCm} cm` : '-';
+        const weight = healthProfile && healthProfile.weightKg != null ? `${healthProfile.weightKg} kg` : '-';
+
+        document.getElementById('patientDetailBloodType').textContent = bloodType;
+        document.getElementById('patientDetailHeight').textContent = height;
+        document.getElementById('patientDetailWeight').textContent = weight;
+
+        // History (allergies + chronic diseases)
+        let historyText = '';
+        if (healthProfile) {
+            if (healthProfile.chronicDiseases) {
+                historyText += `Tiền sử bệnh:\n${healthProfile.chronicDiseases}\n\n`;
+            }
+            if (healthProfile.allergies) {
+                historyText += `Dị ứng:\n${healthProfile.allergies}\n`;
+            }
+        }
+        document.getElementById('patientDetailHistory').textContent =
+            historyText.trim() || 'Chưa có thông tin.';
+
+        // Avatar
+        const avatarImg = document.getElementById('patientDetailAvatarImg');
+        const avatarFallback = document.getElementById('patientDetailAvatarFallback');
+        const avatarInitials = document.getElementById('patientDetailAvatarInitials');
+        if (patient.avatarUrl) {
+            avatarImg.src = patient.avatarUrl;
+            avatarImg.classList.remove('hidden');
+            avatarFallback.classList.add('hidden');
+        } else {
+            avatarImg.classList.add('hidden');
+            avatarFallback.classList.remove('hidden');
+            avatarInitials.textContent = getInitials(patient.fullName || patient.email);
+        }
+
+        // Lab results
+        const labList = document.getElementById('patientDetailLabList');
+        const labEmpty = document.getElementById('patientDetailLabEmpty');
+        const labCount = document.getElementById('patientDetailLabCount');
+        labList.innerHTML = '';
+
+        const items = Array.isArray(labReports) ? labReports : [];
+        labCount.textContent = `${items.length} kết quả`;
+
+        if (items.length === 0) {
+            labEmpty.classList.remove('hidden');
+        } else {
+            labEmpty.classList.add('hidden');
+            labList.innerHTML = items
+                .slice(0, 20)
+                .map(report => {
+                    const date = report.reportDate ? new Date(report.reportDate).toLocaleDateString('vi-VN') : '-';
+                    const title = report.title || 'Kết quả xét nghiệm';
+                    const notes = report.notes || '';
+                    return `
+                        <li class="py-2.5 flex items-start justify-between gap-3">
+                            <div>
+                                <p class="font-medium text-slate-900 dark:text-white">${title}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Ngày: ${date}</p>
+                                ${notes ? `<p class="mt-1 text-xs text-slate-500 dark:text-slate-400">${notes}</p>` : ''}
+                            </div>
+                            ${report.fileUrl ? `
+                                <a href="${report.fileUrl}" target="_blank"
+                                   class="inline-flex items-center text-xs text-primary hover:text-primary-dark font-medium">
+                                    Xem file
+                                </a>
+                            ` : ''}
+                        </li>
+                    `;
+                })
+                .join('');
+        }
+
+        // Show modal
+        document.getElementById('patientDetailModal').classList.remove('hidden');
+    } catch (error) {
+        console.error('Error loading patient detail:', error);
+        showToast(error.message || 'Không thể tải hồ sơ bệnh nhân', 'error');
+    }
+}
+
+function closePatientDetailModal() {
+    const modal = document.getElementById('patientDetailModal');
+    if (modal) {
+        modal.classList.add('hidden');
     }
 }
 

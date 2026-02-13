@@ -201,15 +201,32 @@
           <div
             class="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
           >
-            <div
-              class="bg-primary rounded-full size-10 shrink-0 flex items-center justify-center text-white font-semibold"
-            >
-              <span
-                th:if="${receptionist != null}"
-                th:text="${receptionist.userInfo != null && receptionist.userInfo.fullName != null} ? ${receptionist.userInfo.fullName.substring(0,1)} : 'LT'"
-                >LT</span
+            <!-- Sidebar avatar: image + fallback initials -->
+            <div class="relative shrink-0">
+              <img
+                id="receptionistSidebarAvatarImg"
+                th:src="${receptionistAvatarUrl != null ? receptionistAvatarUrl : ''}"
+                th:classappend="${receptionistAvatarUrl != null ? '' : 'hidden'}"
+                alt="Avatar"
+                class="size-10 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+              />
+              <div
+                id="receptionistSidebarAvatarFallback"
+                th:classappend="${receptionistAvatarUrl != null ? 'hidden' : ''}"
+                class="bg-primary rounded-full size-10 flex items-center justify-center text-white font-semibold"
               >
-              <span th:unless="${receptionist != null}">LT</span>
+                <span
+                  id="receptionistSidebarAvatarInitials"
+                  th:if="${receptionist != null}"
+                  th:text="${receptionist.userInfo != null && receptionist.userInfo.fullName != null} ? ${receptionist.userInfo.fullName.substring(0,1)} : 'LT'"
+                  >LT</span
+                >
+                <span
+                  th:unless="${receptionist != null}"
+                  id="receptionistSidebarAvatarInitialsFallback"
+                  >LT</span
+                >
+              </div>
             </div>
             <div class="overflow-hidden sidebar-text flex-1">
               <p

@@ -787,17 +787,49 @@
 
         // Avatar (DTO field: avatar = presigned URL)
         if (data.avatar) {
-          document.getElementById("avatarImg").src = data.avatar;
-          document.getElementById("avatarImg").classList.remove("hidden");
-          document.getElementById("avatarPlaceholder").classList.add("hidden");
-        } else {
-          document.getElementById("avatarImg").classList.add("hidden");
-          document
-            .getElementById("avatarPlaceholder")
-            .classList.remove("hidden");
-          document.getElementById("avatarInitials").textContent = getInitials(
-            data.fullName,
+          const avatarImg = document.getElementById("avatarImg");
+          const avatarPlaceholder = document.getElementById("avatarPlaceholder");
+          avatarImg.src = data.avatar;
+          avatarImg.classList.remove("hidden");
+          avatarPlaceholder.classList.add("hidden");
+
+          // Sync avatar to sidebar (receptionist layout)
+          const sidebarImg = document.getElementById(
+            "receptionistSidebarAvatarImg",
           );
+          const sidebarFallback = document.getElementById(
+            "receptionistSidebarAvatarFallback",
+          );
+          if (sidebarImg && sidebarFallback) {
+            sidebarImg.src = data.avatar;
+            sidebarImg.classList.remove("hidden");
+            sidebarFallback.classList.add("hidden");
+          }
+        } else {
+          const avatarImg = document.getElementById("avatarImg");
+          const avatarPlaceholder = document.getElementById("avatarPlaceholder");
+          avatarImg.classList.add("hidden");
+          avatarPlaceholder.classList.remove("hidden");
+          const initials = getInitials(data.fullName);
+          document.getElementById("avatarInitials").textContent = initials;
+
+          // Sidebar fallback initials
+          const sidebarImg = document.getElementById(
+            "receptionistSidebarAvatarImg",
+          );
+          const sidebarFallback = document.getElementById(
+            "receptionistSidebarAvatarFallback",
+          );
+          const sidebarInitials = document.getElementById(
+            "receptionistSidebarAvatarInitials",
+          );
+          if (sidebarImg && sidebarFallback) {
+            sidebarImg.classList.add("hidden");
+            sidebarFallback.classList.remove("hidden");
+            if (sidebarInitials) {
+              sidebarInitials.textContent = initials;
+            }
+          }
         }
 
         // Name

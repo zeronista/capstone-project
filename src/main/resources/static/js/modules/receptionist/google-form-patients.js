@@ -3,6 +3,7 @@ let filteredData = [];
 let currentPage = 1;
 const PAGE_SIZE = 10;
 let formTitleOptions = [];
+let currentDetailRecord = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   bindFilters();
@@ -168,22 +169,18 @@ function renderPatientsTable() {
           <td class="px-6 py-4 text-sm text-slate-700 dark:text-slate-200">
             <div class="flex flex-wrap gap-2">
               <button
-                class="px-2 py-1 text-xs rounded bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600"
+                class="inline-flex items-center justify-center rounded-lg p-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600"
                 onclick="showSurveyDetail(${syncRecordId})"
+                title="Xem chi tiết"
               >
-                Xem chi tiết
+                <span class="material-symbols-outlined text-[18px] text-slate-700 dark:text-slate-200">visibility</span>
               </button>
               <button
-                class="px-2 py-1 text-xs rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 hover:bg-blue-200"
+                class="inline-flex items-center justify-center rounded-lg p-1.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 hover:bg-blue-200"
                 onclick="callPlaceholder('${phone || ""}')"
+                title="Gọi điện"
               >
-                Gọi điện
-              </button>
-              <button
-                class="px-2 py-1 text-xs rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 hover:bg-emerald-200"
-                onclick="updateCallStatus(${syncRecordId}, '${nextStatus}')"
-              >
-                ${nextStatusLabel}
+                <span class="material-symbols-outlined text-[18px]">call</span>
               </button>
             </div>
           </td>
@@ -325,6 +322,14 @@ async function showSurveyDetail(syncRecordId) {
     document.getElementById("detailFormTitle").textContent = data.formTitle || "-";
     document.getElementById("detailSubmittedAt").textContent = formatDateTimeGmt7(data.submittedAt);
     document.getElementById("detailSurveyContent").textContent = data.surveyContent || "Chưa có nội dung khảo sát.";
+
+    currentDetailRecord = {
+      syncRecordId,
+      callStatus: (data.callStatus || "NOT_CALLED").toUpperCase(),
+      phoneNumber: data.phoneNumber || "",
+    };
+    updateDetailCallControls();
+
     document.getElementById("detailModal").classList.remove("hidden");
   } catch (error) {
     showToast(error.message || "Lỗi tải chi tiết khảo sát", false);
@@ -356,6 +361,58 @@ async function updateCallStatus(syncRecordId, status) {
     await loadGoogleFormPatients();
   } catch (error) {
     showToast(error.message || "Lỗi cập nhật trạng thái gọi", false);
+  }
+}
+
+function updateDetailCallControls() {
+  const statusBadge = document.getElementById("detailCallStatusBadge");
+  const toggleBtn = document.getElementById("detailCallToggleBtn");
+  if (!statusBadge || !toggleBtn || !currentDetailRecord) return;
+
+  statusBadge.innerHTML = renderCallStatusBadge(currentDetailRecord.callStatus);
+  const isCalled = currentDetailRecord.callStatus === "CALLED";
+  toggleBtn.textContent = isCalled ? "Đánh dấu chưa gọi" : "Đánh dấu đã gọi";
+}
+
+async function toggleDetailCallStatus() {
+  if (!currentDetailRecord) return;
+  const nextStatus = currentDetailRecord.callStatus === "CALLED" ? "NOT_CALLED" : "CALLED";
+  await updateCallStatus(currentDetailRecord.syncRecordId, nextStatus);
+  currentDetailRecord.callStatus = nextStatus;
+  updateDetailCallControls();
+}
+
+function callFromDetail() {
+  if (!currentDetailRecord) return;
+  callPlaceholder(currentDetailRecord.phoneNumber || "");
+}
+
+async function convertToSystemPatient() {
+  if (!currentDetailRecord || !currentDetailRecord.syncRecordId) {
+    showToast("Không tìm thấy thông tin bản ghi", false);
+    return;
+  }
+
+  if (!confirm("Bạn có chắc chắn muốn chuyển bệnh nhân này sang hồ sơ bệnh nhân trong hệ thống? Bệnh nhân sẽ xuất hiện trong danh sách quản lý bệnh nhân.")) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `/api/receptionist/google-form-patients/${currentDetailRecord.syncRecordId}/convert`,
+      { method: "POST", headers: { "Content-Type": "application/json" } }
+    );
+    const result = await response.json();
+    
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Không thể chuyển đổi bệnh nhân");
+    }
+    
+    showToast("Đã chuyển đổi bệnh nhân thành công. Bệnh nhân sẽ xuất hiện trong danh sách quản lý bệnh nhân.", true);
+    closeDetailModal();
+    await loadGoogleFormPatients();
+  } catch (error) {
+    showToast(error.message || "Lỗi chuyển đổi bệnh nhân", false);
   }
 }
 

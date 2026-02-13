@@ -8,11 +8,17 @@ import com.g4.capstoneproject.entity.GoogleFormSyncRecord;
 import com.g4.capstoneproject.entity.Ticket;
 import com.g4.capstoneproject.entity.TicketMessage;
 import com.g4.capstoneproject.entity.User;
+import com.g4.capstoneproject.entity.MedicalReport;
+import com.g4.capstoneproject.repository.GoogleFormSyncRecordRepository;
 import com.g4.capstoneproject.repository.UserRepository;
+import com.g4.capstoneproject.repository.MedicalReportRepository;
+import com.g4.capstoneproject.service.PatientHealthProfileService;
 import com.g4.capstoneproject.service.GoogleFormsSyncService;
 import com.g4.capstoneproject.service.TicketService;
+import com.g4.capstoneproject.service.S3Service;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,12 +40,17 @@ import java.util.stream.Collectors;
 @Controller
 @PreAuthorize("hasRole('RECEPTIONIST')")
 @RequiredArgsConstructor
+@Slf4j
 public class ReceptionistController {
 
     private final TicketService ticketService;
     private final UserRepository userRepository;
     private final com.g4.capstoneproject.service.WebCallService webCallService;
     private final GoogleFormsSyncService googleFormsSyncService;
+    private final PatientHealthProfileService patientHealthProfileService;
+    private final MedicalReportRepository medicalReportRepository;
+    private final S3Service s3Service;
+    private final GoogleFormSyncRecordRepository googleFormSyncRecordRepository;
 
     /**
      * Survey Management - Quản lý khảo sát
@@ -247,6 +258,96 @@ public class ReceptionistController {
     }
 
     /**
+     * API: Chi tiết hồ sơ bệnh nhân cho lễ tân
+     * GET /api/receptionist/patients/{id}/detail
+     */
+    @GetMapping("/api/receptionist/patients/{id}/detail")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getPatientDetailForReceptionist(@PathVariable Long id) {
+        try {
+            User patient = userRepository.findByIdWithUserInfo(id).orElse(null);
+            if (patient == null || patient.getRole() != User.UserRole.PATIENT) {
+                Map<String, Object> error = new HashMap<>();
+                error.put("success", false);
+                error.put("message", "Không tìm thấy bệnh nhân");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            }
+
+            Map<String, Object> patientInfo = new HashMap<>();
+            patientInfo.put("id", patient.getId());
+            patientInfo.put("fullName", patient.getFullName());
+            patientInfo.put("email", patient.getEmail());
+            patientInfo.put("phoneNumber", patient.getPhoneNumber());
+            patientInfo.put("dateOfBirth", patient.getDateOfBirth());
+            patientInfo.put("gender", patient.getGender() != null ? patient.getGender().name() : null);
+            patientInfo.put("address", patient.getAddress());
+            // Generate presigned avatar URL if available
+            String avatarUrl = null;
+            String avatarKey = patient.getAvatarUrl();
+            if (avatarKey != null && !avatarKey.isEmpty()) {
+                try {
+                    avatarUrl = s3Service.generatePresignedUrl(avatarKey);
+                } catch (Exception ex) {
+                    org.slf4j.LoggerFactory.getLogger(ReceptionistController.class)
+                            .warn("Could not generate presigned avatar URL for patient {}: {}", patient.getId(), ex.getMessage());
+                }
+            }
+            patientInfo.put("avatarUrl", avatarUrl);
+
+            // Health profile (blood type, height, weight, allergies, chronic diseases)
+            Map<String, Object> healthProfileMap = new HashMap<>();
+            patientHealthProfileService.getByUserId(patient.getId()).ifPresent(profile -> {
+                healthProfileMap.put("bloodType", profile.getBloodType());
+                healthProfileMap.put("heightCm", profile.getHeightCm());
+                healthProfileMap.put("weightKg", profile.getWeightKg());
+                healthProfileMap.put("allergies", profile.getAllergies());
+                healthProfileMap.put("chronicDiseases", profile.getChronicDiseases());
+            });
+
+            // Visit count: combine consultation medical reports and web call logs
+            long consultationCount = medicalReportRepository
+                    .findByPatientIdAndTypeOrderByReportDateDesc(patient.getId(), MedicalReport.ReportType.CONSULTATION)
+                    .size();
+            long callCount = webCallService.getCallsByPatientId(patient.getId()).size();
+
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("visitCount", consultationCount + callCount);
+            stats.put("callCount", callCount);
+
+            // Lab test results
+            List<MedicalReport> labReports = medicalReportRepository
+                    .findByPatientIdAndTypeOrderByReportDateDesc(patient.getId(), MedicalReport.ReportType.LAB_TEST);
+
+            List<Map<String, Object>> labReportDtos = labReports.stream().map(report -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", report.getId());
+                map.put("title", report.getTitle());
+                map.put("reportDate", report.getReportDate());
+                map.put("notes", report.getNotes());
+                map.put("fileUrl", report.getFileUrl());
+                return map;
+            }).collect(Collectors.toList());
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("patient", patientInfo);
+            data.put("healthProfile", healthProfileMap.isEmpty() ? null : healthProfileMap);
+            data.put("stats", stats);
+            data.put("labReports", labReportDtos);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", data);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "Lỗi khi tải hồ sơ bệnh nhân: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    /**
      * API: Get all doctors (for dropdown)
      * GET /api/receptionist/doctors
      */
@@ -323,6 +424,42 @@ public class ReceptionistController {
             error.put("success", false);
             error.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+
+    /**
+     * API: Convert Google Form patient to system patient
+     * POST /api/receptionist/google-form-patients/{syncRecordId}/convert
+     */
+    @PostMapping("/api/receptionist/google-form-patients/{syncRecordId}/convert")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> convertGoogleFormPatientToSystemPatient(@PathVariable Long syncRecordId) {
+        try {
+            GoogleFormSyncRecord record = googleFormSyncRecordRepository.findById(syncRecordId)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy bản ghi đồng bộ: " + syncRecordId));
+
+            User patient = record.getPatient();
+            if (patient == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("success", false, "message", "Bản ghi này chưa có thông tin bệnh nhân"));
+            }
+
+            // Xóa GoogleFormSyncRecord để patient này xuất hiện trong patient list
+            // Giữ lại MedicalReport để lưu thông tin triệu chứng từ Google Form
+            googleFormSyncRecordRepository.delete(record);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Đã chuyển đổi bệnh nhân thành công");
+            response.put("patientId", patient.getId());
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error converting Google Form patient", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Lỗi hệ thống: " + e.getMessage()));
         }
     }
 

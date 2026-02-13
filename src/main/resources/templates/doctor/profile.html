@@ -775,6 +775,15 @@
           document.getElementById("avatarImg").src = data.avatar;
           document.getElementById("avatarImg").classList.remove("hidden");
           document.getElementById("avatarPlaceholder").classList.add("hidden");
+
+          // Sync avatar to sidebar (doctor layout)
+          const sidebarImg = document.getElementById("doctorSidebarAvatarImg");
+          const sidebarFallback = document.getElementById("doctorSidebarAvatarFallback");
+          if (sidebarImg && sidebarFallback) {
+            sidebarImg.src = data.avatar;
+            sidebarImg.classList.remove("hidden");
+            sidebarFallback.classList.add("hidden");
+          }
         } else {
           document.getElementById("avatarImg").classList.add("hidden");
           document
@@ -783,6 +792,18 @@
           document.getElementById("avatarInitials").textContent = getInitials(
             data.fullName,
           );
+
+          // Sidebar fallback initials
+          const sidebarImg = document.getElementById("doctorSidebarAvatarImg");
+          const sidebarFallback = document.getElementById("doctorSidebarAvatarFallback");
+          const sidebarInitials = document.getElementById("doctorSidebarAvatarInitials");
+          if (sidebarImg && sidebarFallback) {
+            sidebarImg.classList.add("hidden");
+            sidebarFallback.classList.remove("hidden");
+            if (sidebarInitials) {
+              sidebarInitials.textContent = getInitials(data.fullName);
+            }
+          }
         }
 
         // Name

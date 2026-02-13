@@ -5,6 +5,7 @@ import com.g4.capstoneproject.entity.Gender;
 import com.g4.capstoneproject.entity.User;
 import com.g4.capstoneproject.entity.User.UserRole;
 import com.g4.capstoneproject.entity.UserInfo;
+import com.g4.capstoneproject.repository.GoogleFormSyncRecordRepository;
 import com.g4.capstoneproject.repository.UserInfoRepository;
 import com.g4.capstoneproject.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -41,6 +42,8 @@ public class UserManagementService {
     private final UserRepository userRepository;
     private final UserInfoRepository userInfoRepository;
     private final PasswordEncoder passwordEncoder;
+    private final S3Service s3Service;
+    private final GoogleFormSyncRecordRepository googleFormSyncRecordRepository;
 
     private static final Pattern PHONE_PATTERN = Pattern.compile("^(0[3|5|7|8|9])+([0-9]{8})$");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)$");
@@ -48,21 +51,47 @@ public class UserManagementService {
     // ==================== CRUD Operations ====================
 
     /**
+     * Convert User entity to UserResponse with pre-signed avatar URL
+     */
+    private UserResponse toUserResponse(User user) {
+        UserResponse response = UserResponse.from(user);
+        
+        // Generate pre-signed URL for avatar if it exists
+        if (response.getAvatarUrl() != null && !response.getAvatarUrl().isEmpty()) {
+            try {
+                String presignedUrl = s3Service.generatePresignedUrl(response.getAvatarUrl(), 7 * 24 * 3600); // 7 days
+                response.setAvatarUrl(presignedUrl);
+            } catch (Exception e) {
+                log.warn("Could not generate presigned URL for avatar: {}", response.getAvatarUrl(), e);
+                response.setAvatarUrl(null);
+            }
+        }
+        
+        return response;
+    }
+
+    /**
      * Lấy danh sách tất cả người dùng
      */
     @Cacheable(value = "users", key = "'all'")
     public List<UserResponse> getAllUsers() {
         return userRepository.findAllWithUserInfo().stream()
-                .map(UserResponse::from)
+                .map(this::toUserResponse)
                 .toList();
     }
 
     /**
      * Lấy danh sách người dùng theo role
+     * Loại bỏ users được tạo từ Google Form sync (chỉ hiển thị trong Google Form patients list)
      */
     public List<UserResponse> getUsersByRole(UserRole role) {
         return userRepository.findByRole(role).stream()
-                .map(UserResponse::from)
+                .filter(user -> {
+                    // Loại bỏ users có GoogleFormSyncRecord (guests từ Google Form)
+                    // Chỉ hiển thị users đã đăng ký trong hệ thống
+                    return !googleFormSyncRecordRepository.existsByPatientId(user.getId());
+                })
+                .map(this::toUserResponse)
                 .toList();
     }
 
@@ -70,7 +99,7 @@ public class UserManagementService {
      * Lấy danh sách người dùng với phân trang
      */
     public Page<UserResponse> getUsersPaginated(Pageable pageable) {
-        return userRepository.findAll(pageable).map(UserResponse::from);
+        return userRepository.findAll(pageable).map(this::toUserResponse);
     }
 
     /**
@@ -81,7 +110,7 @@ public class UserManagementService {
             return getAllUsers();
         }
         return userRepository.searchUsers(keyword.trim()).stream()
-                .map(UserResponse::from)
+                .map(this::toUserResponse)
                 .toList();
     }
 
@@ -92,7 +121,7 @@ public class UserManagementService {
     public UserResponse getUserById(Long userId) {
         User user = userRepository.findByIdWithUserInfo(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng với ID: " + userId));
-        return UserResponse.from(user);
+        return toUserResponse(user);
     }
 
     /**
@@ -141,7 +170,7 @@ public class UserManagementService {
 
         log.info("Created new user: {} ({})", user.getId(), request.getFullName());
 
-        return UserResponse.from(user);
+        return toUserResponse(user);
     }
 
     /**
@@ -197,7 +226,7 @@ public class UserManagementService {
 
         log.info("Updated user: {}", userId);
 
-        return UserResponse.from(user);
+        return toUserResponse(user);
     }
 
     /**
@@ -229,7 +258,7 @@ public class UserManagementService {
 
         log.info("Restored user: {}", userId);
 
-        return UserResponse.from(user);
+        return toUserResponse(user);
     }
 
     // ==================== Excel Import ====================

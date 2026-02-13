@@ -213,11 +213,6 @@
                   <th
                     class="px-6 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
                   >
-                    Ngày tạo
-                  </th>
-                  <th
-                    class="px-6 py-3 text-right text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider"
-                  >
                     Thao tác
                   </th>
                 </tr>
@@ -788,6 +783,205 @@
               class="mt-3 w-full inline-flex justify-center rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 bg-white dark:bg-slate-700 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 sm:mt-0 sm:w-auto sm:text-sm transition-colors"
             >
               Hủy
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Patient Detail Modal -->
+    <div
+      id="patientDetailModal"
+      class="fixed inset-0 z-50 hidden overflow-y-auto"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
+      >
+        <!-- Backdrop -->
+        <div
+          class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+          onclick="closePatientDetailModal()"
+        ></div>
+
+        <!-- Modal Content -->
+        <div
+          class="inline-block align-bottom bg-white dark:bg-slate-800 rounded-xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl sm:w-full"
+        >
+          <div class="bg-white dark:bg-slate-800 px-4 pt-5 pb-4 sm:p-6">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <h3
+                  class="text-lg font-semibold text-slate-900 dark:text-white"
+                >
+                  Hồ sơ bệnh nhân
+                </h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                  Thông tin tổng quan, sức khỏe và kết quả xét nghiệm
+                </p>
+              </div>
+              <button
+                type="button"
+                onclick="closePatientDetailModal()"
+                class="text-slate-400 hover:text-slate-500 dark:hover:text-slate-300"
+              >
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <!-- Left: Avatar & basic info -->
+              <div class="md:col-span-1">
+                <div
+                  class="bg-slate-50 dark:bg-slate-900/40 rounded-xl p-4 flex flex-col items-center"
+                >
+                  <div class="relative inline-block mb-3">
+                    <img
+                      id="patientDetailAvatarImg"
+                      src=""
+                      alt="Avatar"
+                      class="hidden size-20 rounded-full object-cover border-4 border-primary/20 shadow-lg"
+                    />
+                    <div
+                      id="patientDetailAvatarFallback"
+                      class="size-20 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white text-2xl font-semibold shadow-lg"
+                    >
+                      <span id="patientDetailAvatarInitials">BN</span>
+                    </div>
+                  </div>
+                  <p
+                    id="patientDetailName"
+                    class="text-base font-semibold text-slate-900 dark:text-white"
+                  >
+                    -
+                  </p>
+                  <p
+                    id="patientDetailEmail"
+                    class="text-xs text-slate-500 dark:text-slate-400 mt-1"
+                  >
+                    -
+                  </p>
+                  <p
+                    id="patientDetailPhone"
+                    class="text-xs text-slate-500 dark:text-slate-400"
+                  >
+                    -
+                  </p>
+                  <div
+                    class="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-xs font-medium"
+                  >
+                    <span class="material-symbols-outlined text-[16px]"
+                      >calendar_month</span
+                    >
+                    <span
+                      >Số lần khám:
+                      <span id="patientDetailVisitCount">0</span></span
+                    >
+                  </div>
+                </div>
+
+                <div
+                  class="mt-4 bg-slate-50 dark:bg-slate-900/40 rounded-xl p-4 space-y-2 text-sm"
+                >
+                  <div class="flex justify-between">
+                    <span class="text-slate-500 dark:text-slate-400"
+                      >Nhóm máu</span
+                    >
+                    <span
+                      id="patientDetailBloodType"
+                      class="font-medium text-slate-900 dark:text-white"
+                      >Chưa cập nhật</span
+                    >
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-500 dark:text-slate-400"
+                      >Chiều cao</span
+                    >
+                    <span
+                      id="patientDetailHeight"
+                      class="font-medium text-slate-900 dark:text-white"
+                      >-</span
+                    >
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-slate-500 dark:text-slate-400"
+                      >Cân nặng</span
+                    >
+                    <span
+                      id="patientDetailWeight"
+                      class="font-medium text-slate-900 dark:text-white"
+                      >-</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right: History & lab results -->
+              <div class="md:col-span-2 space-y-4">
+                <div
+                  class="bg-slate-50 dark:bg-slate-900/40 rounded-xl p-4 space-y-2"
+                >
+                  <h4
+                    class="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2"
+                  >
+                    <span class="material-symbols-outlined text-[18px]"
+                      >healing</span
+                    >
+                    Tiền sử bệnh & dị ứng
+                  </h4>
+                  <p
+                    id="patientDetailHistory"
+                    class="text-sm text-slate-600 dark:text-slate-300 whitespace-pre-line"
+                  >
+                    Chưa có thông tin.
+                  </p>
+                </div>
+
+                <div
+                  class="bg-slate-50 dark:bg-slate-900/40 rounded-xl p-4 max-h-72 overflow-y-auto"
+                >
+                  <div class="flex items-center justify-between mb-2">
+                    <h4
+                      class="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2"
+                    >
+                      <span class="material-symbols-outlined text-[18px]"
+                        >science</span
+                      >
+                      Kết quả xét nghiệm
+                    </h4>
+                    <span
+                      id="patientDetailLabCount"
+                      class="text-xs text-slate-500 dark:text-slate-400"
+                      >0 kết quả</span
+                    >
+                  </div>
+                  <ul
+                    id="patientDetailLabList"
+                    class="divide-y divide-slate-200 dark:divide-slate-700 text-sm"
+                  >
+                    <!-- Filled by JS -->
+                  </ul>
+                  <p
+                    id="patientDetailLabEmpty"
+                    class="text-sm text-slate-500 dark:text-slate-400"
+                  >
+                    Chưa có kết quả xét nghiệm nào.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="bg-slate-50 dark:bg-slate-900/50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse"
+          >
+            <button
+              type="button"
+              onclick="closePatientDetailModal()"
+              class="w-full inline-flex justify-center rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-2 bg-white dark:bg-slate-700 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors"
+            >
+              Đóng
             </button>
           </div>
         </div>

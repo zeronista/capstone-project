@@ -16,4 +16,6 @@ public interface GoogleFormSyncRecordRepository extends JpaRepository<GoogleForm
     List<GoogleFormSyncRecord> findBySyncStatusAndPatientIsNotNullOrderBySyncedAtDesc(
             GoogleFormSyncRecord.SyncStatus syncStatus,
             Pageable pageable);
+
+    boolean existsByPatientId(Long patientId);
 }

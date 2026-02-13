@@ -183,15 +183,28 @@
           <div
             class="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 flex items-center gap-3 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
           >
-            <div
-              class="bg-primary rounded-full size-10 shrink-0 flex items-center justify-center text-white font-semibold"
-            >
-              <span
-                th:if="${doctor != null}"
-                th:text="${doctor.userInfo != null && doctor.userInfo.fullName != null} ? ${doctor.userInfo.fullName.substring(0,1)} : 'BS'"
-                >BS</span
+            <!-- Sidebar avatar: image + fallback initials -->
+            <div class="relative shrink-0">
+              <img
+                id="doctorSidebarAvatarImg"
+                th:src="${doctorAvatarUrl != null ? doctorAvatarUrl : ''}"
+                th:classappend="${doctorAvatarUrl != null ? '' : 'hidden'}"
+                alt="Avatar"
+                class="size-10 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+              />
+              <div
+                id="doctorSidebarAvatarFallback"
+                th:classappend="${doctorAvatarUrl != null ? 'hidden' : ''}"
+                class="bg-primary rounded-full size-10 shrink-0 flex items-center justify-center text-white font-semibold"
               >
-              <span th:unless="${doctor != null}">BS</span>
+                <span
+                  id="doctorSidebarAvatarInitials"
+                  th:if="${doctor != null}"
+                  th:text="${doctor.userInfo != null && doctor.userInfo.fullName != null} ? ${doctor.userInfo.fullName.substring(0,1)} : 'BS'"
+                  >BS</span
+                >
+                <span th:unless="${doctor != null}">BS</span>
+              </div>
             </div>
             <div class="overflow-hidden sidebar-text flex-1">
               <p
