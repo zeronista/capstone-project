@@ -153,6 +153,34 @@ public class UserManagementApiController {
         }
     }
 
+    // ==================== Year/Month Grouping Endpoints ====================
+
+    /**
+     * Lấy danh sách các năm có bệnh nhân đăng ký
+     * Trả về danh sách năm, sắp xếp giảm dần (năm mới nhất trước)
+     */
+    @GetMapping("/years")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
+    @Operation(summary = "Lấy danh sách năm", description = "Lấy danh sách các năm có bệnh nhân đăng ký")
+    public ResponseEntity<List<Integer>> getAvailableYears() {
+        List<Integer> years = userManagementService.getAvailableYears();
+        return ResponseEntity.ok(years);
+    }
+
+    /**
+     * Lấy bệnh nhân theo năm, nhóm theo tháng
+     * Sắp xếp từ tháng 12 đến tháng 1 (mới nhất trước)
+     */
+    @GetMapping("/by-year-month")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPTIONIST')")
+    @Operation(summary = "Lấy bệnh nhân theo năm/tháng", description = "Lấy danh sách bệnh nhân nhóm theo tháng trong một năm")
+    public ResponseEntity<YearMonthPatientsResponse> getPatientsByYearMonth(
+            @Parameter(description = "Năm cần lấy dữ liệu") @RequestParam Integer year) {
+        
+        YearMonthPatientsResponse response = userManagementService.getPatientsByYearMonth(year);
+        return ResponseEntity.ok(response);
+    }
+
     // ==================== Excel Import/Export Endpoints ====================
 
     /**

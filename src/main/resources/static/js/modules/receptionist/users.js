@@ -1,11 +1,15 @@
 /**
  * Patient Management Module for Receptionist Dashboard
  * Handles CRUD operations and Excel import for PATIENTS only
+ * Updated with Year/Month grouping functionality
  */
 
 // ==================== Global State ====================
-let allUsers = [];
-let filteredUsers = [];
+let availableYears = [];
+let currentYear = new Date().getFullYear();
+let yearMonthData = null; // Response từ /api/users/by-year-month
+let yearDataCache = {}; // Cache dữ liệu các năm đã load
+let filteredPatients = []; // Danh sách bệnh nhân sau khi filter search
 let currentPage = 1;
 const pageSize = 10;
 let selectedFile = null;
@@ -14,7 +18,7 @@ let isEditMode = false;
 
 // ==================== Initialize ====================
 document.addEventListener('DOMContentLoaded', () => {
-    loadUsers();
+    loadAvailableYears();
     initEventListeners();
 });
 
@@ -25,12 +29,9 @@ function initEventListeners() {
     searchInput.addEventListener('input', () => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-            filterUsers();
+            searchPatients();
         }, 300);
     });
-
-    // Filter change handlers
-    document.getElementById('statusFilter').addEventListener('change', filterUsers);
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
@@ -38,80 +39,230 @@ function initEventListeners() {
             closeModal();
             closeImportModal();
             closeDeleteModal();
+            closePatientDetailModal();
         }
     });
 }
 
-// ==================== Load Users ====================
-async function loadUsers() {
+// ==================== Year/Month Data Loading ====================
+async function loadAvailableYears() {
+    try {
+        const response = await fetch('/api/users/years', {
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) {
+            throw new Error('Không thể tải danh sách năm');
+        }
+
+        availableYears = await response.json();
+        
+        // Nếu có năm hiện tại trong danh sách, chọn nó
+        if (availableYears.includes(currentYear)) {
+            // OK
+        } else if (availableYears.length > 0) {
+            // Chọn năm mới nhất nếu không có năm hiện tại
+            currentYear = availableYears[0];
+        } else {
+            // Không có bệnh nhân nào
+            showToast('Chưa có bệnh nhân nào trong hệ thống', 'info');
+        }
+
+        renderYearTabs();
+        
+        if (availableYears.length > 0) {
+            await loadPatientsByYear(currentYear);
+        }
+    } catch (error) {
+        console.error('Error loading years:', error);
+        showToast('Lỗi tải danh sách năm: ' + error.message, 'error');
+    }
+}
+
+async function loadPatientsByYear(year) {
+    // Check cache first
+    if (yearDataCache[year]) {
+        yearMonthData = yearDataCache[year];
+        updateYearStats();
+        searchPatients(); // Apply search filter
+        return;
+    }
+
     showLoading(true);
     try {
-        // Only load PATIENT role for receptionist
-        const response = await fetch('/api/users?role=PATIENT', {
-            headers: {
-                'Accept': 'application/json'
-            }
+        const response = await fetch(`/api/users/by-year-month?year=${year}`, {
+            headers: { 'Accept': 'application/json' }
         });
 
         if (!response.ok) {
             throw new Error('Không thể tải danh sách bệnh nhân');
         }
 
-        allUsers = await response.json();
-        filterUsers();
+        yearMonthData = await response.json();
+        yearDataCache[year] = yearMonthData; // Cache it
+        
+        currentYear = year;
+        updateYearStats();
+        renderYearTabs(); // Update active tab
+        searchPatients(); // Render patients with search applied
     } catch (error) {
-        console.error('Error loading users:', error);
+        console.error('Error loading patients by year:', error);
         showToast('Lỗi tải dữ liệu: ' + error.message, 'error');
     } finally {
         showLoading(false);
     }
 }
 
-// ==================== Filter & Search ====================
-function filterUsers() {
-    const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
-    const statusFilter = document.getElementById('statusFilter').value;
-
-    filteredUsers = allUsers.filter(user => {
-        // Text search
-        const matchesKeyword = !keyword || 
-            (user.fullName && user.fullName.toLowerCase().includes(keyword)) ||
-            (user.email && user.email.toLowerCase().includes(keyword)) ||
-            (user.phoneNumber && user.phoneNumber.includes(keyword));
-
-        // Status filter
-        const matchesStatus = !statusFilter || 
-            (statusFilter === 'active' && user.isActive) ||
-            (statusFilter === 'inactive' && !user.isActive);
-
-        return matchesKeyword && matchesStatus;
-    });
-
-    currentPage = 1;
-    renderUsers();
+function updateYearStats() {
+    if (yearMonthData) {
+        document.getElementById('totalPatients').textContent = yearMonthData.totalCount || 0;
+    } else {
+        document.getElementById('totalPatients').textContent = 0;
+    }
 }
 
-// ==================== Render Table ====================
-function renderUsers() {
+// ==================== Render Year Tabs ====================
+function renderYearTabs() {
+    const yearTabsContainer = document.getElementById('yearTabs');
+    
+    if (availableYears.length === 0) {
+        yearTabsContainer.innerHTML = `
+            <div class="flex items-center justify-center p-8 w-full text-slate-500 dark:text-slate-400">
+                <span class="material-symbols-outlined mr-2">info</span>
+                <span>Chưa có dữ liệu bệnh nhân</span>
+            </div>
+        `;
+        return;
+    }
+
+    yearTabsContainer.innerHTML = availableYears.map(year => `
+        <button 
+            onclick="loadPatientsByYear(${year})"
+            class="year-tab ${year === currentYear ? 'active' : ''}"
+            data-year="${year}">
+            Năm ${year}
+        </button>
+    `).join('');
+}
+
+// ==================== Search & Filter ====================
+function searchPatients() {
+    const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+    
+    if (!yearMonthData || !yearMonthData.months) {
+        filteredPatients = [];
+        currentPage = 1;
+        renderGroupedPatients();
+        return;
+    }
+
+    // Flatten all patients from all months
+    let allPatients = [];
+    yearMonthData.months.forEach(monthGroup => {
+        if (monthGroup.patients) {
+            allPatients = allPatients.concat(monthGroup.patients);
+        }
+    });
+
+    // Apply search filter
+    if (keyword) {
+        filteredPatients = allPatients.filter(patient => {
+            return (patient.fullName && patient.fullName.toLowerCase().includes(keyword)) ||
+                   (patient.email && patient.email.toLowerCase().includes(keyword)) ||
+                   (patient.phone && patient.phone.includes(keyword));
+        });
+    } else {
+        filteredPatients = allPatients;
+    }
+
+    currentPage = 1;
+    renderGroupedPatients();
+}
+
+// ==================== Render Table với Month Grouping ====================
+function renderGroupedPatients() {
     const tbody = document.getElementById('usersTableBody');
     const emptyState = document.getElementById('emptyState');
+    const paginationContainer = document.getElementById('paginationContainer');
 
-    if (filteredUsers.length === 0) {
+    // If searching and no results
+    if (filteredPatients.length === 0) {
         tbody.innerHTML = '';
         emptyState.classList.remove('hidden');
-        document.getElementById('paginationContainer').classList.add('hidden');
+        paginationContainer.classList.add('hidden');
         return;
     }
 
     emptyState.classList.add('hidden');
-    document.getElementById('paginationContainer').classList.remove('hidden');
+    paginationContainer.classList.remove('hidden');
 
     // Calculate pagination
     const start = (currentPage - 1) * pageSize;
-    const end = Math.min(start + pageSize, filteredUsers.length);
-    const pageUsers = filteredUsers.slice(start, end);
+    const end = Math.min(start + pageSize, filteredPatients.length);
+    const pagePatients = filteredPatients.slice(start, end);
 
-    tbody.innerHTML = pageUsers.map(user => `
+    // Group paginated patients by month
+    const patientsGroupedByMonth = {};
+    pagePatients.forEach(patient => {
+        // Find which month this patient belongs to
+        let patientMonth = null;
+        if (yearMonthData && yearMonthData.months) {
+            for (const monthGroup of yearMonthData.months) {
+                if (monthGroup.patients.some(p => p.id === patient.id)) {
+                    patientMonth = monthGroup.month;
+                    break;
+                }
+            }
+        }
+        
+        if (patientMonth !== null) {
+            if (!patientsGroupedByMonth[patientMonth]) {
+                patientsGroupedByMonth[patientMonth] = [];
+            }
+            patientsGroupedByMonth[patientMonth].push(patient);
+        }
+    });
+
+    // Render month groups
+    let html = '';
+    const months = Object.keys(patientsGroupedByMonth).map(Number).sort((a, b) => b - a);
+    
+    months.forEach(month => {
+        const monthPatients = patientsGroupedByMonth[month];
+        
+        // Month header row
+        html += `
+            <tr class="month-group-header">
+                <td colspan="3" class="px-6 py-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-semibold text-slate-900 dark:text-white">
+                            Tháng ${month}/${currentYear}
+                        </span>
+                        <span class="text-sm text-slate-500 dark:text-slate-400">
+                            ${monthPatients.length} bệnh nhân
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        `;
+
+        // Patient rows
+        monthPatients.forEach(patient => {
+            html += renderPatientRow(patient);
+        });
+    });
+
+    tbody.innerHTML = html;
+    
+    // Add fade-in animation
+    tbody.classList.add('fade-in');
+    setTimeout(() => tbody.classList.remove('fade-in'), 300);
+    
+    renderPagination();
+}
+
+function renderPatientRow(user) {
+    return `
         <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-100 dark:border-slate-700/50">
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
@@ -130,10 +281,7 @@ function renderUsers() {
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-slate-900 dark:text-white">${user.email || '-'}</div>
-                <div class="text-sm text-slate-500 dark:text-slate-400">${user.phoneNumber || '-'}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                ${getStatusBadge(user.isActive)}
+                <div class="text-sm text-slate-500 dark:text-slate-400">${user.phone || '-'}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <div class="flex items-center justify-end gap-2">
@@ -173,21 +321,19 @@ function renderUsers() {
                 </div>
             </td>
         </tr>
-    `).join('');
-
-    renderPagination();
+    `;
 }
 
 function renderPagination() {
-    const totalPages = Math.ceil(filteredUsers.length / pageSize);
+    const totalPages = Math.ceil(filteredPatients.length / pageSize);
     const paginationNav = document.getElementById('paginationNav');
 
     // Update info text
-    const start = (currentPage - 1) * pageSize + 1;
-    const end = Math.min(currentPage * pageSize, filteredUsers.length);
+    const start = filteredPatients.length > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+    const end = Math.min(currentPage * pageSize, filteredPatients.length);
     document.getElementById('showingFrom').textContent = start;
     document.getElementById('showingTo').textContent = end;
-    document.getElementById('totalCount').textContent = filteredUsers.length;
+    document.getElementById('totalCount').textContent = filteredPatients.length;
 
     // Generate pagination buttons
     let buttons = '';
@@ -239,10 +385,10 @@ function renderPagination() {
 }
 
 function goToPage(page) {
-    const totalPages = Math.ceil(filteredUsers.length / pageSize);
+    const totalPages = Math.ceil(filteredPatients.length / pageSize);
     if (page < 1 || page > totalPages) return;
     currentPage = page;
-    renderUsers();
+    renderGroupedPatients();
 }
 
 // ==================== Modal Functions ====================
@@ -259,10 +405,24 @@ function showCreateModal() {
 
 async function showEditModal(userId) {
     isEditMode = true;
-    const user = allUsers.find(u => u.id === userId);
+    
+    // Find user in filteredPatients
+    let user = filteredPatients.find(u => u.id === userId);
+    
+    // If not found (maybe due to search filter), fetch from API
     if (!user) {
-        showToast('Không tìm thấy người dùng', 'error');
-        return;
+        try {
+            const response = await fetch(`/api/users/${userId}`);
+            if (response.ok) {
+                user = await response.json();
+            } else {
+                showToast('Không tìm thấy người dùng', 'error');
+                return;
+            }
+        } catch (error) {
+            showToast('Lỗi tải thông tin người dùng', 'error');
+            return;
+        }
     }
 
     document.getElementById('modalTitle').textContent = 'Chỉnh sửa bệnh nhân';
@@ -275,7 +435,7 @@ async function showEditModal(userId) {
     document.getElementById('userId').value = user.id;
     document.getElementById('fullName').value = user.fullName || '';
     document.getElementById('email').value = user.email || '';
-    document.getElementById('phone').value = user.phoneNumber || '';
+    document.getElementById('phone').value = user.phone || user.phoneNumber || '';
     document.getElementById('role').value = user.role || '';
     document.getElementById('dateOfBirth').value = user.dateOfBirth || '';
     document.getElementById('gender').value = user.gender || '';
@@ -358,7 +518,10 @@ async function handleSubmitUser(event) {
 
         closeModal();
         showToast(isEditMode ? 'Cập nhật người dùng thành công!' : 'Tạo người dùng thành công!', 'success');
-        loadUsers();
+        
+        // Clear cache and reload
+        yearDataCache = {};
+        await loadAvailableYears();
 
     } catch (error) {
         console.error('Error saving user:', error);
@@ -396,7 +559,10 @@ async function confirmDelete() {
 
         closeDeleteModal();
         showToast('Đã vô hiệu hóa người dùng!', 'success');
-        loadUsers();
+        
+        // Clear cache and reload
+        yearDataCache = {};
+        await loadPatientsByYear(currentYear);
 
     } catch (error) {
         console.error('Error deleting user:', error);
@@ -416,7 +582,10 @@ async function restoreUser(userId) {
         }
 
         showToast('Đã khôi phục người dùng!', 'success');
-        loadUsers();
+        
+        // Clear cache and reload
+        yearDataCache = {};
+        await loadPatientsByYear(currentYear);
 
     } catch (error) {
         console.error('Error restoring user:', error);
@@ -653,7 +822,8 @@ async function handleImport() {
         
         // Reload users if any were created
         if (result.successCount > 0) {
-            loadUsers();
+            yearDataCache = {};
+            await loadAvailableYears();
         }
 
     } catch (error) {

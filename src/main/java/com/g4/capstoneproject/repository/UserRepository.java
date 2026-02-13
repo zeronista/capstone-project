@@ -157,4 +157,26 @@ public interface UserRepository extends JpaRepository<User, Long> {
         @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.userInfo ui " +
                         "WHERE ui.fullName LIKE %:keyword% OR u.email LIKE %:keyword% OR u.phoneNumber LIKE %:keyword%")
         List<User> searchUsers(@Param("keyword") String keyword);
+
+        /**
+         * Lấy danh sách các năm có bệnh nhân đăng ký
+         * Trả về danh sách năm, sắp xếp giảm dần (năm mới nhất trước)
+         */
+        @Query("SELECT DISTINCT YEAR(u.createdAt) FROM User u WHERE u.role = 'PATIENT' ORDER BY YEAR(u.createdAt) DESC")
+        List<Integer> findDistinctYearsByPatientRole();
+
+        /**
+         * Lấy tất cả bệnh nhân theo năm, kèm userInfo
+         * Sắp xếp theo tháng và ngày giảm dần (mới nhất trước)
+         */
+        @Query("SELECT u FROM User u LEFT JOIN FETCH u.userInfo " +
+                        "WHERE u.role = 'PATIENT' AND YEAR(u.createdAt) = :year " +
+                        "ORDER BY MONTH(u.createdAt) DESC, DAY(u.createdAt) DESC")
+        List<User> findPatientsByYear(@Param("year") Integer year);
+
+        /**
+         * Đếm số bệnh nhân theo năm
+         */
+        @Query("SELECT COUNT(u) FROM User u WHERE u.role = 'PATIENT' AND YEAR(u.createdAt) = :year")
+        Long countPatientsByYear(@Param("year") Integer year);
 }

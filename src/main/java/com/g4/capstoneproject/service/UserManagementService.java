@@ -261,6 +261,73 @@ public class UserManagementService {
         return toUserResponse(user);
     }
 
+    // ==================== Year/Month Grouping ====================
+
+    /**
+     * Lấy danh sách các năm có bệnh nhân đăng ký
+     * Trả về danh sách năm, sắp xếp giảm dần (năm mới nhất trước)
+     */
+    public List<Integer> getAvailableYears() {
+        List<Integer> years = userRepository.findDistinctYearsByPatientRole();
+        log.debug("Found {} years with patient registrations", years.size());
+        return years;
+    }
+
+    /**
+     * Lấy bệnh nhân theo năm, nhóm theo tháng
+     * Loại bỏ users được tạo từ Google Form sync
+     */
+    public YearMonthPatientsResponse getPatientsByYearMonth(Integer year) {
+        // Lấy tất cả bệnh nhân của năm
+        List<User> patients = userRepository.findPatientsByYear(year).stream()
+                .filter(user -> !googleFormSyncRecordRepository.existsByPatientId(user.getId()))
+                .toList();
+
+        // Group theo tháng
+        Map<Integer, List<User>> patientsByMonth = new LinkedHashMap<>();
+        for (int month = 12; month >= 1; month--) {
+            patientsByMonth.put(month, new ArrayList<>());
+        }
+
+        // Phân loại bệnh nhân vào các tháng
+        for (User patient : patients) {
+            LocalDateTime createdAt = patient.getCreatedAt();
+            if (createdAt != null) {
+                int month = createdAt.getMonthValue();
+                patientsByMonth.get(month).add(patient);
+            }
+        }
+
+        // Tạo danh sách MonthPatientsGroup
+        List<MonthPatientsGroup> months = new ArrayList<>();
+        for (int month = 12; month >= 1; month--) {
+            List<User> monthPatients = patientsByMonth.get(month);
+            
+            // Chỉ thêm tháng có bệnh nhân
+            if (!monthPatients.isEmpty()) {
+                List<UserResponse> patientResponses = monthPatients.stream()
+                        .map(this::toUserResponse)
+                        .toList();
+
+                MonthPatientsGroup group = MonthPatientsGroup.builder()
+                        .month(month)
+                        .monthName("Tháng " + month)
+                        .count((long) monthPatients.size())
+                        .patients(patientResponses)
+                        .build();
+
+                months.add(group);
+            }
+        }
+
+        // Tạo response
+        return YearMonthPatientsResponse.builder()
+                .year(year)
+                .totalCount((long) patients.size())
+                .months(months)
+                .build();
+    }
+
     // ==================== Excel Import ====================
 
     /**
