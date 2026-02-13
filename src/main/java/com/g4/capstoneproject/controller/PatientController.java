@@ -1,6 +1,9 @@
 package com.g4.capstoneproject.controller;
 
+import com.g4.capstoneproject.dto.PrescriptionDTO;
 import com.g4.capstoneproject.dto.ProfileResponse;
+import com.g4.capstoneproject.dto.TicketDTO;
+import com.g4.capstoneproject.dto.TreatmentPlanDTO;
 import com.g4.capstoneproject.entity.PatientDocument;
 import com.g4.capstoneproject.entity.Prescription;
 import com.g4.capstoneproject.entity.Ticket;
@@ -22,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Controller cho chức năng dành riêng cho bệnh nhân
@@ -41,6 +45,8 @@ public class PatientController {
     
     /**
      * GET /api/patient/prescriptions - Lấy danh sách đơn thuốc của bệnh nhân
+     * Chức năng: Lấy danh sách đơn thuốc của bệnh nhân hiện tại
+     * Cách hoạt động: Query từ database và chuyển đổi sang DTO để tránh lazy loading
      */
     @GetMapping("/prescriptions")
     public ResponseEntity<Map<String, Object>> getMyPrescriptions(HttpSession session) {
@@ -57,10 +63,15 @@ public class PatientController {
             
             List<Prescription> prescriptions = prescriptionRepository.findByPatientOrderByPrescriptionDateDesc(patient);
             
+            // Chuyển đổi sang DTO để tránh lazy loading exception
+            List<PrescriptionDTO> prescriptionDTOs = prescriptions.stream()
+                    .map(PrescriptionDTO::fromEntity)
+                    .collect(Collectors.toList());
+            
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("prescriptions", prescriptions);
-            response.put("total", prescriptions.size());
+            response.put("prescriptions", prescriptionDTOs);
+            response.put("total", prescriptionDTOs.size());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -71,6 +82,8 @@ public class PatientController {
     
     /**
      * GET /api/patient/prescriptions/{id} - Lấy chi tiết đơn thuốc
+     * Chức năng: Lấy chi tiết một đơn thuốc cụ thể
+     * Cách hoạt động: Kiểm tra quyền sở hữu và trả về DTO
      */
     @GetMapping("/prescriptions/{id}")
     public ResponseEntity<Map<String, Object>> getPrescriptionDetail(
@@ -92,9 +105,12 @@ public class PatientController {
                 return ResponseEntity.status(403).body(Map.of("success", false, "message", "Không có quyền truy cập"));
             }
             
+            // Chuyển đổi sang DTO
+            PrescriptionDTO prescriptionDTO = PrescriptionDTO.fromEntity(prescription);
+            
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("prescription", prescription);
+            response.put("prescription", prescriptionDTO);
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -105,6 +121,8 @@ public class PatientController {
     
     /**
      * GET /api/patient/treatments - Lấy danh sách kế hoạch điều trị
+     * Chức năng: Lấy danh sách kế hoạch điều trị của bệnh nhân
+     * Cách hoạt động: Query từ database và chuyển đổi sang DTO để tránh lazy loading
      */
     @GetMapping("/treatments")
     public ResponseEntity<Map<String, Object>> getMyTreatments(HttpSession session) {
@@ -121,10 +139,15 @@ public class PatientController {
             
             List<TreatmentPlan> treatments = treatmentPlanRepository.findByPatient(patient);
             
+            // Chuyển đổi sang DTO để tránh lazy loading exception
+            List<TreatmentPlanDTO> treatmentDTOs = treatments.stream()
+                    .map(TreatmentPlanDTO::fromEntity)
+                    .collect(Collectors.toList());
+            
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("treatments", treatments);
-            response.put("total", treatments.size());
+            response.put("treatments", treatmentDTOs);
+            response.put("total", treatmentDTOs.size());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -135,6 +158,8 @@ public class PatientController {
     
     /**
      * GET /api/patient/tickets - Lấy danh sách tickets/yêu cầu hỗ trợ
+     * Chức năng: Lấy danh sách tickets của bệnh nhân
+     * Cách hoạt động: Query từ database và chuyển đổi sang DTO để tránh lazy loading
      */
     @GetMapping("/tickets")
     public ResponseEntity<Map<String, Object>> getMyTickets(HttpSession session) {
@@ -151,10 +176,15 @@ public class PatientController {
             
             List<Ticket> tickets = ticketRepository.findByPatient(patient);
             
+            // Chuyển đổi sang DTO để tránh lazy loading exception
+            List<TicketDTO> ticketDTOs = tickets.stream()
+                    .map(TicketDTO::fromEntity)
+                    .collect(Collectors.toList());
+            
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("tickets", tickets);
-            response.put("total", tickets.size());
+            response.put("tickets", ticketDTOs);
+            response.put("total", ticketDTOs.size());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {

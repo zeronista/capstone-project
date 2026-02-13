@@ -225,4 +225,9 @@ public class PageController {
     public String patientDocuments() {
         return "patient/documents";
     }
+
+    @GetMapping("/patient/notifications")
+    public String patientNotifications() {
+        return "patient/notifications";
+    }
 }

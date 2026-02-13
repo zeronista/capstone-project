@@ -724,6 +724,9 @@
 
       <!-- Theme Controller: Already loaded in <head> to prevent flash -->
 
+      <!-- Notification Helper - MUST load before notification-dropdown.js -->
+      <script th:src="@{/js/core/notification-helper.js}"></script>
+
       <!-- Notification Dropdown -->
       <script th:src="@{/js/core/notification-dropdown.js}"></script>
 

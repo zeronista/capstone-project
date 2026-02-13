@@ -1,5 +1,6 @@
 package com.g4.capstoneproject.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -80,6 +81,7 @@ public class User {
     private LocalDateTime passwordResetTokenExpiry;
     
     // ========== Quan hệ với UserInfo ==========
+    @JsonIgnore
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private UserInfo userInfo;
     

@@ -73,6 +73,8 @@ public class NotificationService {
 
     /**
      * Đánh dấu notification đã đọc
+     * Chức năng: Đánh dấu một thông báo cụ thể là đã đọc
+     * Cách hoạt động: Tìm notification theo ID, kiểm tra quyền sở hữu, sau đó cập nhật trạng thái isRead và thời gian đọc
      */
     public boolean markAsRead(Long notificationId, User user) {
         Optional<Notification> notificationOpt = notificationRepository.findById(notificationId);
@@ -91,6 +93,8 @@ public class NotificationService {
 
     /**
      * Đánh dấu tất cả notifications đã đọc
+     * Chức năng: Đánh dấu tất cả thông báo chưa đọc của user là đã đọc
+     * Cách hoạt động: Sử dụng query UPDATE để cập nhật tất cả notifications chưa đọc của user
      */
     public void markAllAsRead(User user) {
         notificationRepository.markAllAsRead(user.getId());

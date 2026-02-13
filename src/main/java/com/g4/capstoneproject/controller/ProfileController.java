@@ -170,6 +170,41 @@ public class ProfileController {
     }
 
     /**
+     * GET /api/profile/info - Lấy thông tin cơ bản của user (role, id, name)
+     * Chức năng: API endpoint để lấy thông tin cơ bản của user hiện tại
+     * Cách hoạt động: Lấy userId từ session, query database và trả về thông tin cơ bản
+     */
+    @GetMapping("/api/profile/info")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getProfileInfo(HttpSession session) {
+        try {
+            Long userId = (Long) session.getAttribute("userId");
+            if (userId == null) {
+                return ResponseEntity.status(401).body(Map.of("success", false, "message", "Chưa đăng nhập"));
+            }
+
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                return ResponseEntity.status(404)
+                        .body(Map.of("success", false, "message", "Không tìm thấy người dùng"));
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", user.getId());
+            response.put("role", user.getRole().toString());
+            response.put("fullName", user.getFullName());
+            response.put("email", user.getEmail());
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error getting profile info", e);
+            return ResponseEntity.status(500).body(Map.of(
+                    "success", false,
+                    "message", "Lỗi hệ thống. Vui lòng thử lại sau"));
+        }
+    }
+
+    /**
      * POST /api/profile/update - Cập nhật thông tin cá nhân
      */
     @PostMapping("/api/profile/update")

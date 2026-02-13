@@ -51,6 +51,7 @@
       markAllRead: document.querySelector('[data-mark-all-read]'),
       loadingState: document.querySelector('[data-loading-state]'),
       emptyState: document.querySelector('[data-empty-state]'),
+      viewAllLink: document.getElementById('viewAllNotificationsLink'),
     };
 
     return Object.values(elements).every((el) => el !== null);
@@ -504,6 +505,8 @@
 
   /**
    * Initialize event listeners
+   * Chức năng: Khởi tạo các event listener cho dropdown
+   * Cách hoạt động: Gắn click handler cho trigger, mark all read, và view all link
    */
   function initEventListeners() {
     // Dropdown trigger
@@ -519,6 +522,20 @@
       elements.markAllRead.addEventListener('click', (e) => {
         e.stopPropagation();
         markAllAsRead();
+      });
+    }
+
+    // View all notifications link - dynamic URL based on user role
+    if (elements.viewAllLink) {
+      elements.viewAllLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (window.NotificationHelper) {
+          const url = await window.NotificationHelper.getNotificationsPageUrl();
+          window.location.href = url;
+        } else {
+          // Fallback to patient notifications if helper not loaded
+          window.location.href = '/patient/notifications';
+        }
       });
     }
   }
